@@ -472,6 +472,7 @@ export default function DataInv() {
         onAdd={handleAdd}
         onExport={handleExport}
         onBulkDelete={handleBulkDelete}
+        onStiker={handleStiker}
         pagination={true}
         itemsPerPageOptions={[5, 10, 25, 50]}
         defaultItemsPerPage={10}
