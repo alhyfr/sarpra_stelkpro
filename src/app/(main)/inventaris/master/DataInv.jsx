@@ -11,16 +11,25 @@ import api from "@/app/utils/Api";
 import dayjs from "dayjs";
 import TambahInv from "./TambahInv";
 import { useData } from "@/app/context/DataContext";
-import Vbukti from "./Vbukti";
-import Vgambar from "./Vgambar";
-import Stiker from "./Stiker";
+
+// Dynamic imports untuk komponen yang menggunakan browser APIs
+const ExportModal = dynamic(() => import('@/components/ExportModal'), { ssr: false });
+const Stiker = dynamic(() => import('./Stiker'), { ssr: false });
+const Vbukti = dynamic(() => import('./Vbukti'), { 
+  ssr: false,
+  loading: () => <div className="w-10 h-10 rounded-full bg-gray-200"></div>
+});
+const Vgambar = dynamic(() => import('./Vgambar'), { 
+  ssr: false,
+  loading: () => <div className="w-10 h-10 rounded-full bg-gray-200"></div>
+});
+
 const rupiah = (value) => {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
   }).format(value);
 };
-const ExportModal = dynamic(() => import('@/components/ExportModal'), { ssr: false });
 
 
 export default function DataInv() {
