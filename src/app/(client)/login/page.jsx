@@ -5,61 +5,44 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Mail, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
 import AInput from '@/components/AInput';
-import Loading from '@/components/Loading';
 import Logo from '@/assets/logo.png';
 import Logori from '@/assets/logo_ori.png';
 import Image from 'next/image';
+import { Suspense } from 'react';
 
-export default function Login() {
-  // Ambil fungsi login dan loading state dari AuthContext
-  const { login, isLoading: authLoading, isAuthenticated, isLoading, isRedirecting } = useAuth();
+function LoginContent() {
+  const { login, isLoading: authLoading, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [errors, setErrors] = useState({});
 
-  // Redirect jika sudah login (cek setelah loading selesai)
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       const redirectUrl = searchParams.get('redirect') || '/dashboard';
-      router.replace(redirectUrl); // Gunakan replace instead of push
+      router.replace(redirectUrl);
     }
   }, [isAuthenticated, isLoading, router, searchParams]);
 
-  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Clear previous errors
     setErrors({});
-    
-    // Get redirect URL from query params
     const redirectUrl = searchParams.get('redirect') || '/dashboard';
-    
-    // Panggil fungsi login dari context
     const result = await login(formData.email, formData.password, redirectUrl);
-    
-    // Handle error jika login gagal
     if (!result.success) {
-      setErrors({ 
-        general: result.error || 'Login gagal. Silakan coba lagi.' 
-      });
+      setErrors({ general: result.error || 'Login gagal. Silakan coba lagi.' });
     }
-    // Jika success, otomatis redirect di AuthContext
   };
 
-  // Handle input change
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
-    
-    // Clear error saat user mengetik
     if (errors.general) {
       setErrors({});
     }
@@ -70,7 +53,6 @@ export default function Login() {
       {/* Left Side - Login Form */}
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="w-full max-w-md space-y-8">
-          {/* Logo & Title */}
           <div className="text-center">
             <div className="flex justify-center mb-6">
               <Image src={Logori} alt="Logo" width={100} height={100} />
@@ -82,10 +64,7 @@ export default function Login() {
               Silakan login untuk melanjutkan ke dashboard
             </p>
           </div>
-
-          {/* Login Form */}
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-            {/* Email Input */}
             <AInput
               id="email"
               name="email"
@@ -98,8 +77,6 @@ export default function Login() {
               required
               error={errors.email}
             />
-
-            {/* Password Input */}
             <AInput
               id="password"
               name="password"
@@ -112,8 +89,6 @@ export default function Login() {
               required
               error={errors.password}
             />
-
-            {/* Error Message */}
             {errors.general && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start">
                 <svg className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -122,8 +97,6 @@ export default function Login() {
                 <span className="text-sm">{errors.general}</span>
               </div>
             )}
-
-            {/* Remember Me */}
             <div className="flex items-center">
               <input
                 id="remember-me"
@@ -135,8 +108,6 @@ export default function Login() {
                 Ingat saya
               </label>
             </div>
-
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={authLoading}
@@ -158,22 +129,15 @@ export default function Login() {
               )}
             </button>
           </form>
-          {/* Divider */}
           <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-300"></div></div>
           </div>
         </div>
       </div>
-
       {/* Right Side - Image/Branding */}
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-[#B91C1C] via-[#991B1B] to-[#7F1D1D] items-center justify-center p-12 relative overflow-hidden">
-        {/* Decorative Elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -mr-48 -mt-48"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/5 rounded-full -ml-48 -mb-48"></div>
-        
         <div className="relative z-10 text-white max-w-md">
           <div className="mb-8">
             <Image src={Logo} alt="Logo" width={100} height={100} />
@@ -184,8 +148,6 @@ export default function Login() {
               sistem pengelolaan sarana dan prasarana SMK Telkom Makassar
             </p>
           </div>
-
-          {/* Features */}
           <div className="space-y-4 mt-12">
             <div className="flex items-center space-x-3">
               <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
@@ -215,5 +177,20 @@ export default function Login() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B91C1C] mx-auto mb-4"></div>
+          <p className="text-gray-600">Memuat halaman login...</p>
+        </div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
