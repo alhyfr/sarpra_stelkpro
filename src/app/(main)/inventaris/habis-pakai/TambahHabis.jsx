@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import AInput from "@/components/AInput";
 import AFile from "@/components/AFile";
-import AdatePicker from "@/components/ADatePicker";
+import ADatePicker from "@/components/ADatePicker";
 import ASelect from "@/components/ASelect";
 import DialogInfo from "@/components/DialogInfo";
 import { User, Briefcase } from "lucide-react";
@@ -283,7 +283,7 @@ export default function TambahHabis({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Kolom Kiri */}
         <div className="space-y-4">
-          <AdatePicker
+          <ADatePicker
             id="tgl"
             name="tgl"
             label="TANGGAL TERIMA"
