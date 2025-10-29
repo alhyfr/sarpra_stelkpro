@@ -1,9 +1,11 @@
 "use client";
+import dynamic from 'next/dynamic';
+
 import { useState, useEffect } from "react";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import DeleteModal from "@/components/Delete";
-import ExportModal from "@/components/ExportModal";
+// import ExportModal from "@/components/ExportModal";
 import { Edit, Trash2 } from "lucide-react";
 import api from "@/app/utils/Api";
 import dayjs from "dayjs";
@@ -18,6 +20,9 @@ const rupiah = (value) => {
     currency: "IDR",
   }).format(value);
 };
+const ExportModal = dynamic(() => import('@/components/ExportModal'), { ssr: false });
+
+
 export default function DataInv() {
   const [data, setData] = useState([]); // Data yang ditampilkan di table
   const [total, setTotal] = useState(0); // Total data dari server (untuk pagination)
