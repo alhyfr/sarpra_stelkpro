@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Stelk Property - Sistem Pengelolaan Sarana & Prasarana",
   description: "Sistem pengelolaan sarana dan prasarana SMK Telkom Makassar",
+  icons: {
+    icon: "/icon-ts.svg",
+  },
 };
 
 export default function RootLayout({ children }) {
