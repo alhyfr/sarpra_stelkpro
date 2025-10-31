@@ -9,6 +9,7 @@ import api from "@/app/utils/Api";
 import AddPinbar from "./addPinbar";
 import ImageView from '@/components/ImageView'
 import dayjs from "dayjs";
+import Aswitch from "@/components/Aswitch";
 
 export default function DataBarang() {
   const [data, setData] = useState([]); // Data yang ditampilkan di table
@@ -30,12 +31,14 @@ export default function DataBarang() {
   const [bulkDeleteIds, setBulkDeleteIds] = useState([]); // Array ID yang akan dihapus
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showImageView, setShowImageView] = useState(false);
   const getImageUrl = (filename) => {
     if (!filename) return null    
     if (filename.startsWith('http://') || filename.startsWith('https://')) {
       return filename
     }    
-    const baseURL = process.env.NEXT_PUBLIC_API_STORAGE || 'http://localhost:8000/api'
+    const baseURL = process.env.NEXT_PUBLIC_API_STORAGE || 'http://localhost:3002/api/storage/'
     
     if (filename.startsWith('/')) {
       return `${baseURL}${filename}`
@@ -44,11 +47,11 @@ export default function DataBarang() {
   } 
   // Handler untuk view image
   const handleViewImage = (item) => {
-    const imageUrl = getImageUrl(item.ket)
+    const imageUrl = getImageUrl(item.foto)
     if (imageUrl) {
       setSelectedImage({
         url: imageUrl,
-        title: item.nabar,
+        title: item.nabar || 'Foto Peminjaman Barang',
       })
       setShowImageView(true)
     }
@@ -104,10 +107,40 @@ export default function DataBarang() {
       searchable: true,
       filterable: true,
       filterOptions: [
-        { value: "pinjam", label: "Pinjam" },
-        { value: "kembali", label: "Kembali" },
+        { value: "proses", label: "Pinjam" },
+        { value: "selesai", label: "Kembali" },
       ],
+      render: (value, item) => (
+        <Aswitch
+          value={value}
+          onChange={(newStatus) => handleStatusChange(item, newStatus)}
+          size="sm"
+          onValue="proses"
+          offValue="selesai"
+          showIcons={true}
+          labels={{
+            on: 'Proses',
+            off: 'Selesai'
+          }}
+        />
+      ),
 
+    },
+    {
+      key:"tgl_kembali",
+      title: "Tanggal Kembali",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      type: "dateRange",
+      format: "DD-MM-YYYY",
+      render: (value) => {
+        if (!value || value === "" || value === null) {
+          return <span className="text-gray-500 italic">Belum kembali</span>;
+        }
+        return dayjs(value).format("DD-MM-YYYY");
+      },
+      
     },
     {
       key:"kondisi_kembali",
@@ -117,7 +150,8 @@ export default function DataBarang() {
       filterable: true,
       filterOptions: [
         { value: "baik", label: "Baik" },
-        { value: "rusak", label: "Rusak" },
+        { value: "rusak ringan", label: "Rusak Ringan" },
+        { value: "rusak berat", label: "Rusak Berat" },
       ],
     },
     {
@@ -132,14 +166,36 @@ export default function DataBarang() {
       title: "Foto",
       render: (value, item) => {
         const imageUrl = getImageUrl(value)
-        if (imageUrl) {
-          return <ImageView url={imageUrl} title={item.nabar} />
+        
+        if (!imageUrl) {
+          return (
+            <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 flex items-center justify-center rounded-md">
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                {item.nabar?.charAt(0).toUpperCase() || '?'}
+              </span>
+            </div>
+          )
         }
-        return <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 flex items-center justify-center rounded-md">
-          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-            {item.nabar?.charAt(0).toUpperCase() || '?'}
-          </span>
-        </div>
+        
+        return (
+          <div 
+            className="w-10 h-10 rounded-md overflow-hidden bg-gray-200 dark:bg-gray-700 cursor-pointer hover:ring-2 hover:ring-red-500 transition-all"
+            onClick={() => handleViewImage(item)}
+            title="Klik untuk melihat gambar"
+          >
+            <img
+              src={imageUrl}
+              alt={item.nabar || 'Foto Peminjaman Barang'}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.style.display = 'none'
+                const parent = e.target.parentElement
+                parent.classList.add('flex', 'items-center', 'justify-center', 'dark:bg-gray-700')
+                parent.innerHTML = `<span class="text-xs text-gray-500 dark:text-gray-400 font-medium">${item.nabar?.charAt(0).toUpperCase() || '?'}</span>`
+              }}
+            />
+          </div>
+        )
       }
     },
     {
@@ -217,7 +273,7 @@ export default function DataBarang() {
       } : {}
       
       // Check if we have editingAtk to determine if it's update or create
-      if (editingAtk && editingAtk.id) {    
+      if (editingPinbar && editingPinbar.id) {    
         if (form instanceof FormData) {
           form.append('_method', 'PUT')  // Laravel method spoofing
           response = await api.put(`/sp/pinbar/${editingPinbar.id}`, form, config)
@@ -255,7 +311,7 @@ export default function DataBarang() {
 
     setDeleteLoading(true)
     try {
-      await api.delete(`/sp/pibar/${deletingPinbar.id}`)  // Fix: gunakan id dari object
+      await api.delete(`/sp/pinbar/${deletingPinbar.id}`)  // Fix: gunakan id dari object
       getPinbar()  // Fix: nama function yang benar
       setShowDeleteModal(false)
       setDeletingPinbar(null)  // Fix: nama variable yang benar
@@ -314,6 +370,16 @@ export default function DataBarang() {
   const handleExport = () => {
     setShowExportModal(true)
   }
+  const handleStatusChange = async (item, newStatus) => {
+    try {
+      await api.put(`/sp/pinbar-status/${item.id}`, {
+        status: newStatus,
+      });
+      getPinbar();
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
+  };
   const handleDataChange = (params) => {
     // Update state berdasarkan perubahan dari DataTable
     if (params.page !== undefined) {
@@ -336,8 +402,11 @@ export default function DataBarang() {
     }
 
     // Fetch data dengan params baru
-    getAtk(params)
+    getPinbar(params)
   }
+  useEffect(() => {
+    getPinbar()
+  }, [])
   return (
     <div>
        <DataTable
@@ -406,7 +475,7 @@ export default function DataBarang() {
           title={
             isEditMode ? "Edit Peminjaman Barang" : "Tambah Peminjaman Barang Baru"
           }
-          size="lg"
+          size="xl"
           closeOnOverlayClick={false}
         >
           <AddPinbar
@@ -425,6 +494,16 @@ export default function DataBarang() {
         columns={columns}
         filename="data-Peminjaman-Barang"
         title="Export Data Peminjaman Barang"
+      />
+      <ImageView
+        show={showImageView && selectedImage !== null}
+        onClose={() => {
+          setShowImageView(false)
+          setSelectedImage(null)
+        }}
+        images={selectedImage?.url}
+        title={selectedImage?.title}
+        alt={selectedImage?.title || 'Foto Peminjaman Barang'}
       />
     </div>
   )

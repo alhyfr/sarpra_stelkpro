@@ -74,11 +74,8 @@ export function AuthProvider({ children }) {
       setIsAuthenticated(true)
       
     } catch (error) {
-      console.error('Auth check failed:', error)
-      
       // Jika gagal (token expired/invalid), logout
       logout()
-      
     } finally {
       setIsLoading(false)
     }
@@ -92,21 +89,11 @@ export function AuthProvider({ children }) {
     try {
       setIsLoading(true)
       
-      // Log untuk debugging
-    //   if (process.env.NEXT_PUBLIC_DEBUG === 'true') {
-    //     console.log('Attempting login...', { email, redirectUrl })
-    //   }
-      
       // Panggil API login
       const response = await Api.post('/login', {
         email,
         password
       })
-
-      // Log response untuk debugging
-    //   if (process.env.NEXT_PUBLIC_DEBUG === 'true') {
-    //     console.log('Login response:', response.data)
-    //   }
 
       // Flexible response handling - support berbagai struktur response
       let authToken, userData
@@ -149,16 +136,6 @@ export function AuthProvider({ children }) {
       setUser(userData)
       setIsAuthenticated(true)
 
-      // Log success
-      if (process.env.NEXT_PUBLIC_DEBUG === 'true') {
-        console.log('Login successful, redirecting to:', redirectUrl)
-        console.log('Auth state:', { 
-          token: !!authToken, 
-          user: !!userData, 
-          isAuthenticated: true 
-        })
-      }
-
       // Set redirecting state untuk show loading
       setIsRedirecting(true)
       setRedirectType('login')
@@ -166,8 +143,6 @@ export function AuthProvider({ children }) {
       // PENTING: Gunakan router.replace untuk avoid back button issues
       // Dan tambahkan delay untuk ensure state propagation
       setTimeout(() => {
-        console.log('🚀 Executing redirect to:', redirectUrl)
-        
         // Reset state dulu sebelum redirect
         setTimeout(() => {
           setIsRedirecting(false)
@@ -179,17 +154,13 @@ export function AuthProvider({ children }) {
         // Force reload jika redirect tidak berjalan setelah 500ms
         setTimeout(() => {
           if (window.location.pathname !== redirectUrl) {
-            console.log('⚠️ Redirect failed, forcing navigation')
             window.location.href = redirectUrl
           }
         }, 500)
       }, 800) // 800ms untuk show loading
 
       return { success: true, data: userData }
-      
     } catch (error) {
-      console.error('Login failed:', error)
-      
       // Reset redirecting state on error
       setIsRedirecting(false)
       setRedirectType(null)
@@ -222,19 +193,13 @@ export function AuthProvider({ children }) {
       setIsRedirecting(true)
       setRedirectType('logout')
       
-      // Log untuk debugging
-    //   if (process.env.NEXT_PUBLIC_DEBUG === 'true') {
-    //     console.log('Logging out...')
-    //   }
-      
       // Optional: Panggil API logout jika ada
       // await Api.post('/auth/logout')
       
       // Delay untuk show loading
       await new Promise(resolve => setTimeout(resolve, 800))
-      
     } catch (error) {
-      console.error('Logout error:', error)
+      // Error handling jika ada API logout
     } finally {
       // Clear token dari localStorage DAN cookie
       const tokenKey = process.env.NEXT_PUBLIC_TOKEN_KEY || 'stelk_auth_token'
@@ -257,11 +222,6 @@ export function AuthProvider({ children }) {
         setIsRedirecting(false)
         setRedirectType(null)
       }, 100)
-      
-      // Log success
-    //   if (process.env.NEXT_PUBLIC_DEBUG === 'true') {
-    //     console.log('Logout successful, redirecting to login')
-    //   }
       
       // Redirect ke login
       router.push('/login')
@@ -289,7 +249,6 @@ export function AuthProvider({ children }) {
       setUser(response.data.data)
       return { success: true, data: response.data.data }
     } catch (error) {
-      console.error('Refresh user failed:', error)
       return { success: false, error: error.message }
     }
   }

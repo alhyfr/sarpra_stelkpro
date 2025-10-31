@@ -16,6 +16,7 @@ export const DataProvider = ({ children }) => {
   const [kategoriAset, setKategoriAset] = useState([]);
   const [atkFilter, setAtkFilter] = useState([]);
   const [memberFilter, setMemberFilter] = useState([]);
+  const [pibarFilter, setPibarFilter] = useState([]);
   const getOpsi = useCallback(async () => {
     const response = await Api.get("/sp/opsi");
     setRoles(response.data.roles);
@@ -39,6 +40,10 @@ export const DataProvider = ({ children }) => {
     const response = await Api.get("/sp/opsi/member-filter?search=" + search);
     setMemberFilter(response.data.member || []);
   }, []);
+  const getPibarFilter = useCallback(async (search = "") => {
+    const response = await Api.get("/sp/opsi/pibar-filter?search=" + search);
+    setPibarFilter(response.data.pibar);
+  }, []);
 
   const AtkFilter = useCallback(async (search = "") => {
     try {
@@ -56,6 +61,15 @@ export const DataProvider = ({ children }) => {
       return response.data.member || [];
     } catch (error) {
       console.error('Error fetching Member filter:', error);
+      return [];
+    }
+  }, []);
+  const PibarFilter = useCallback(async (search = "") => {
+    try {
+      const response = await Api.get("/sp/opsi/pibar-filter?search=" + search);
+      return response.data.pibar || [];
+    } catch (error) {
+      console.error('Error fetching Pibar filter:', error);
       return [];
     }
   }, []);
@@ -78,6 +92,9 @@ export const DataProvider = ({ children }) => {
         memberFilter,
         getMemberFilter,
         MemberFilter,
+        pibarFilter,
+        getPibarFilter,
+        PibarFilter,
       }}
     >
       {children}
