@@ -58,10 +58,10 @@ export default function Stiker({
     const ts2Src = getImageSrc(Ts2)
 
     return (
-      <div>
+      <div style={{ color: '#000000' }}>
         {pages.map((pageData, pageIndex) => (
           <div key={pageIndex} style={{ pageBreakAfter: pageIndex < pages.length - 1 ? 'always' : 'auto' }}>
-            <div className="p-4">
+            <div className="p-4" style={{ color: '#000000' }}>
               <div className="grid grid-cols-3 gap-3">
                 {pageData.map((item, index) => {
                   // Safely extract properties dengan nullish coalescing
@@ -90,9 +90,9 @@ export default function Stiker({
                               />
                             </div>
                             <div className="w-[70%]">
-                              <p className="text-[9px] font-medium">NS: {item.kode_sim ?? ''}</p>
-                              <p className="text-[9px]">Tgl: {dayjs(item.tgl).format('DD-MM-YYYY')}</p>
-                              <p className="text-[9px] uppercase font-semibold">
+                              <p className="text-[9px] font-medium" style={{ color: '#000000' }}>NS: {item.kode_sim ?? ''}</p>
+                              <p className="text-[9px]" style={{ color: '#000000' }}>Tgl: {dayjs(item.tgl).format('DD-MM-YYYY')}</p>
+                              <p className="text-[9px] uppercase font-semibold" style={{ color: '#000000' }}>
                                 {gedungText} {item.ruang ?? ''}
                               </p>
                             </div>
@@ -268,9 +268,9 @@ export default function Stiker({
                             />
                           </div>
                           <div className="w-[70%]">
-                            <p className="text-[9px] font-medium">NS: {item.kode_sim ?? ''}</p>
-                            <p className="text-[9px]">Tgl: {dayjs(item.tgl).format('DD-MM-YYYY')}</p>
-                            <p className="text-[9px] uppercase font-semibold">
+                            <p className="text-[9px] font-medium" style={{ color: '#000000' }}>NS: {item.kode_sim ?? ''}</p>
+                            <p className="text-[9px]" style={{ color: '#000000' }}>Tgl: {dayjs(item.tgl).format('DD-MM-YYYY')}</p>
+                            <p className="text-[9px] uppercase font-semibold" style={{ color: '#000000' }}>
                               {gedungText} {item.ruang ?? ''}
                             </p>
                           </div>
