@@ -63,7 +63,7 @@ const menuItems = [
     submenu: [
       { title: 'Barang Pinjaman', href: '/peminjaman/barang-pinjaman' },
       { title: 'Peminjaman Barang', href: '/peminjaman/barang' },
-      { title: 'Peminjaman Ruangan', href: '/ai/code' },
+      { title: 'Peminjaman Ruangan', href: '/peminjaman/ruangan' },
       { title: 'Peminjaman external', href: '/ai/code' },
     ]
   },

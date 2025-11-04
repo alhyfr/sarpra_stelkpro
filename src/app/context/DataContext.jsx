@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
 import Api from "@/app/utils/Api";
 const DataContext = createContext();
 
@@ -74,6 +74,82 @@ export const DataProvider = ({ children }) => {
     }
   }, []);
 
+  // ============================================
+  // WEBSOCKET MANAGEMENT
+  // ============================================
+  const wsRef = useRef(null);
+  const listenersRef = useRef(new Map()); // Map<msgType, Set<callback>>
+
+  // Subscribe to WebSocket message type
+  const subscribeWebSocket = useCallback((msgType, callback) => {
+    if (!listenersRef.current.has(msgType)) {
+      listenersRef.current.set(msgType, new Set());
+    }
+    listenersRef.current.get(msgType).add(callback);
+
+    // Return unsubscribe function
+    return () => {
+      const callbacks = listenersRef.current.get(msgType);
+      if (callbacks) {
+        callbacks.delete(callback);
+        if (callbacks.size === 0) {
+          listenersRef.current.delete(msgType);
+        }
+      }
+    };
+  }, []);
+
+  // Initialize WebSocket connection
+  useEffect(() => {
+    const websocketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'wss://api7.sistelk.id';
+    
+    try {
+      const ws = new WebSocket(websocketUrl);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        // WebSocket connected
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          const callbacks = listenersRef.current.get(msg.type);
+          
+          if (callbacks && callbacks.size > 0) {
+            // Call all registered callbacks for this message type
+            callbacks.forEach(callback => {
+              try {
+                callback(msg);
+              } catch (error) {
+                // Handle callback error silently
+              }
+            });
+          }
+        } catch (error) {
+          // Handle parse error silently
+        }
+      };
+
+      ws.onerror = (error) => {
+        // Handle WebSocket error silently
+      };
+
+      ws.onclose = () => {
+        // WebSocket disconnected, will reconnect on next mount
+      };
+
+      return () => {
+        if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+          ws.close();
+        }
+        wsRef.current = null;
+      };
+    } catch (error) {
+      // Handle WebSocket initialization error silently
+    }
+  }, []);
+
   return (
     <DataContext.Provider
       value={{
@@ -95,6 +171,7 @@ export const DataProvider = ({ children }) => {
         pibarFilter,
         getPibarFilter,
         PibarFilter,
+        subscribeWebSocket,
       }}
     >
       {children}

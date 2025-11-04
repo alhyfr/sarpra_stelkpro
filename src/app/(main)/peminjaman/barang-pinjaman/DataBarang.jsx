@@ -46,6 +46,13 @@ export default function DataBarang() {
       filterable: true,
     },
     {
+      key:'jml',
+      title: "Stok",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+    },
+    {
       key: "status",
       title: "Status",
       sortable: true,

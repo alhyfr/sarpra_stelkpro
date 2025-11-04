@@ -30,10 +30,28 @@ export default function TambahAtk({
     stok_awal: "",
     pic: user?.name || "",
     foto: "",
+    kategori_atk: "",
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState(false); // Kontrol kapan error ditampilkan
+  const kategoriAtkOptions = [
+    { value: "Baterai", label: "Baterai" },
+    { value: "Kertas", label: "Kertas" },
+    { value: "Hekter", label: "Hekter" },
+    { value: "Gunting", label: "Gunting" },
+    { value: "Klip", label: "Klip" },
+    { value: "Pelubang", label: "Pelubang" },
+    { value: "Sticky", label: "Sticky" },
+    { value: "Tinta", label: "Tinta" },
+    { value: "Map", label: "Map" },
+    { value: "Amplop", label: "Amplop" },
+    { value: "Isolasi", label: "Isolasi" },
+    { value: "Lem", label: "Lem" },
+    { value: "Lainnya", label: "Lainya" },
+    { value: "Buku", label: "Buku" },
+    { value: "Tulis", label: "Tulis" },
+  ]
   useEffect(() => {
     if (isEditMode && editingAtk) {
       const toString = (value) => value == null ? "" : String(value)
@@ -45,6 +63,7 @@ export default function TambahAtk({
         satuan: editingAtk.satuan?.satuan || toString(editingAtk.satuan),
         stok_awal: toString(editingAtk.stok_awal),
         pic: toString(editingAtk.pic),
+        kategori_atk: toString(editingAtk.kategori_atk),
         foto: toString(editingAtk.foto),
       });
     }
@@ -116,6 +135,7 @@ export default function TambahAtk({
         submitData.append("satuan", ensureString(formData.satuan));
         submitData.append("stok_awal", ensureString(formData.stok_awal));
         submitData.append("pic", ensureString(formData.pic));
+        submitData.append("kategori_atk", ensureString(formData.kategori_atk));
         submitData.append("foto", formData.foto);
       } else {
         submitData = {
@@ -124,6 +144,7 @@ export default function TambahAtk({
           spec: ensureString(formData.spec),
           satuan: ensureString(formData.satuan),
           stok_awal: ensureString(formData.stok_awal),
+          kategori_atk: ensureString(formData.kategori_atk),
           pic: ensureString(formData.pic),
           foto: formData.foto || null,
         };
@@ -142,6 +163,7 @@ export default function TambahAtk({
         stok_awal: "",
         pic: "",
         foto: "",
+        kategori_atk: "",
       });
 
       setShowErrors(false);
@@ -212,6 +234,16 @@ export default function TambahAtk({
               value={formData.spec}
               onChange={handleInputChange}
               error={showErrors ? errors.spec : ''}
+            />
+            <ASelect
+              id="kategori_atk"
+              name="kategori_atk"
+              label="KATEGORI ATK"
+              placeholder="Pilih kategori ATK"
+              value={formData.kategori_atk}
+              onChange={handleInputChange}
+              error={showErrors ? errors.kategori_atk : ''}
+              options={kategoriAtkOptions}
             />
           </div>
 

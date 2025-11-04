@@ -22,6 +22,7 @@ export default function TambahBarang({
     keterangan: "",
     status: "on",
     kategori: "",
+    jml: 0,
   });
   
   const [loading, setLoading] = useState(false);
@@ -50,6 +51,7 @@ export default function TambahBarang({
         keterangan: editingPinjam.ket || "",
         status: editingPinjam.status || "on",
         kategori: editingPinjam.kategori || "",
+        jml: editingPinjam.jml || 0,
       });
       
       // Set selected nabar for searchable select
@@ -153,7 +155,9 @@ export default function TambahBarang({
     if (!formData.status) {
       newErrors.status = "Status wajib diisi";
     }
-    
+    if (!formData.jml) {
+      newErrors.jml = "Jumlah wajib diisi";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -179,6 +183,7 @@ export default function TambahBarang({
         keterangan: formData.keterangan || "",
         status: formData.status,
         kategori: formData.kategori,
+        jml: formData.jml,
       };
 
       if (postBarangPinjaman) {
@@ -195,6 +200,7 @@ export default function TambahBarang({
         keterangan: "",
         status: "on",
         kategori: "",
+        jml: 0,
       });
 
       setSelectedNabar(null);
@@ -263,6 +269,18 @@ export default function TambahBarang({
               minSearchLength={2}
               noResultsText="Barang tidak ditemukan"
               options={selectedNabar ? [selectedNabar] : []}
+            />
+            <AInput
+              id="jml"
+              name="jml"
+              label="STOK"
+              placeholder="Masukkan jumlah"
+              type="number"
+              min="1"
+              value={formData.jml}
+              onChange={handleInputChange}
+              error={showErrors ? errors.jml : ''}
+              required
             />
           </div>
 

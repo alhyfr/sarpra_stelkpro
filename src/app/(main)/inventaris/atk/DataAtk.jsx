@@ -85,6 +85,13 @@ export default function DataAtk() {
         filterable: true,
     },
     {
+        key:'kategori_atk',
+        title: 'Kategori ATK',
+        sortable: true,
+        searchable: true,
+        filterable: true,
+    },
+    {
         key:'satuan',
         title: 'Satuan',
         sortable: true,

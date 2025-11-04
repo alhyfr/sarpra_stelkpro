@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { useState, useEffect } from "react";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
@@ -6,14 +6,9 @@ import DeleteModal from "@/components/Delete";
 import ExportModal from "@/components/ExportModal";
 import { Edit, Trash2 } from "lucide-react";
 import api from "@/app/utils/Api";
-import AddPinbar from "./addPinbar";
-import ImageView from '@/components/ImageView'
+import TambahPinruangan from "./tambahPinruangan";
 import dayjs from "dayjs";
-import Aswitch from "@/components/Aswitch";
-import { useData } from "@/app/context/DataContext";
-
-export default function DataBarang() {
-  const { subscribeWebSocket } = useData();
+export default function DataRuangan() {
   const [data, setData] = useState([]); // Data yang ditampilkan di table
   const [total, setTotal] = useState(0); // Total data dari server (untuk pagination)
   const [loading, setLoading] = useState(false); // Loading state saat fetch data
@@ -24,44 +19,18 @@ export default function DataBarang() {
   const [sortDirection, setSortDirection] = useState("asc"); // Arah sorting (asc/desc)
   const [filters, setFilters] = useState({});
   const [showAddModal, setShowAddModal] = useState(false); // Modal tambah/edit data
-  const [editingPinbar, setEditingPinbar] = useState(null); // Data yang sedang diedit
+  const [editingPinru, setEditingPinru] = useState(null); // Data yang sedang diedit
   const [isEditMode, setIsEditMode] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false); // Modal konfirmasi hapus
-  const [deletingPinbar, setDeletingPinbar] = useState(null); // Data yang akan dihapus
+  const [deletingPinru, setDeletingPinru] = useState(null); // Data yang akan dihapus
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false); // Modal konfirmasi hapus multiple
   const [bulkDeleteIds, setBulkDeleteIds] = useState([]); // Array ID yang akan dihapus
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [showImageView, setShowImageView] = useState(false);
-  const getImageUrl = (filename) => {
-    if (!filename) return null    
-    if (filename.startsWith('http://') || filename.startsWith('https://')) {
-      return filename
-    }    
-    const baseURL = process.env.NEXT_PUBLIC_API_STORAGE || 'http://localhost:3002/api/storage/'
-    
-    if (filename.startsWith('/')) {
-      return `${baseURL}${filename}`
-    }    
-    return `${baseURL}/${filename}`
-  } 
-  // Handler untuk view image
-  const handleViewImage = (item) => {
-    const imageUrl = getImageUrl(item.foto)
-    if (imageUrl) {
-      setSelectedImage({
-        url: imageUrl,
-        title: item.nabar || 'Foto Peminjaman Barang',
-      })
-      setShowImageView(true)
-    }
-  }
-
   const columns = [
     {
-      key: "tgl_pinjam",
+      key: "tgl",
       title: "Tanggal Pinjam",
       sortable: true,
       searchable: true,
@@ -75,153 +44,83 @@ export default function DataBarang() {
       ],
     },
     {
-      key:"nabar",
-      title: "Nama Barang",
-      sortable: true,
-      searchable: true,
-      filterable: true,
+        key:'peminjam',
+        title: "Peminjam",
+        sortable: true,
+        searchable: true,
+        filterable: true,
     },
     {
-      key:"name",
-      title: "Nama Peminjam",
-      sortable: true,
-      searchable: true,
-      filterable: true,
+        key:'ruangan',
+        title: "Ruangan",
+        sortable: true,
+        searchable: true,
+        filterable: true,
     },
     {
-      key:"kondisi_pinjam",
-      title: "Kondisi Pinjam",
-      sortable: true,
-      searchable: true,
-      filterable: true,
+        key:"kegiatan",
+        title: "Kegiatan",
+        sortable: true,
+        searchable: true,
+        filterable: true,
     },
     {
-      key:"peruntukan",
-      title: "Peruntukan",
-      sortable: true,
-      searchable: true,
-      filterable: true,
+        key:"jam_mulai",
+        title: "Jam Mulai",
+        sortable: true,
+        searchable: true,
+        filterable: true,
     },
     {
-      key:"status",
-      title: "Status",
-      sortable: true,
-      searchable: true,
-      filterable: true,
-      filterOptions: [
-        { value: "proses", label: "Pinjam" },
-        { value: "selesai", label: "Kembali" },
-      ],
-      render: (value, item) => (
-        <Aswitch
-          value={value}
-          onChange={(newStatus) => handleStatusChange(item, newStatus)}
-          size="sm"
-          onValue="proses"
-          offValue="selesai"
-          showIcons={true}
-          labels={{
-            on: 'Proses',
-            off: 'Selesai'
-          }}
-        />
-      ),
-
+        key:"jam_selesai",
+        title: "Jam Selesai",
+        sortable: true,
+        searchable: true,
+        filterable: true,
     },
     {
-      key:"tgl_kembali",
-      title: "Tanggal Kembali",
-      sortable: true,
-      searchable: true,
-      filterable: true,
-      type: "dateRange",
-      format: "DD-MM-YYYY",
-      render: (value) => {
-        if (!value || value === "" || value === null) {
-          return <span className="text-gray-500 italic">Belum kembali</span>;
-        }
-        return dayjs(value).format("DD-MM-YYYY");
-      },
-      
+        key:"status",
+        title: "Status",
+        sortable: true,
+        searchable: true,
+        filterable: true,
+        filterOptions: [
+            { value: "proses", label: "Proses" },
+            { value: "selesai", label: "Selesai" },
+        ],
     },
     {
-      key:"kondisi_kembali",
-      title: "Kondisi Kembali",
-      sortable: true,
-      searchable: true,
-      filterable: true,
-      filterOptions: [
-        { value: "baik", label: "Baik" },
-        { value: "rusak ringan", label: "Rusak Ringan" },
-        { value: "rusak berat", label: "Rusak Berat" },
-      ],
+        key:"tgl_end",
+        title: "Tanggal Selesai",
+        sortable: true,
+        searchable: true,
+        filterable: true,
+        type: "dateRange",
+        format: "DD-MM-YYYY",
+        render: (value) => dayjs(value).format("DD-MM-YYYY"),
     },
     {
-      key:"ket",
-      title: "Keterangan",
-      sortable: true,
-      searchable: true,
-      filterable: true,
-    },
-    {
-      key:"foto",
-      title: "Foto",
-      render: (value, item) => {
-        const imageUrl = getImageUrl(value)
-        
-        if (!imageUrl) {
-          return (
-            <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 flex items-center justify-center rounded-md">
-              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                {item.nabar?.charAt(0).toUpperCase() || '?'}
-              </span>
-            </div>
-          )
-        }
-        
-        return (
-          <div 
-            className="w-10 h-10 rounded-md overflow-hidden bg-gray-200 dark:bg-gray-700 cursor-pointer hover:ring-2 hover:ring-red-500 transition-all"
-            onClick={() => handleViewImage(item)}
-            title="Klik untuk melihat gambar"
-          >
-            <img
-              src={imageUrl}
-              alt={item.nabar || 'Foto Peminjaman Barang'}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.style.display = 'none'
-                const parent = e.target.parentElement
-                parent.classList.add('flex', 'items-center', 'justify-center', 'dark:bg-gray-700')
-                parent.innerHTML = `<span class="text-xs text-gray-500 dark:text-gray-400 font-medium">${item.nabar?.charAt(0).toUpperCase() || '?'}</span>`
-              }}
-            />
-          </div>
-        )
-      }
-    },
-    {
-      key:"actions",
-      title: "Actions",
-      sortable: true,
-      searchable: true,
-      filterable: true,
-      type: "actions",
-      actions: [
-        {
-          icon: Edit,
-          title: "Edit",
-          onClick: (item) => handleEdit(item),
-        },
-        {
-          icon: Trash2,
-          title: "Delete",
-          onClick: (item) => handleDelete(item),
-        },
-      ],
+        key:"actions",
+        title: "Actions",
+        sortable: true,
+        searchable: true,
+        filterable: true,
+        type: "actions",
+        actions: [
+            {
+                icon: Edit,
+                title: "Edit",
+                onClick: (item) => handleEdit(item),
+            },
+            {
+                icon: Trash2,
+                title: "Delete",
+                onClick: (item) => handleDelete(item),
+            },
+        ],
     }
-  ]
-  const getPinbar = async (params = {}, showLoading = true) => {
+  ];
+  const getPinru = async (params = {}, showLoading = true) => {
     try {
       if (showLoading) {
         setLoading(true)
@@ -244,7 +143,7 @@ export default function DataBarang() {
       }
 
       const [response] = await Promise.all([
-        api.get(`/sp/pinbar?${queryParams}`),  
+        api.get(`/sp/pinruangan?${queryParams}`),  
         minLoadingTime
       ])
       
@@ -263,7 +162,7 @@ export default function DataBarang() {
       }
     }
   }
-  const postPinbar = async (form) => {
+  const postPinru = async (form) => {
     try {
       let response
     
@@ -275,21 +174,21 @@ export default function DataBarang() {
       } : {}
       
       // Check if we have editingAtk to determine if it's update or create
-      if (editingPinbar && editingPinbar.id) {    
+      if (editingPinru && editingPinru.id) {    
         if (form instanceof FormData) {
           form.append('_method', 'PUT')  // Laravel method spoofing
-          response = await api.put(`/sp/pinbar/${editingPinbar.id}`, form, config)
+          response = await api.put(`/sp/pinruangan/${editingPinru.id}`, form, config)
         } else {
-          response = await api.put(`/sp/pinbar/${editingPinbar.id}`, form, config)
+          response = await api.put(`/sp/pinruangan/${editingPinru.id}`, form, config)
         }
       } else {
-        response = await api.post('/sp/pinbar', form, config)
+        response = await api.post('/sp/pinruangan', form, config)
       }      
       if (response.data.message === 'success') {
         // Refresh data setelah berhasil
-        getPinbar()
+        getPinru()
         setShowAddModal(false)
-        setEditingPinbar(null)
+        setEditingPinru(null)
         setIsEditMode(false)
         return response.data
       }
@@ -305,18 +204,18 @@ export default function DataBarang() {
     }
   }
   const handleDelete = (item) => {
-    setDeletingPinbar(item)
+    setDeletingPinru(item)
     setShowDeleteModal(true)
   }
   const handleConfirmDelete = async () => {
-    if (!deletingPinbar) return
+    if (!deletingPinru) return
 
     setDeleteLoading(true)
     try {
-      await api.delete(`/sp/pinbar/${deletingPinbar.id}`)  // Fix: gunakan id dari object
-      getPinbar()  // Fix: nama function yang benar
+      await api.delete(`/sp/pinruangan/${deletingPinru.id}`)  // Fix: gunakan id dari object
+      getPinru()  // Fix: nama function yang benar
       setShowDeleteModal(false)
-      setDeletingPinbar(null)  // Fix: nama variable yang benar
+      setDeletingPinru(null)  // Fix: nama variable yang benar
     } catch (error) {
       // Error handling untuk delete
     } finally {
@@ -325,7 +224,7 @@ export default function DataBarang() {
   }
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false)
-    setDeletingPinbar(null)  
+    setDeletingPinru(null)  
     setDeleteLoading(false)
   }
   const handleBulkDelete = (selectedIds) => {
@@ -337,9 +236,9 @@ export default function DataBarang() {
     setBulkDeleteLoading(true)
     try {
       // Delete multiple users
-      const deletePromises = bulkDeleteIds.map(id => api.delete(`/sp/pinbar/${id}`))  // 🔧 GANTI: endpoint delete
+      const deletePromises = bulkDeleteIds.map(id => api.delete(`/sp/pinruangan/${id}`))  // 🔧 GANTI: endpoint delete
       await Promise.all(deletePromises)
-      getPinbar()  
+      getPinru()  
       setShowBulkDeleteModal(false)
       setBulkDeleteIds([])
     } catch (error) {
@@ -349,24 +248,24 @@ export default function DataBarang() {
     }
   }
   const handleAdd = () => {
-    setEditingPinbar(null)  
+    setEditingPinru(null)  
     setIsEditMode(false)
     setShowAddModal(true)
   }
   const handleEdit = (item) => {
-    setEditingPinbar(item)  
+    setEditingPinru(item)  
     setIsEditMode(true)
     setShowAddModal(true)
   }
   const handleCloseAddModal = () => {
     setShowAddModal(false)
-    setEditingPinbar(null)  
+    setEditingPinru(null)  
     setIsEditMode(false)
   }
   const handleAddSuccess = (newAtk) => {
-    getPinbar()  
+    getPinru()  
     setShowAddModal(false)
-    setEditingPinbar(null)  
+    setEditingPinru(null)  
     setIsEditMode(false)
   }
   const handleExport = () => {
@@ -374,10 +273,10 @@ export default function DataBarang() {
   }
   const handleStatusChange = async (item, newStatus) => {
     try {
-      await api.put(`/sp/pinbar-status/${item.id}`, {
+      await api.put(`/sp/pinruangan-status/${item.id}`, {
         status: newStatus,
       });
-      getPinbar();
+      getPinru();
     } catch (error) {
       console.error("Error updating status:", error);
     }
@@ -404,22 +303,14 @@ export default function DataBarang() {
     }
 
     // Fetch data dengan params baru
-    getPinbar(params)
+    getPinru(params)
   }
   useEffect(() => {
-    getPinbar()
+    getPinru()
   }, [])
-  // Subscribe to WebSocket updates
-  useEffect(() => {
-    const unsubscribe = subscribeWebSocket('pinbarUpdated', () => {
-      getPinbar(); // Trigger refresh when pinbar is updated
-    });
-
-    return unsubscribe; // Cleanup on unmount
-  }, [subscribeWebSocket, getPinbar]);
   return (
     <div>
-       <DataTable
+      <DataTable
         data={data}
         total={total}
         loading={loading}
@@ -434,8 +325,8 @@ export default function DataBarang() {
         pagination={true}
         itemsPerPageOptions={[5, 10, 25, 50]}
         defaultItemsPerPage={10}
-        title="Data Peminjaman Barang"
-        subtitle="Kelola data peminjaman barang"
+        title="Data Peminjaman Ruangan"
+        subtitle="Kelola data peminjaman ruangan"
         serverSide={true}
         onDataChange={handleDataChange}
         currentPage={currentPage}
@@ -445,76 +336,66 @@ export default function DataBarang() {
         currentSortField={sortField}
         currentSortDirection={sortDirection}
       />
-       <DeleteModal
+        <DeleteModal
         show={showDeleteModal}
         onClose={handleCloseDeleteModal}
         onConfirm={handleConfirmDelete}
-        title="Hapus Peminjaman Barang"
-        message={`Apakah Anda yakin ingin menghapus "${deletingPinbar?.nabar}"?`}
+        title="Hapus Peminjaman Ruangan"
+        message={`Apakah Anda yakin ingin menghapus "${deletingPinru?.nabar}"?`}
         loading={deleteLoading}
         size="sm"
       />
-       <DeleteModal
+      <DeleteModal
         show={showBulkDeleteModal}
         onClose={() => {
           setShowBulkDeleteModal(false);
           setBulkDeleteIds([]);
         }}
         onConfirm={handleConfirmBulkDelete}
-        title="Hapus Multiple Peminjaman Barang"
-        message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} Peminjaman Barang?`}
+        title="Hapus Multiple Peminjaman Ruangan"
+        message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} Peminjaman Ruangan?`}
         loading={bulkDeleteLoading}
         size="sm"
       />
-       <DeleteModal
+      <DeleteModal
         show={showBulkDeleteModal}
         onClose={() => {
           setShowBulkDeleteModal(false);
           setBulkDeleteIds([]);
         }}
         onConfirm={handleConfirmBulkDelete}
-        title="Hapus Multiple Peminjaman Barang"
-        message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} Peminjaman Barang?`}
+        title="Hapus Multiple Peminjaman Ruangan"
+        message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} Peminjaman Ruangan?`}
         loading={bulkDeleteLoading}
         size="sm"
       />
-      {showAddModal && (
+            {showAddModal && (
         <Modal
           show={showAddModal}
           onClose={handleCloseAddModal}
           title={
-            isEditMode ? "Edit Peminjaman Barang" : "Tambah Peminjaman Barang Baru"
+            isEditMode ? "Edit Peminjaman Ruangan" : "Tambah Peminjaman Ruangan"
           }
           size="xl"
           closeOnOverlayClick={false}
         >
-          <AddPinbar
+          <TambahPinruangan
             onClose={handleCloseAddModal}
             onSuccess={handleAddSuccess}
-            postPinbar={postPinbar}
-            editingPinbar={editingPinbar}
+            postPinru={postPinru}
+            editingPinru={editingPinru}
             isEditMode={isEditMode}
           />
         </Modal>
       )}
-        <ExportModal
+       <ExportModal
         show={showExportModal}
         onClose={() => setShowExportModal(false)}
         data={data}
         columns={columns}
-        filename="data-Peminjaman-Barang"
-        title="Export Data Peminjaman Barang"
-      />
-      <ImageView
-        show={showImageView && selectedImage !== null}
-        onClose={() => {
-          setShowImageView(false)
-          setSelectedImage(null)
-        }}
-        images={selectedImage?.url}
-        title={selectedImage?.title}
-        alt={selectedImage?.title || 'Foto Peminjaman Barang'}
+        filename="data-Peminjaman-Ruangan"
+        title="Export Data Peminjaman Ruangan"
       />
     </div>
-  )
+  );
 }
