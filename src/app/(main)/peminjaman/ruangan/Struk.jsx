@@ -12,14 +12,27 @@ export default function Struk({ data }) {
         contentRef: contentRef,
         pageStyle: `
             @page {
-                size: 55mm 100%;
+                size: 55mm auto;
                 margin: 0;
+                padding: 0;
             }
             @media print {
+                * {
+                    -webkit-print-color-adjust: exact !important;
+                    color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+                html, body {
+                    width: 55mm !important;
+                    min-width: 55mm !important;
+                    max-width: 55mm !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    overflow: visible !important;
+                }
                 body {
-                    width: 50mm;
-                    margin: 0;
-                    padding: 0;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                 }
             }
         `,
@@ -61,16 +74,20 @@ export default function Struk({ data }) {
             {/* Struk Content */}
             <div 
                 ref={contentRef}
-                className="bg-white border border-gray-300 mx-auto print:border-none print:shadow-none"
+                className="bg-white border border-gray-300 mx-auto my-10 print:border-none print:shadow-none"
                 style={{ 
                     fontFamily: 'monospace',
                     fontSize: '12px',
                     lineHeight: '1.4',
-                    width: '50mm',
-                    maxWidth: '50mm',
+                    width: '55mm',
+                    minWidth: '55mm',
+                    maxWidth: '55mm',
                     padding: '8px',
                     margin: '0 auto',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    marginTop: '10px',
+                    marginBottom: '100px'
+
                 }}
             >
                 {/* Header */}
@@ -149,6 +166,23 @@ export default function Struk({ data }) {
                 @media print {
                     .no-print {
                         display: none !important;
+                    }
+                    @page {
+                        size: 55mm auto !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+                    html, body {
+                        width: 55mm !important;
+                        min-width: 55mm !important;
+                        max-width: 55mm !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+                    body * {
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
                     }
                 }
             `}</style>
