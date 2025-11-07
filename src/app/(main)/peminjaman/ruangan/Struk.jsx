@@ -6,26 +6,35 @@ import { useRef } from "react";
 import dayjs from "dayjs";
 
 export default function Struk({ data }) {
-    const componentRef = useRef(null);
+    const contentRef = useRef(null);
     
     const handlePrint = useReactToPrint({
-        contentRef: componentRef,
+        contentRef: contentRef,
         pageStyle: `
             @page {
-                size: 55mm auto;
+                size: 55mm 100%;
                 margin: 0;
             }
             @media print {
                 body {
-                    -webkit-print-color-adjust: exact;
-                    color-adjust: exact;
-                    width: 55mm;
+                    width: 50mm;
                     margin: 0;
                     padding: 0;
-                    overflow: hidden;
                 }
             }
-        `
+        `,
+        onBeforeGetContent: () => {
+            // Memastikan ref sudah terpasang sebelum print
+            if (!contentRef.current) {
+                console.warn('Content ref not available');
+                return Promise.resolve();
+            }
+            return Promise.resolve();
+        },
+        onAfterPrint: () => {
+            // Callback setelah print selesai - memastikan print berhenti
+            console.log('Print completed');
+        }
     });
 
     if (!data) {
@@ -36,7 +45,7 @@ export default function Struk({ data }) {
         );
     }
 
-  return (
+    return (
         <div className="p-4">
             {/* Print Button */}
             <div className="mb-4 flex justify-end no-print">
@@ -51,13 +60,14 @@ export default function Struk({ data }) {
 
             {/* Struk Content */}
             <div 
-                ref={componentRef}
+                ref={contentRef}
                 className="bg-white border border-gray-300 mx-auto print:border-none print:shadow-none"
                 style={{ 
                     fontFamily: 'monospace',
                     fontSize: '12px',
                     lineHeight: '1.4',
-                    width: '55mm',
+                    width: '50mm',
+                    maxWidth: '50mm',
                     padding: '8px',
                     margin: '0 auto',
                     boxSizing: 'border-box'
@@ -140,16 +150,8 @@ export default function Struk({ data }) {
                     .no-print {
                         display: none !important;
                     }
-                    .print-content {
-                        font-family: monospace !important;
-                        font-size: 12px !important;
-                        line-height: 1.4 !important;
-                        width: 55mm !important;
-                        margin: 0 !important;
-                        padding: 10px !important;
-                    }
                 }
             `}</style>
-    </div>
-  )
+        </div>
+    )
 }
