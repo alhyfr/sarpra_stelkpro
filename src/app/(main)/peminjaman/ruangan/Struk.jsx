@@ -6,33 +6,23 @@ import { useRef } from "react";
 import dayjs from "dayjs";
 
 export default function Struk({ data }) {
-    const contentRef = useRef(null);
+    const componentRef = useRef();
     
     const handlePrint = useReactToPrint({
-        contentRef: contentRef,
+        contentRef: componentRef,
         pageStyle: `
             @page {
                 size: 55mm auto;
                 margin: 10mm 0 10mm 0;
-                padding: 0;
             }
             @media print {
-                * {
-                    -webkit-print-color-adjust: exact !important;
-                    color-adjust: exact !important;
-                    print-color-adjust: exact !important;
-                }
-                html, body {
-                    width: 55mm !important;
-                    min-width: 55mm !important;
-                    max-width: 55mm !important;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    overflow: visible !important;
-                }
                 body {
-                    -webkit-print-color-adjust: exact !important;
-                    print-color-adjust: exact !important;
+                    -webkit-print-color-adjust: exact;
+                    color-adjust: exact;
+                    width: 55mm;
+                    margin: 0;
+                    padding: 0;
+                    overflow: hidden;
                 }
             }
         `
@@ -61,18 +51,15 @@ export default function Struk({ data }) {
 
             {/* Struk Content */}
             <div 
-                ref={contentRef}
-                className="bg-white border border-gray-300 mx-auto my-10 print:border-none print:shadow-none print-content"
+                ref={componentRef}
+                className="bg-white border border-gray-300 mx-auto print:border-none print:shadow-none"
                 style={{ 
                     fontFamily: 'monospace',
                     fontSize: '12px',
                     lineHeight: '1.4',
                     width: '55mm',
-                    minWidth: '55mm',
-                    maxWidth: '55mm',
                     padding: '8px',
-                    margin: '0 auto',
-                    boxSizing: 'border-box'
+                    margin: '0 auto'
                 }}
             >
                 {/* Header */}
@@ -152,28 +139,13 @@ export default function Struk({ data }) {
                     .no-print {
                         display: none !important;
                     }
-                    @page {
-                        size: 55mm auto !important;
-                        margin: 10mm 0 10mm 0 !important;
-                        padding: 0 !important;
-                    }
-                    html, body {
-                        width: 55mm !important;
-                        min-width: 55mm !important;
-                        max-width: 55mm !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                    }
                     .print-content {
-                        margin-top: 0 !important;
-                        margin-bottom: 0 !important;
-                        padding-top: 0 !important;
-                        padding-bottom: 0 !important;
-                    }
-                    body * {
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                        color-adjust: exact !important;
+                        font-family: monospace !important;
+                        font-size: 12px !important;
+                        line-height: 1.4 !important;
+                        width: 55mm !important;
+                        margin: 0 !important;
+                        padding: 8px !important;
                     }
                 }
             `}</style>
