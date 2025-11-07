@@ -17,6 +17,7 @@ export const DataProvider = ({ children }) => {
   const [atkFilter, setAtkFilter] = useState([]);
   const [memberFilter, setMemberFilter] = useState([]);
   const [pibarFilter, setPibarFilter] = useState([]);
+  const[ruanganFilter, setRuanganFilter] = useState([]);
   const getOpsi = useCallback(async () => {
     const response = await Api.get("/sp/opsi");
     setRoles(response.data.roles);
@@ -70,6 +71,19 @@ export const DataProvider = ({ children }) => {
       return response.data.pibar || [];
     } catch (error) {
       console.error('Error fetching Pibar filter:', error);
+      return [];
+    }
+  }, []);
+  const getRuanganFilter = useCallback(async (search = "") => {
+    const response = await Api.get("/sp/opsi/ruangan-filter?search=" + search);
+    setRuanganFilter(response.data.ruangan);
+  }, []);
+  const RuanganFilter = useCallback(async (search = "") => {
+    try {
+      const response = await Api.get("/sp/opsi/ruangan-filter?search=" + search);
+      return response.data.ruangan || [];
+    } catch (error) {
+      console.error('Error fetching Ruangan filter:', error);
       return [];
     }
   }, []);
@@ -172,6 +186,9 @@ export const DataProvider = ({ children }) => {
         getPibarFilter,
         PibarFilter,
         subscribeWebSocket,
+        ruanganFilter,
+        getRuanganFilter,
+        RuanganFilter,
       }}
     >
       {children}
