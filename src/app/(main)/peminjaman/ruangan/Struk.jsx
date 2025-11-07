@@ -52,13 +52,7 @@ export default function Struk({ data }) {
             <div className="mb-4 flex justify-end no-print">
                 <Button 
                     icon={Printer} 
-                    onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (contentRef.current) {
-                            handlePrint();
-                        }
-                    }}
+                    onClick={handlePrint}
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                     Cetak Struk
@@ -150,7 +144,6 @@ export default function Struk({ data }) {
                         </p>
                     </div>
                 </div>
-                
             </div>
 
             {/* Print Styles */}
@@ -172,10 +165,10 @@ export default function Struk({ data }) {
                         padding: 0 !important;
                     }
                     .print-content {
-                        margin-top: 10mm !important;
-                        margin-bottom: 10mm !important;
-                        padding-top: 5mm !important;
-                        padding-bottom: 5mm !important;
+                        margin-top: 0 !important;
+                        margin-bottom: 0 !important;
+                        padding-top: 0 !important;
+                        padding-bottom: 0 !important;
                     }
                     body * {
                         -webkit-print-color-adjust: exact !important;
