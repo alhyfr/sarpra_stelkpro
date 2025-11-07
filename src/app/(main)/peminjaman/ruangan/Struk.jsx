@@ -13,7 +13,7 @@ export default function Struk({ data }) {
         pageStyle: `
             @page {
                 size: 55mm auto;
-                margin: 10mm 0 10mm 0;
+                margin: 15mm 0 15mm 0;
             }
             @media print {
                 body {

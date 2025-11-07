@@ -32,7 +32,7 @@ const menuItems = [
     submenu: [
       { title: 'Aset Tetap', href: '/inventaris/master' },
       { title: 'ATK', href: '/inventaris/atk' },
-      { title: 'Barang Habis Pakai', href: '/inventaris/habis-pakai'},
+      { title: 'Barang Non ATK', href: '/inventaris/habis-pakai'},
       {title: 'Aset Pending', href:'/inventaris/pending'}
     ]
   },

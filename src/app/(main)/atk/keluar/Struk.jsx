@@ -13,8 +13,8 @@ export default function Struk({ data }) {
         documentTitle: `Struk-ATK-Keluar-${data?.id || 'unknown'}`,
         pageStyle: `
             @page {
-                size: 50mm 100%;
-                margin: 0.5in;
+                size: 50mm auto;
+                margin: 15mm 0 15mm 0;
             }
             @media print {
                 body {
