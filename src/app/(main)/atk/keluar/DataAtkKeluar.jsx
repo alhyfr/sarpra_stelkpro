@@ -34,6 +34,7 @@ export default function DataAtkKeluar() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showStrukModal, setShowStrukModal] = useState(false);
   const [selectedAtkOut, setSelectedAtkOut] = useState(null);
+  const { subscribeWebSocket } = useData();
 
   const columns = [
     {
@@ -374,6 +375,13 @@ export default function DataAtkKeluar() {
   useEffect(() => {
     getAtkOut();
   }, []);
+  useEffect(() => {
+    const unsubscribe = subscribeWebSocket('atkPinjamUpdated', () => {
+      getAtkOut(); // Trigger refresh when pinbar is updated
+    });
+
+    return unsubscribe; // Cleanup on unmount
+  }, [subscribeWebSocket, getAtkOut]);
   return (
     <div>
       <DataTable

@@ -4,10 +4,13 @@ import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import DeleteModal from "@/components/Delete";
 import ExportModal from "@/components/ExportModal";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Printer } from "lucide-react";
 import api from "@/app/utils/Api";
 import TambahPinruangan from "./tambahPinruangan";
 import dayjs from "dayjs";
+import Struk from "./Struk";
+import Aswitch from "@/components/Aswitch";
+import { useData } from "@/app/context/DataContext";
 export default function DataRuangan() {
   const [data, setData] = useState([]); // Data yang ditampilkan di table
   const [total, setTotal] = useState(0); // Total data dari server (untuk pagination)
@@ -28,6 +31,9 @@ export default function DataRuangan() {
   const [bulkDeleteIds, setBulkDeleteIds] = useState([]); // Array ID yang akan dihapus
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showStrukModal, setShowStrukModal] = useState(false);
+  const [selectedPinru, setSelectedPinru] = useState(null);
+  const { subscribeWebSocket } = useData();
   const columns = [
     {
       key: "tgl",
@@ -86,8 +92,22 @@ export default function DataRuangan() {
         filterable: true,
         filterOptions: [
             { value: "proses", label: "Proses" },
-            { value: "selesai", label: "Selesai" },
+            { value: "konfirmasi", label: "Konfirmasi" },
         ],
+        render: (value, item) => {
+          return <Aswitch
+            value={value}
+            onChange={(newStatus) => handleStatusChange(item, newStatus)}
+            size="sm"
+            onValue="konfirmasi"
+            offValue="proses"
+            showIcons={true}
+            labels={{
+              on: 'Konfirmasi',
+              off: 'Proses'
+            }}
+          />
+        }
     },
     {
         key:"tgl_end",
@@ -97,7 +117,13 @@ export default function DataRuangan() {
         filterable: true,
         type: "dateRange",
         format: "DD-MM-YYYY",
-        render: (value) => dayjs(value).format("DD-MM-YYYY"),
+        render: (value) => {
+          if (!value || value === "" || value === null) {
+            return <span className="text-gray-500 italic">None</span>;
+          }
+          return dayjs(value).format("DD-MM-YYYY");
+        }
+
     },
     {
         key:"actions",
@@ -107,6 +133,12 @@ export default function DataRuangan() {
         filterable: true,
         type: "actions",
         actions: [
+            {
+                icon: Printer,
+                title: "Struk",
+                onClick: (item) => handleStruk(item),
+                show: (item) => item.status === 'konfirmasi',
+            },
             {
                 icon: Edit,
                 title: "Edit",
@@ -271,6 +303,14 @@ export default function DataRuangan() {
   const handleExport = () => {
     setShowExportModal(true)
   }
+  const handleStruk = (item) => {
+    setSelectedPinru(item);
+    setShowStrukModal(true);
+  };
+  const handleCloseStrukModal = () => {
+    setShowStrukModal(false);
+    setSelectedPinru(null);
+  };
   const handleStatusChange = async (item, newStatus) => {
     try {
       await api.put(`/sp/pinruangan-status/${item.id}`, {
@@ -308,6 +348,14 @@ export default function DataRuangan() {
   useEffect(() => {
     getPinru()
   }, [])
+
+  useEffect(() => {
+    const unsubscribe = subscribeWebSocket('pinruanganUpdated', () => {
+      getPinru(); // Trigger refresh when pinruangan is updated
+    });
+
+    return unsubscribe; // Cleanup on unmount
+  }, [subscribeWebSocket]);
   return (
     <div>
       <DataTable
@@ -341,20 +389,8 @@ export default function DataRuangan() {
         onClose={handleCloseDeleteModal}
         onConfirm={handleConfirmDelete}
         title="Hapus Peminjaman Ruangan"
-        message={`Apakah Anda yakin ingin menghapus "${deletingPinru?.nabar}"?`}
+        message={`Apakah Anda yakin ingin menghapus peminjaman ruangan "${deletingPinru?.ruangan}" oleh "${deletingPinru?.peminjam}"?`}
         loading={deleteLoading}
-        size="sm"
-      />
-      <DeleteModal
-        show={showBulkDeleteModal}
-        onClose={() => {
-          setShowBulkDeleteModal(false);
-          setBulkDeleteIds([]);
-        }}
-        onConfirm={handleConfirmBulkDelete}
-        title="Hapus Multiple Peminjaman Ruangan"
-        message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} Peminjaman Ruangan?`}
-        loading={bulkDeleteLoading}
         size="sm"
       />
       <DeleteModal
@@ -396,6 +432,17 @@ export default function DataRuangan() {
         filename="data-Peminjaman-Ruangan"
         title="Export Data Peminjaman Ruangan"
       />
+      {showStrukModal && (
+        <Modal
+          show={showStrukModal}
+          onClose={handleCloseStrukModal}
+          title="Struk Peminjaman Ruangan"
+          size="lg"
+          closeOnOverlayClick={false}
+        >
+          <Struk data={selectedPinru} />
+        </Modal>
+      )}
     </div>
   );
 }
