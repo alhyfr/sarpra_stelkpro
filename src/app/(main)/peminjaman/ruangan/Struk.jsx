@@ -6,21 +6,20 @@ import { useRef } from "react";
 import dayjs from "dayjs";
 
 export default function Struk({ data }) {
-    const componentRef = useRef();
+    const componentRef = useRef(null);
     
     const handlePrint = useReactToPrint({
         contentRef: componentRef,
-        documentTitle: `Struk-Peminjaman-Ruangan-${data?.id || 'unknown'}`,
         pageStyle: `
             @page {
-                size: 50mm 100%;
-                margin: 0.5in;
+                size: 55mm auto;
+                margin: 0;
             }
             @media print {
                 body {
                     -webkit-print-color-adjust: exact;
                     color-adjust: exact;
-                    width: 50mm;
+                    width: 55mm;
                     margin: 0;
                     padding: 0;
                     overflow: hidden;
@@ -37,7 +36,7 @@ export default function Struk({ data }) {
         );
     }
 
-    return (
+  return (
         <div className="p-4">
             {/* Print Button */}
             <div className="mb-4 flex justify-end no-print">
@@ -56,36 +55,37 @@ export default function Struk({ data }) {
                 className="bg-white border border-gray-300 mx-auto print:border-none print:shadow-none"
                 style={{ 
                     fontFamily: 'monospace',
-                    fontSize: '10px',
-                    lineHeight: '1.2',
-                    width: '50mm',
+                    fontSize: '12px',
+                    lineHeight: '1.4',
+                    width: '55mm',
                     padding: '8px',
-                    margin: '0 auto'
+                    margin: '0 auto',
+                    boxSizing: 'border-box'
                 }}
             >
                 {/* Header */}
                 <div className="text-center mb-3">
-                    <h1 className="text-lg font-bold mb-1">{data.ruangan}</h1>
+                    <h1 className="text-base font-bold mb-1">{data.ruangan}</h1>
                     <div className="border-t border-b border-gray-400 py-1">
-                        <p className="font-semibold text-xs">IT,LAB & SARPRA</p>
-                        <p className="font-semibold text-[10px]">SMK Telkom Makassar</p>
+                        <p className="font-semibold text-sm">IT,LAB & SARPRA</p>
+                        <p className="font-semibold text-xs">SMK Telkom Makassar</p>
                     </div>
                 </div>
 
                 {/* Detail Transaksi */}
                 <div className="mb-2">
                     <div className="flex justify-between mb-1">
-                        <span className="text-xs">No. Transaksi:</span>
-                        <span className="font-semibold text-xs">#{data.id}</span>
+                        <span className="text-sm">No. Transaksi:</span>
+                        <span className="font-semibold text-sm">#{data.id}</span>
                     </div>
                     <div className="flex justify-between mb-1">
-                        <span className="text-xs">Tanggal Pinjam:</span>
-                        <span className="text-xs">{dayjs(data.tgl).format('DD-MM-YYYY')}</span>
+                        <span className="text-sm">Tanggal Pinjam:</span>
+                        <span className="text-sm">{dayjs(data.tgl).format('DD-MM-YYYY')}</span>
                     </div>
                     {data.tgl_end && (
                         <div className="flex justify-between mb-1">
-                            <span className="text-xs">Tanggal Selesai:</span>
-                            <span className="text-xs">{dayjs(data.tgl_end).format('DD-MM-YYYY')}</span>
+                            <span className="text-sm">Tanggal Selesai:</span>
+                            <span className="text-sm">{dayjs(data.tgl_end).format('DD-MM-YYYY')}</span>
                         </div>
                     )}
                 </div>
@@ -95,27 +95,26 @@ export default function Struk({ data }) {
 
                 {/* Detail Peminjaman */}
                 <div className="mb-2">
-                    <h3 className="font-semibold mb-1 text-xs">DETAIL PEMINJAMAN:</h3>
+                    <h3 className="font-semibold mb-1 text-sm">DETAIL PEMINJAMAN:</h3>
                     <div className="bg-gray-50 p-2 rounded">
                         <div className="mb-1">
-                            <span className="font-semibold text-xs">Peminjam:</span>
-                            <p className="ml-0 mt-0 text-xs break-words">{data.peminjam}</p>
+                            <span className="font-semibold text-sm">Peminjam:</span>
+                            <p className="ml-0 mt-0 text-sm break-words">{data.peminjam}</p>
                         </div>
                         <div className="mb-1">
-                            <span className="font-semibold text-xs">Ruangan:</span>
-                            <p className="ml-0 mt-0 text-xs break-words">{data.ruangan}</p>
+                            <span className="font-semibold text-sm">Ruangan:</span>
+                            <p className="ml-0 mt-0 text-sm break-words">{data.ruangan}</p>
                         </div>
                         <div className="mb-1">
-                            <span className="font-semibold text-xs">Kegiatan:</span>
-                            <p className="ml-0 mt-0 text-xs break-words">{data.kegiatan}</p>
+                            <span className="font-semibold text-sm">Kegiatan:</span>
+                            <p className="ml-0 mt-0 text-sm break-words">{data.kegiatan}</p>
                         </div>
                         <div className="mb-1">
-                            <span className="font-semibold text-xs">Jam:</span>
-                            <p className="ml-0 mt-0 text-xs">
+                            <span className="font-semibold text-sm">Jam:</span>
+                            <p className="ml-0 mt-0 text-sm">
                                 {data.jam_mulai} - {data.jam_selesai}
                             </p>
                         </div>
-                        
                     </div>
                 </div>
 
@@ -143,14 +142,14 @@ export default function Struk({ data }) {
                     }
                     .print-content {
                         font-family: monospace !important;
-                        font-size: 10px !important;
-                        line-height: 1.2 !important;
-                        width: 50mm !important;
+                        font-size: 12px !important;
+                        line-height: 1.4 !important;
+                        width: 55mm !important;
                         margin: 0 !important;
-                        padding: 8px !important;
+                        padding: 10px !important;
                     }
                 }
             `}</style>
-        </div>
-    )
+    </div>
+  )
 }
