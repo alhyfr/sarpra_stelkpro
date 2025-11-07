@@ -35,19 +35,7 @@ export default function Struk({ data }) {
                     print-color-adjust: exact !important;
                 }
             }
-        `,
-        onBeforeGetContent: () => {
-            // Memastikan ref sudah terpasang sebelum print
-            if (!contentRef.current) {
-                console.warn('Content ref not available');
-                return Promise.resolve();
-            }
-            return Promise.resolve();
-        },
-        onAfterPrint: () => {
-            // Callback setelah print selesai - memastikan print berhenti
-            console.log('Print completed');
-        }
+        `
     });
 
     if (!data) {
@@ -64,7 +52,13 @@ export default function Struk({ data }) {
             <div className="mb-4 flex justify-end no-print">
                 <Button 
                     icon={Printer} 
-                    onClick={handlePrint}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (contentRef.current) {
+                            handlePrint();
+                        }
+                    }}
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                     Cetak Struk
