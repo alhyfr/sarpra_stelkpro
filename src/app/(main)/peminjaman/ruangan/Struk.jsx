@@ -13,7 +13,7 @@ export default function Struk({ data }) {
         pageStyle: `
             @page {
                 size: 55mm auto;
-                margin: 0;
+                margin: 10mm 0 10mm 0;
                 padding: 0;
             }
             @media print {
@@ -74,7 +74,7 @@ export default function Struk({ data }) {
             {/* Struk Content */}
             <div 
                 ref={contentRef}
-                className="bg-white border border-gray-300 mx-auto my-10 print:border-none print:shadow-none"
+                className="bg-white border border-gray-300 mx-auto my-10 print:border-none print:shadow-none print-content"
                 style={{ 
                     fontFamily: 'monospace',
                     fontSize: '12px',
@@ -84,15 +84,12 @@ export default function Struk({ data }) {
                     maxWidth: '55mm',
                     padding: '8px',
                     margin: '0 auto',
-                    boxSizing: 'border-box',
-                    marginTop: '10px',
-                    marginBottom: '100px'
-
+                    boxSizing: 'border-box'
                 }}
             >
                 {/* Header */}
                 <div className="text-center mb-3">
-                    <h1 className="text-base font-bold mb-1">{data.ruangan}</h1>
+                    <h1 className="text-base font-bold mb-1">++++</h1>
                     <div className="border-t border-b border-gray-400 py-1">
                         <p className="font-semibold text-sm">IT,LAB & SARPRA</p>
                         <p className="font-semibold text-xs">SMK Telkom Makassar</p>
@@ -130,7 +127,7 @@ export default function Struk({ data }) {
                         </div>
                         <div className="mb-1">
                             <span className="font-semibold text-sm">Ruangan:</span>
-                            <p className="ml-0 mt-0 text-sm break-words">{data.ruangan}</p>
+                            <p className="ml-0 mt-0 text-lg font-bold break-words">{data.ruangan}</p>
                         </div>
                         <div className="mb-1">
                             <span className="font-semibold text-sm">Kegiatan:</span>
@@ -159,6 +156,7 @@ export default function Struk({ data }) {
                         </p>
                     </div>
                 </div>
+                
             </div>
 
             {/* Print Styles */}
@@ -169,7 +167,7 @@ export default function Struk({ data }) {
                     }
                     @page {
                         size: 55mm auto !important;
-                        margin: 0 !important;
+                        margin: 10mm 0 10mm 0 !important;
                         padding: 0 !important;
                     }
                     html, body {
@@ -178,6 +176,12 @@ export default function Struk({ data }) {
                         max-width: 55mm !important;
                         margin: 0 !important;
                         padding: 0 !important;
+                    }
+                    .print-content {
+                        margin-top: 10mm !important;
+                        margin-bottom: 10mm !important;
+                        padding-top: 5mm !important;
+                        padding-bottom: 5mm !important;
                     }
                     body * {
                         -webkit-print-color-adjust: exact !important;
