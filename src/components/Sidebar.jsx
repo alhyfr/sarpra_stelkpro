@@ -64,7 +64,7 @@ const menuItems = [
       { title: 'Barang Pinjaman', href: '/peminjaman/barang-pinjaman' },
       { title: 'Peminjaman Barang', href: '/peminjaman/barang' },
       { title: 'Peminjaman Ruangan', href: '/peminjaman/ruangan' },
-      { title: 'Peminjaman external', href: '/ai/code' },
+      { title: 'Peminjaman external', href: '/peminjaman/eksternal' },
     ]
   },
   {

@@ -18,6 +18,8 @@ export const DataProvider = ({ children }) => {
   const [memberFilter, setMemberFilter] = useState([]);
   const [pibarFilter, setPibarFilter] = useState([]);
   const[ruanganFilter, setRuanganFilter] = useState([]);
+  const [waka,setWaka] = useState("");
+  const [teams,setTeams] = useState([]);
   const getOpsi = useCallback(async () => {
     const response = await Api.get("/sp/opsi");
     setRoles(response.data.roles);
@@ -27,7 +29,14 @@ export const DataProvider = ({ children }) => {
     setGedung(response.data.gedung);
     setKategoriAset(response.data.kategoriAset);
   }, []);
-
+  const getWaka = async () => {
+    const response = await Api.get("/sp/teams");
+    setTeams(response.data.data);
+    const waka = response.data.data.find(item => item.jabatan === 'WAKASEK IT, LAB & SARPRA');
+    if (waka) {
+      setWaka(waka);
+    }
+  };
   const getRuanganByGedung = useCallback(async (gedungId) => {
     const response = await Api.get(`/sp/opsi/ruangan/${gedungId}`);
     setRuangan(response.data.ruangan);
@@ -163,6 +172,7 @@ export const DataProvider = ({ children }) => {
       // Handle WebSocket initialization error silently
     }
   }, []);
+ 
 
   return (
     <DataContext.Provider
@@ -189,6 +199,8 @@ export const DataProvider = ({ children }) => {
         ruanganFilter,
         getRuanganFilter,
         RuanganFilter,
+        waka,
+        getWaka,
       }}
     >
       {children}
