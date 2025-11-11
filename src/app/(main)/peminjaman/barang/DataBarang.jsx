@@ -82,6 +82,13 @@ export default function DataBarang() {
       filterable: true,
     },
     {
+      key:"jml",
+      title: "jml",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+    },
+    {
       key:"name",
       title: "Nama Peminjam",
       sortable: true,
