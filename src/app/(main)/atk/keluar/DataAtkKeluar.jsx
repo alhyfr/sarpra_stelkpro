@@ -34,7 +34,7 @@ export default function DataAtkKeluar() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showStrukModal, setShowStrukModal] = useState(false);
   const [selectedAtkOut, setSelectedAtkOut] = useState(null);
-  const { subscribeWebSocket } = useData();
+  // const { subscribeWebSocket } = useData();
 
   const columns = [
     {
