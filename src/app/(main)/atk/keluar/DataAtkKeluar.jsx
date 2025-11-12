@@ -375,13 +375,13 @@ export default function DataAtkKeluar() {
   useEffect(() => {
     getAtkOut();
   }, []);
-  useEffect(() => {
-    const unsubscribe = subscribeWebSocket('atkPinjamUpdated', () => {
-      getAtkOut(); // Trigger refresh when pinbar is updated
-    });
+  // useEffect(() => {
+  //   const unsubscribe = subscribeWebSocket('atkPinjamUpdated', () => {
+  //     getAtkOut(); // Trigger refresh when pinbar is updated
+  //   });
 
-    return unsubscribe; // Cleanup on unmount
-  }, [subscribeWebSocket, getAtkOut]);
+  //   return unsubscribe; // Cleanup on unmount
+  // }, [subscribeWebSocket, getAtkOut]);
   return (
     <div>
       <DataTable
