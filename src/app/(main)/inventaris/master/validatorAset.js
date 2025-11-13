@@ -11,8 +11,6 @@ const validateAsetForm = (formData) => {
   // ============================================
   if (!formData.kode || !formData.kode.trim()) {
     errors.kode = 'Kode aset wajib diisi'
-  } else if (formData.kode.trim().length < 3) {
-    errors.kode = 'Kode aset minimal 3 karakter'
   }
   
   // ============================================
@@ -20,9 +18,7 @@ const validateAsetForm = (formData) => {
   // ============================================
   if (!formData.desc || !formData.desc.trim()) {
     errors.desc = 'Deskripsi aset wajib diisi'
-  } else if (formData.desc.trim().length < 5) {
-    errors.desc = 'Deskripsi minimal 5 karakter'
-  }
+  } 
   
   // ============================================
   // 3. VALIDASI SPESIFIKASI (Optional)
@@ -76,9 +72,7 @@ const validateAsetForm = (formData) => {
     const jumlah = parseFloat(formData.jml)
     if (isNaN(jumlah)) {
       errors.jml = 'Jumlah harus berupa angka'
-    } else if (jumlah < 1) {
-      errors.jml = 'Jumlah minimal 1'
-    }
+    } 
   }
   
   // ============================================
@@ -98,22 +92,20 @@ const validateAsetForm = (formData) => {
     const harga = parseFloat(formData.harga)
     if (isNaN(harga)) {
       errors.harga = 'Harga harus berupa angka'
-    } else if (harga < 0) {
-      errors.harga = 'Harga tidak boleh negatif'
-    }
+    } 
   }
   
   // ============================================
   // 13. VALIDASI TANGGAL (Required, Valid Date)
   // ============================================
-  if (!formData.tgl || !formData.tgl.trim()) {
-    errors.tgl = 'Tanggal wajib diisi'
-  } else {
-    const tanggal = new Date(formData.tgl)
-    if (isNaN(tanggal.getTime())) {
-      errors.tgl = 'Format tanggal tidak valid'
-    }
-  }
+  // if (!formData.tgl || !formData.tgl.trim()) {
+  //   errors.tgl = 'Tanggal wajib diisi'
+  // } else {
+  //   const tanggal = new Date(formData.tgl)
+  //   if (isNaN(tanggal.getTime())) {
+  //     errors.tgl = 'Format tanggal tidak valid'
+  //   }
+  // }
   
   // ============================================
   // 14. VALIDASI SUMBER DANA ID (Required)
@@ -146,9 +138,7 @@ const validateAsetForm = (formData) => {
   // ============================================
   if (!formData.pic || !formData.pic.trim()) {
     errors.pic = 'PIC wajib diisi'
-  } else if (formData.pic.trim().length < 3) {
-    errors.pic = 'Nama PIC minimal 3 karakter'
-  }
+  } 
   
   // ============================================
   // 19. VALIDASI KODE YPT (Optional)
