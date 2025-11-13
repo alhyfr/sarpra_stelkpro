@@ -20,6 +20,7 @@
     "react-dom": "19.1.0",
     "react-qr-code": "^2.0.18",
     "react-to-print": "^3.2.0",
+    "validate.js": "^0.13.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

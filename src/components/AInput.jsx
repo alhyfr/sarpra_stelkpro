@@ -31,7 +31,9 @@ export default function AInput({
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
   
   // Determine validation state
-  const isInvalid = touched && error;
+  // Error ditampilkan jika ada error (tidak perlu menunggu touched)
+  // Ini memungkinkan error langsung terlihat saat form di-submit
+  const isInvalid = error && error.trim() !== '';
   const isValid = touched && valid && !error && value;
   
   // Handle blur to mark as touched

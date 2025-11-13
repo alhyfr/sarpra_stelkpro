@@ -6,9 +6,8 @@ import ASelect from "@/components/ASelect";
 import AFile from "@/components/AFile";
 import ARadio from "@/components/ARadio";
 import ADatePicker from "@/components/ADatePicker";
-
 import Button from "@/components/Button";
-import { validateAsetForm } from "./validatorAset";
+import { validateAsetForm } from "@/app/utils/validator";
 import {
   User,
   IdCard,
@@ -163,12 +162,27 @@ export default function TambahInv({
   // ============================================
   // VALIDASI FORM
   // ============================================
+  /**
+   * Fungsi untuk memvalidasi form sebelum submit
+   * Menggunakan validateAsetForm dari utils/validator.js
+   * yang menggunakan library validate.js
+   * 
+   * @returns {boolean} - true jika valid, false jika ada error
+   */
   const validateForm = () => {
-    // Gunakan validator dari file terpisah
+    // Validasi menggunakan fungsi dari utils/validator.js
+    // Fungsi ini menggunakan library validate.js
     const newErrors = validateAsetForm(formData);
 
-    // console.log('🔍 Validation errors:', newErrors)
+    // Debug: log errors untuk melihat apakah validasi bekerja
+    if (Object.keys(newErrors).length > 0) {
+      console.log('Validation errors:', newErrors);
+    }
+
+    // Set errors ke state
     setErrors(newErrors);
+    
+    // Return true jika tidak ada error (object kosong)
     return Object.keys(newErrors).length === 0;
   };
   const handleSubmit = async (e) => {
@@ -352,7 +366,6 @@ export default function TambahInv({
               value={formData.kode}
               onChange={handleInputChange}
               error={showErrors ? errors.kode : ""}
-              required
             />
             <AInput
               id="desc"
@@ -455,6 +468,7 @@ export default function TambahInv({
               placeholder="Masukkan Jumlah"
               value={formData.jml}
               onChange={handleInputChange}
+              error={showErrors ? errors.jml : ""}
               readOnly
               className="bg-gray-100 dark:bg-gray-700"
             />
@@ -594,6 +608,7 @@ export default function TambahInv({
               placeholder="Nama PIC"
               value={formData.pic}
               onChange={handleInputChange}
+              error={showErrors ? errors.pic : ""}
               readOnly
               className="bg-gray-100 dark:bg-gray-700"
             />

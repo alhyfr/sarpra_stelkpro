@@ -23,7 +23,9 @@ const ADatePicker = ({
 }) => {
   const [touched, setTouched] = useState(false);
   
-  const isInvalid = touched && error;
+  // Error ditampilkan jika ada error (tidak perlu menunggu touched)
+  // Ini memungkinkan error langsung terlihat saat form di-submit
+  const isInvalid = error && error.trim() !== '';
   
   // Handle blur to mark as touched
   const handleBlur = (e) => {
@@ -149,7 +151,7 @@ const ADatePicker = ({
         /* Sembunyikan calendar picker indicator default dan buat klikable */
         input[type="date"]::-webkit-calendar-picker-indicator {
           cursor: pointer;
-          opacity: 0;
+            opacity: 0;
           position: absolute;
           right: 0;
           width: 100%;
@@ -212,8 +214,8 @@ const ADatePicker = ({
 
         /* Styling untuk calendar popup (Chrome/Edge) - mempercantik popup */
         input[type="date"]::-webkit-calendar-picker-indicator:hover {
-          opacity: 0;
-        }
+            opacity: 0;
+          }
 
         /* Firefox - color scheme */
         input[type="date"] {
