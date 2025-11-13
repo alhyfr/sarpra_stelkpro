@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from "react";
 import AInput from "@/components/AInput";
-import ADatePicker from "@/components/ADatePicker";
 import ASelect from "@/components/ASelect";
 import AFile from "@/components/AFile";
 import ARadio from "@/components/ARadio";
+import ADatePicker from "@/components/ADatePicker";
 
 import Button from "@/components/Button";
 import { validateAsetForm } from "./validatorAset";
-import { 
+import {
   User,
   IdCard,
   NotepadText,
@@ -22,7 +22,7 @@ import {
   Building2,
   House,
   Barcode,
-  Hash 
+  Hash,
 } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 export default function TambahInv({
@@ -38,8 +38,8 @@ export default function TambahInv({
   kategoriAset = [],
   getRuanganByGedung = null,
 }) {
-    const { user } = useAuth();
-    const [formData, setFormData] = useState({
+  const { user } = useAuth();
+  const [formData, setFormData] = useState({
     kode: "",
     desc: "",
     spec: "",
@@ -67,7 +67,7 @@ export default function TambahInv({
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState(false);
   const [availableRuangan, setAvailableRuangan] = useState([]);
-  
+
   useEffect(() => {
     if (isEditMode && editingInv) {
       setFormData({
@@ -111,32 +111,32 @@ export default function TambahInv({
     }
   }, [isEditMode, editingInv?.gedung_id, getRuanganByGedung]);
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
-    
+      [name]: value,
+    }));
+
     // Clear error when user starts typing (jika showErrors aktif)
     if (showErrors && errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
-      }))
+        [name]: "",
+      }));
     }
 
     // Handle gedung change - fetch ruangan
-    if (name === 'gedung_id' && value && getRuanganByGedung) {
+    if (name === "gedung_id" && value && getRuanganByGedung) {
       // Reset ruang selection when gedung changes
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        ruang: ''
+        ruang: "",
       }));
-      
+
       // Fetch ruangan for selected gedung
       getRuanganByGedung(value);
     }
-  }
+  };
   // Handle file upload
   const handleFileChange = (e) => {
     const { name, value } = e.target;
@@ -153,177 +153,175 @@ export default function TambahInv({
       }));
     }
   };
-// Handle file remove
-const handleFileRemove = () => {
-    setFormData(prev => ({
+  // Handle file remove
+  const handleFileRemove = () => {
+    setFormData((prev) => ({
       ...prev,
-      foto: null
-    }))
-  }
-      // ============================================
-      // VALIDASI FORM
-      // ============================================
-      const validateForm = () => {
-        // Gunakan validator dari file terpisah
-        const newErrors = validateAsetForm(formData)
-        
-        // console.log('🔍 Validation errors:', newErrors)
-        setErrors(newErrors)
-        return Object.keys(newErrors).length === 0
-      }
-      const handleSubmit = async (e) => {
-        e.preventDefault()
-        
-        
-        // Set showErrors ke true untuk menampilkan error
-        setShowErrors(true)
-        
-        if (!validateForm()) {
-          // console.log('Validation failed:', errors)
-          return
+      foto: null,
+    }));
+  };
+  // ============================================
+  // VALIDASI FORM
+  // ============================================
+  const validateForm = () => {
+    // Gunakan validator dari file terpisah
+    const newErrors = validateAsetForm(formData);
+
+    // console.log('🔍 Validation errors:', newErrors)
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Set showErrors ke true untuk menampilkan error
+    setShowErrors(true);
+
+    if (!validateForm()) {
+      // console.log('Validation failed:', errors)
+      return;
+    }
+
+    setLoading(true);
+    setErrors({});
+    setShowErrors(false); // Reset setelah validasi sukses
+
+    try {
+      // Jika ada foto baru (File object), gunakan FormData untuk multipart upload
+      let submitData;
+
+      if (formData.gambar instanceof File || formData.bukti instanceof File) {
+        // Create FormData untuk file upload
+        submitData = new FormData();
+        submitData.append("kode", formData.kode);
+        submitData.append("desc", formData.desc);
+        submitData.append("spec", formData.spec);
+        submitData.append("gedung_id", formData.gedung_id);
+        submitData.append("ruang", formData.ruang);
+        submitData.append("noseri", formData.noseri);
+        submitData.append("merk", formData.merk);
+        submitData.append("type", formData.type);
+        submitData.append("color", formData.color);
+        submitData.append("status", formData.status);
+        submitData.append("pic", formData.pic);
+        submitData.append("kode_ypt", formData.kode_ypt);
+        submitData.append("kode_sim", formData.kode_sim);
+        submitData.append("ket", formData.ket);
+        submitData.append("kategori", formData.kategori);
+        submitData.append("tgl", formData.tgl);
+        submitData.append("sumber_dana_id", formData.sumber_dana_id);
+        submitData.append("harga", formData.harga);
+        submitData.append("satuan", formData.satuan);
+        submitData.append("jml", formData.jml);
+
+        // File objects (only append if they are File instances)
+        if (formData.bukti instanceof File) {
+          submitData.append("bukti", formData.bukti);
+        } else if (formData.bukti) {
+          // Existing file URL - send as string
+          submitData.append("bukti", formData.bukti);
         }
-    
-        setLoading(true)
-        setErrors({})
-        setShowErrors(false) // Reset setelah validasi sukses
-        
-        try {
-          // Jika ada foto baru (File object), gunakan FormData untuk multipart upload
-          let submitData
-          
-          if (formData.gambar instanceof File || formData.bukti instanceof File) {
-            // Create FormData untuk file upload
-            submitData = new FormData()
-            submitData.append('kode', formData.kode)
-            submitData.append('desc', formData.desc)
-            submitData.append('spec', formData.spec)
-            submitData.append('gedung_id', formData.gedung_id)
-            submitData.append('ruang', formData.ruang)
-            submitData.append('noseri', formData.noseri)
-            submitData.append('merk', formData.merk)
-            submitData.append('type', formData.type)
-            submitData.append('color', formData.color)
-            submitData.append('status', formData.status)
-            submitData.append('pic', formData.pic)
-            submitData.append('kode_ypt', formData.kode_ypt)
-            submitData.append('kode_sim', formData.kode_sim)
-            submitData.append('ket', formData.ket)
-            submitData.append('kategori', formData.kategori)
-            submitData.append('tgl', formData.tgl)
-            submitData.append('sumber_dana_id', formData.sumber_dana_id)
-            submitData.append('harga', formData.harga)
-            submitData.append('satuan', formData.satuan)
-            submitData.append('jml', formData.jml)
-            
-             // File objects (only append if they are File instances)
-            if (formData.bukti instanceof File) {
-              submitData.append('bukti', formData.bukti)
-            } else if (formData.bukti) {
-              // Existing file URL - send as string
-              submitData.append('bukti', formData.bukti)
-            }
-            
-            if (formData.gambar instanceof File) {
-              submitData.append('gambar', formData.gambar)
-            } else if (formData.gambar) {
-              // Existing file URL - send as string
-              submitData.append('gambar', formData.gambar)
-            }
-      
-          } else {
-            // Regular JSON data (no new files uploaded)
-            submitData = {
-                kode: formData.kode,
-                desc: formData.desc,
-                spec: formData.spec,
-                gedung_id: formData.gedung_id,
-                ruang: formData.ruang,
-                noseri: formData.noseri,
-                merk: formData.merk,
-                type: formData.type,
-                color: formData.color,
-                jml: formData.jml,
-                satuan: formData.satuan,
-                harga: formData.harga,
-                tgl: formData.tgl,
-                sumber_dana_id: formData.sumber_dana_id,
-                bukti: formData.bukti || null, // Include existing file URL or null
-                gambar: formData.gambar || null, // Include existing file URL or null
-                status: formData.status,
-                pic: formData.pic,
-                kode_ypt: formData.kode_ypt,
-                kode_sim: formData.kode_sim,
-                ket: formData.ket,
-                kategori: formData.kategori,
-            }
-            
-            
-          }
-    
-          // console.log('🔧 postInv function exists:', !!postInv)
-          
-          // Fix: gunakan postTeam bukan postUser
-          if (postInv) {
-            await postInv(submitData)
-          } else {
-            throw new Error('postInv function not provided')
-          }
-          
-          // Reset form
-          setFormData({
-            kode: "",
-            desc: "",
-            spec: "",
-            gedung_id: "",
-            ruang: "",
-            noseri: "",
-            merk: "",
-            type: "",
-            color: "",
-            jml: "1",
-            satuan: "",
-            harga: "",
-            tgl: "",
-            sumber_dana_id: "",
-            bukti: "",
-            gambar: "",
-            status: "",
-            pic: "",
-            kode_ypt: "",
-            kode_sim: "",
-            ket: "",
-            kategori: "",
-          })
-          
-          // Reset available ruangan
-          setAvailableRuangan([])
-          
-          // Reset error state
-          setShowErrors(false)
-          setErrors({})
-          
-          if (onSuccess) onSuccess(submitData)
-          if (onClose) onClose()
-          
-        } catch (error) {
-          console.error('Error saving aset:', error)
-          
-          // Handle field-specific errors (like duplicate kode)
-          if (error.field) {
-            setErrors(prev => ({
-              ...prev,
-              [error.field]: error.message
-            }))
-            setShowErrors(true)
-          } else {
-            // Show general error via alert
-            const errorMessage = error.response?.data?.message || error.message || 'Terjadi kesalahan saat menyimpan data'
-            alert(errorMessage)
-          }
-        } finally {
-          setLoading(false)
+
+        if (formData.gambar instanceof File) {
+          submitData.append("gambar", formData.gambar);
+        } else if (formData.gambar) {
+          // Existing file URL - send as string
+          submitData.append("gambar", formData.gambar);
         }
+      } else {
+        // Regular JSON data (no new files uploaded)
+        submitData = {
+          kode: formData.kode,
+          desc: formData.desc,
+          spec: formData.spec,
+          gedung_id: formData.gedung_id,
+          ruang: formData.ruang,
+          noseri: formData.noseri,
+          merk: formData.merk,
+          type: formData.type,
+          color: formData.color,
+          jml: formData.jml,
+          satuan: formData.satuan,
+          harga: formData.harga,
+          tgl: formData.tgl,
+          sumber_dana_id: formData.sumber_dana_id,
+          bukti: formData.bukti || null, // Include existing file URL or null
+          gambar: formData.gambar || null, // Include existing file URL or null
+          status: formData.status,
+          pic: formData.pic,
+          kode_ypt: formData.kode_ypt,
+          kode_sim: formData.kode_sim,
+          ket: formData.ket,
+          kategori: formData.kategori,
+        };
       }
+
+      // console.log('🔧 postInv function exists:', !!postInv)
+
+      // Fix: gunakan postTeam bukan postUser
+      if (postInv) {
+        await postInv(submitData);
+      } else {
+        throw new Error("postInv function not provided");
+      }
+
+      // Reset form
+      setFormData({
+        kode: "",
+        desc: "",
+        spec: "",
+        gedung_id: "",
+        ruang: "",
+        noseri: "",
+        merk: "",
+        type: "",
+        color: "",
+        jml: "1",
+        satuan: "",
+        harga: "",
+        tgl: "",
+        sumber_dana_id: "",
+        bukti: "",
+        gambar: "",
+        status: "",
+        pic: "",
+        kode_ypt: "",
+        kode_sim: "",
+        ket: "",
+        kategori: "",
+      });
+
+      // Reset available ruangan
+      setAvailableRuangan([]);
+
+      // Reset error state
+      setShowErrors(false);
+      setErrors({});
+
+      if (onSuccess) onSuccess(submitData);
+      if (onClose) onClose();
+    } catch (error) {
+      console.error("Error saving aset:", error);
+
+      // Handle field-specific errors (like duplicate kode)
+      if (error.field) {
+        setErrors((prev) => ({
+          ...prev,
+          [error.field]: error.message,
+        }));
+        setShowErrors(true);
+      } else {
+        // Show general error via alert
+        const errorMessage =
+          error.response?.data?.message ||
+          error.message ||
+          "Terjadi kesalahan saat menyimpan data";
+        alert(errorMessage);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -342,7 +340,7 @@ const handleFileRemove = () => {
               placeholder="Pilih Tanggal"
               value={formData.tgl}
               onChange={handleInputChange}
-              error={showErrors ? errors.tgl : ''}
+              error={showErrors ? errors.tgl : ""}
               required
             />
             <AInput
@@ -353,7 +351,7 @@ const handleFileRemove = () => {
               placeholder="Masukkan Kode Aset"
               value={formData.kode}
               onChange={handleInputChange}
-              error={showErrors ? errors.kode : ''}
+              error={showErrors ? errors.kode : ""}
               required
             />
             <AInput
@@ -364,7 +362,7 @@ const handleFileRemove = () => {
               placeholder="Masukkan Deskripsi"
               value={formData.desc}
               onChange={handleInputChange}
-              error={showErrors ? errors.desc : ''}
+              error={showErrors ? errors.desc : ""}
               required
             />
           </div>
@@ -420,7 +418,7 @@ const handleFileRemove = () => {
               placeholder="Masukkan Spesifikasi"
               value={formData.spec}
               onChange={handleInputChange}
-              error={showErrors ? errors.spec : ''}
+              error={showErrors ? errors.spec : ""}
             />
             <AInput
               id="merk"
@@ -468,9 +466,9 @@ const handleFileRemove = () => {
               placeholder="Pilih Satuan"
               value={formData.satuan}
               onChange={handleInputChange}
-              error={showErrors ? errors.satuan : ''}
+              error={showErrors ? errors.satuan : ""}
               required
-              options={satuan.map(item => ({
+              options={satuan.map((item) => ({
                 value: item.satuan,
                 label: item.satuan,
               }))}
@@ -492,7 +490,7 @@ const handleFileRemove = () => {
               placeholder="Masukkan Harga"
               value={formData.harga}
               onChange={handleInputChange}
-              error={showErrors ? errors.harga : ''}
+              error={showErrors ? errors.harga : ""}
               required
             />
             <ASelect
@@ -503,9 +501,9 @@ const handleFileRemove = () => {
               placeholder="Pilih Sumber Dana"
               value={formData.sumber_dana_id}
               onChange={handleInputChange}
-              error={showErrors ? errors.sumber_dana_id : ''}
+              error={showErrors ? errors.sumber_dana_id : ""}
               required
-              options={dana.map(item => ({
+              options={dana.map((item) => ({
                 value: item.id,
                 label: item.sumber,
               }))}
@@ -527,9 +525,9 @@ const handleFileRemove = () => {
               placeholder="Pilih Gedung"
               value={formData.gedung_id}
               onChange={handleInputChange}
-              error={showErrors ? errors.gedung_id : ''}
+              error={showErrors ? errors.gedung_id : ""}
               required
-              options={gedung.map(item => ({
+              options={gedung.map((item) => ({
                 value: item.id,
                 label: item.gedung,
               }))}
@@ -542,10 +540,10 @@ const handleFileRemove = () => {
               placeholder="Pilih Ruangan"
               value={formData.ruang}
               onChange={handleInputChange}
-              error={showErrors ? errors.ruang : ''}
+              error={showErrors ? errors.ruang : ""}
               required
               disabled={!formData.gedung_id}
-              options={availableRuangan.map(item => ({
+              options={availableRuangan.map((item) => ({
                 value: item.ruangan,
                 label: item.ruangan,
               }))}
@@ -607,11 +605,11 @@ const handleFileRemove = () => {
               placeholder="Pilih Kategori"
               value={formData.kategori}
               onChange={handleInputChange}
-              options={kategoriAset.map(item => ({
+              options={kategoriAset.map((item) => ({
                 value: item.kategori,
                 label: item.kategori,
               }))}
-              error={showErrors ? errors.kategori : ''}
+              error={showErrors ? errors.kategori : ""}
               required
             />
             <div className="md:col-span-2">
@@ -631,11 +629,11 @@ const handleFileRemove = () => {
               label="Status"
               value={formData.status}
               onChange={handleInputChange}
-              error={showErrors ? errors.status : ''}
+              error={showErrors ? errors.status : ""}
               required
               options={[
-                { value: 'on', label: 'ON' },
-                { value: 'off', label: 'OFF' },
+                { value: "on", label: "ON" },
+                { value: "off", label: "OFF" },
               ]}
             />
           </div>
@@ -644,7 +642,7 @@ const handleFileRemove = () => {
         {/* Submit Button */}
         <div className="flex justify-end pt-4">
           <Button type="submit" loading={loading} className="px-8">
-            {isEditMode ? 'Update Aset' : 'Simpan Aset'}
+            {isEditMode ? "Update Aset" : "Simpan Aset"}
           </Button>
         </div>
       </form>
