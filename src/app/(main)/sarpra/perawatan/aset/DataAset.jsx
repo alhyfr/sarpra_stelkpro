@@ -1,146 +1,139 @@
-'use client'
-import { useState, useEffect } from 'react'
-import DataTable from '@/components/DataTable';
-import Modal from '@/components/Modal'
-import DeleteModal from '@/components/Delete'
-import ExportModal from '@/components/ExportModal'
-import { Edit, Trash2 } from 'lucide-react'
-import api from '@/app/utils/Api'
-import TambahAtk from './TambahAtk'
-import ImageView from '@/components/ImageView'
-import { useData } from '@/app/context/DataContext'
-
-export default function DataAtk() {
-  const [data, setData] = useState([])           // Data yang ditampilkan di table
-  const [total, setTotal] = useState(0)         // Total data dari server (untuk pagination)
-  const [loading, setLoading] = useState(false) // Loading state saat fetch data
-  const [currentPage, setCurrentPage] = useState(1)     // Halaman aktif
-  const [itemsPerPage, setItemsPerPage] = useState(10) // Jumlah item per halaman
-  const [searchTerm, setSearchTerm] = useState('')      // Kata kunci pencarian
-  const [sortField, setSortField] = useState('')       // Field yang di-sort
-  const [sortDirection, setSortDirection] = useState('asc') // Arah sorting (asc/desc)
-  const [filters, setFilters] = useState({})
-  const [showAddModal, setShowAddModal] = useState(false)     // Modal tambah/edit data
-  const [editingAtk, setEditingAtk] = useState(null)        // Data yang sedang diedit
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [showDeleteModal, setShowDeleteModal] = useState(false)     // Modal konfirmasi hapus
-  const [deletingAtk, setDeletingAtk] = useState(null)           // Data yang akan dihapus
-  const [deleteLoading, setDeleteLoading] = useState(false)
-  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false) // Modal konfirmasi hapus multiple
-  const [bulkDeleteIds, setBulkDeleteIds] = useState([])               // Array ID yang akan dihapus
-  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false)
-  const [showExportModal, setShowExportModal] = useState(false)
-  const [showImageView, setShowImageView] = useState(false)            // Image viewer modal
-  const [selectedImage, setSelectedImage] = useState(null)
-  const {
-    satuan,
-    getOpsi,
-  } = useData();
+"use client";
+import { useState, useEffect } from "react";
+import DataTable from "@/components/DataTable";
+import Modal from "@/components/Modal";
+import DeleteModal from "@/components/Delete";
+import ExportModal from "@/components/ExportModal";
+import { Edit, Trash2 } from "lucide-react";
+import api from "@/app/utils/Api";
+import ImageView from "@/components/ImageView";
+import dayjs from "dayjs";
+import Aswitch from "@/components/Aswitch";
+import { useData } from "@/app/context/DataContext";
+import AddPaset from "./AddPaset";
+export default function DataAset() {
+  const { subscribeWebSocket } = useData();
+  const [data, setData] = useState([]); // Data yang ditampilkan di table
+  const [total, setTotal] = useState(0); // Total data dari server (untuk pagination)
+  const [loading, setLoading] = useState(false); // Loading state saat fetch data
+  const [currentPage, setCurrentPage] = useState(1); // Halaman aktif
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Jumlah item per halaman
+  const [searchTerm, setSearchTerm] = useState(""); // Kata kunci pencarian
+  const [sortField, setSortField] = useState(""); // Field yang di-sort
+  const [sortDirection, setSortDirection] = useState("asc"); // Arah sorting (asc/desc)
+  const [filters, setFilters] = useState({});
+  const [showAddModal, setShowAddModal] = useState(false); // Modal tambah/edit data
+  const [editingPaset, setEditingPaset] = useState(null); // Data yang sedang diedit
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // Modal konfirmasi hapus
+  const [deletingPaset, setDeletingPaset] = useState(null); // Data yang akan dihapus
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false); // Modal konfirmasi hapus multiple
+  const [bulkDeleteIds, setBulkDeleteIds] = useState([]); // Array ID yang akan dihapus
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showImageView, setShowImageView] = useState(false);
   const getImageUrl = (filename) => {
-    if (!filename) return null
-
-    if (filename.startsWith('http://') || filename.startsWith('https://')) {
-      return filename
+    if (!filename) return null;
+    if (filename.startsWith("http://") || filename.startsWith("https://")) {
+      return filename;
     }
+    const baseURL =
+      process.env.NEXT_PUBLIC_API_STORAGE ||
+      "http://localhost:3002/api/storage/";
 
-    const baseURL = process.env.NEXT_PUBLIC_API_STORAGE || 'http://localhost:8000/api'
-
-    if (filename.startsWith('/')) {
-      return `${baseURL}${filename}`
+    if (filename.startsWith("/")) {
+      return `${baseURL}${filename}`;
     }
-
-    return `${baseURL}/${filename}`
-  }
-  // Handler untuk view image
+    return `${baseURL}/${filename}`;
+  };
   const handleViewImage = (item) => {
-    const imageUrl = getImageUrl(item.ket)
+    const imageUrl = getImageUrl(item.gambar);
     if (imageUrl) {
       setSelectedImage({
         url: imageUrl,
-        title: item.nabar,
-      })
-      setShowImageView(true)
+        title: item.nabar || "Foto Aset",
+      });
+      setShowImageView(true);
     }
-  }
+  };
   const columns = [
     {
-      key: 'kode',
-      title: 'Kode',
+      key: "kode",
+      title: "Kode Barang",
       sortable: true,
       searchable: true,
       filterable: true,
     },
     {
-      key: 'nabar',
-      title: 'Nama Barang',
+      key: "desc",
+      title: "Nama Barang",
       sortable: true,
       searchable: true,
       filterable: true,
     },
     {
-      key: 'spec',
-      title: 'Spesifikasi',
+      key: "ruang",
+      title: "Lokasi",
       sortable: true,
       searchable: true,
       filterable: true,
     },
     {
-      key: 'kategori_atk',
-      title: 'Kategori ATK',
+      key: "jenis_kerusakan",
+      title: "Jenis Kerusakan",
       sortable: true,
       searchable: true,
       filterable: true,
     },
     {
-      key: 'satuan',
-      title: 'Satuan',
+      key: "tgl_masuk",
+      title: "Tanggal Masuk",
       sortable: true,
       searchable: true,
       filterable: true,
-      render: (value) => {
-        if (typeof value === 'object' && value !== null) {
-          return value.satuan || '-'
-        }
-        return value || '-'
-      },
-      filter: (value) => {
-        if (typeof value === 'object' && value !== null) {
-          return value.satuan
-        }
-        return value
-      },
-      filterOptions: satuan.map((item) => ({
-        value: item.satuan,
-        label: item.satuan,
-      })),
+      type: "dateRange",
+      format: "DD-MM-YYYY",
+      render: (value) => dayjs(value).format("DD-MM-YYYY"),
+      filterOptions: [
+        { value: "last3Months", label: "3 Bulan Terakhir" },
+        { value: "custom", label: "Custom Range" },
+      ],
     },
     {
-      key: 'stok_awal',
-      title: 'Stok Awal',
+      key: "tindakan",
+      title: "Tindakan",
+      sortable: true,
+      searchable: true,
+      wrap: true,
+      minWidth: "200px",
+    },
+    {
+      key: "tgl_selesai",
+      title: "Tanggal Selesai",
       sortable: true,
       searchable: true,
       filterable: true,
+      format: "DD-MM-YYYY",
+      render: (value) => value ? dayjs(value).format("DD-MM-YYYY") : "Dalam Proses",
     },
+
     {
-      key: 'stok_akhir',
-      title: 'Stok Akhir',
+      key: "status",
+      title: "Status",
       sortable: true,
       searchable: true,
       filterable: true,
-      render: (value) => {
-        // API mengembalikan object dengan struktur: {id, kode, nabar, stok_awal, total_masuk, total_keluar, stok_tersedia}
-        if (typeof value === 'object' && value !== null) {
-          return value.stok_tersedia ?? '-'
-        }
-        return value || '-'
-      },
+      filterOptions: [
+        { value: "proses", label: "Proses" },
+        { value: "selesai", label: "Selesai" },
+        { value: "terjadwal", label: "Terjadwal" },
+      ],
     },
     {
-      key: 'ket',
-      title: 'Foto',
-      sortable: false,
-      searchable: false,
-      filterable: false,
+      key: "gambar",
+      title: "Gambar",
       render: (value, item) => {
         const imageUrl = getImageUrl(value)
 
@@ -148,7 +141,7 @@ export default function DataAtk() {
           return (
             <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 flex items-center justify-center rounded-md">
               <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                {item.nabar?.charAt(0).toUpperCase() || '?'}
+                {item.desc?.charAt(0).toUpperCase() || '?'}
               </span>
             </div>
           )
@@ -162,7 +155,7 @@ export default function DataAtk() {
           >
             <img
               src={imageUrl}
-              alt={item.nabar || 'Foto ATK'}
+              alt={item.desc || 'Foto Peminjaman Barang'}
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.target.style.display = 'none'
@@ -176,40 +169,27 @@ export default function DataAtk() {
       }
     },
     {
-      key: 'actions',
-      title: 'Actions',
+      key: "actions",
+      title: "Actions",
       sortable: true,
       searchable: true,
       filterable: true,
-      type: 'actions',
+      type: "actions",
       actions: [
         {
           icon: Edit,
-          title: 'Edit',
+          title: "Edit",
           onClick: (item) => handleEdit(item),
         },
         {
           icon: Trash2,
-          title: 'Delete',
+          title: "Delete",
           onClick: (item) => handleDelete(item),
         },
       ],
-    }
-  ]
-
-  const getStokAkhir = async (id) => {
-    try {
-      const response = await api.get(`/sp/atk/stokakhir/${id}`)
-      if (response.data.message === 'success') {
-        return response.data.data
-      }
-    } catch (error) {
-      console.log(error)
-      return 0
-    }
-  }
-
-  const getAtk = async (params = {}, showLoading = true) => {
+    },
+  ];
+  const getPaset = async (params = {}, showLoading = true) => {
     try {
       if (showLoading) {
         setLoading(true)
@@ -232,23 +212,11 @@ export default function DataAtk() {
       }
 
       const [response] = await Promise.all([
-        api.get(`/sp/atk?${queryParams}`),
+        api.get(`/sp/perbaikan-aset?${queryParams}`),
         minLoadingTime
       ])
-
-      if (response.data.message === 'success') {
-        // Ambil stok_akhir untuk setiap item
-        const dataWithStokAkhir = await Promise.all(
-          response.data.data.map(async (item) => {
-            const stokAkhir = await getStokAkhir(item.id)
-            return {
-              ...item,
-              stok_akhir: stokAkhir || 0
-            }
-          })
-        )
-
-        setData(dataWithStokAkhir)
+      if (response.data.status === 'success') {
+        setData(response.data.data)
         setTotal(response.data.pagination?.total || response.data.data.length)
         setCurrentPage(response.data.pagination?.current_page || 1)
         setItemsPerPage(response.data.pagination?.per_page || 10)
@@ -262,7 +230,7 @@ export default function DataAtk() {
       }
     }
   }
-  const postAtk = async (form) => {
+  const postPaset = async (form) => {
     try {
       let response
 
@@ -274,21 +242,21 @@ export default function DataAtk() {
       } : {}
 
       // Check if we have editingAtk to determine if it's update or create
-      if (editingAtk && editingAtk.id) {
+      if (editingPaset && editingPaset.id) {
         if (form instanceof FormData) {
           form.append('_method', 'PUT')  // Laravel method spoofing
-          response = await api.put(`/sp/atk/${editingAtk.id}`, form, config)
+          response = await api.put(`/sp/perbaikan-aset/${editingPaset.id}`, form, config)
         } else {
-          response = await api.put(`/sp/atk/${editingAtk.id}`, form, config)
+          response = await api.put(`/sp/perbaikan-aset/${editingPaset.id}`, form, config)
         }
       } else {
-        response = await api.post('/sp/atk', form, config)
+        response = await api.post('/sp/perbaikan-aset', form, config)
       }
-      if (response.data.message === 'success') {
+      if (response.data.status === 'success') {
         // Refresh data setelah berhasil
-        getAtk()
+        getPaset()
         setShowAddModal(false)
-        setEditingAtk(null)
+        setEditingPaset(null)
         setIsEditMode(false)
         return response.data
       }
@@ -304,18 +272,18 @@ export default function DataAtk() {
     }
   }
   const handleDelete = (item) => {
-    setDeletingAtk(item)
+    setDeletingPaset(item)
     setShowDeleteModal(true)
   }
   const handleConfirmDelete = async () => {
-    if (!deletingAtk) return
+    if (!deletingPaset) return
 
     setDeleteLoading(true)
     try {
-      await api.delete(`/sp/atk/${deletingAtk.id}`)  // Fix: gunakan id dari object
-      getAtk()  // Fix: nama function yang benar
+      await api.delete(`/sp/perbaikan-aset/${deletingPaset.id}`)  // Fix: gunakan id dari object
+      getPaset()  // Fix: nama function yang benar
       setShowDeleteModal(false)
-      setDeletingAtk(null)  // Fix: nama variable yang benar
+      setDeletingPaset(null)  // Fix: nama variable yang benar
     } catch (error) {
       // Error handling untuk delete
     } finally {
@@ -324,7 +292,7 @@ export default function DataAtk() {
   }
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false)
-    setDeletingAtk(null)
+    setDeletingPaset(null)
     setDeleteLoading(false)
   }
   const handleBulkDelete = (selectedIds) => {
@@ -336,9 +304,9 @@ export default function DataAtk() {
     setBulkDeleteLoading(true)
     try {
       // Delete multiple users
-      const deletePromises = bulkDeleteIds.map(id => api.delete(`/sp/atk/${id}`))  // 🔧 GANTI: endpoint delete
+      const deletePromises = bulkDeleteIds.map(id => api.delete(`/sp/perbaikan-aset/${id}`))  // 🔧 GANTI: endpoint delete
       await Promise.all(deletePromises)
-      getAtk()
+      getPaset()
       setShowBulkDeleteModal(false)
       setBulkDeleteIds([])
     } catch (error) {
@@ -348,29 +316,39 @@ export default function DataAtk() {
     }
   }
   const handleAdd = () => {
-    setEditingAtk(null)
+    setEditingPaset(null)
     setIsEditMode(false)
     setShowAddModal(true)
   }
   const handleEdit = (item) => {
-    setEditingAtk(item)
+    setEditingPaset(item)
     setIsEditMode(true)
     setShowAddModal(true)
   }
   const handleCloseAddModal = () => {
     setShowAddModal(false)
-    setEditingAtk(null)
+    setEditingPaset(null)
     setIsEditMode(false)
   }
-  const handleAddSuccess = (newAtk) => {
-    getAtk()
+  const handleAddSuccess = (newPaset) => {
+    getPaset()
     setShowAddModal(false)
-    setEditingAtk(null)
+    setEditingPaset(null)
     setIsEditMode(false)
   }
   const handleExport = () => {
     setShowExportModal(true)
   }
+  const handleStatusChange = async (item, newStatus) => {
+    try {
+      await api.put(`/sp/perbaikan-barang-status/${item.id}`, {
+        status: newStatus,
+      });
+      getPaset();
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
+  };
   const handleDataChange = (params) => {
     // Update state berdasarkan perubahan dari DataTable
     if (params.page !== undefined) {
@@ -393,11 +371,10 @@ export default function DataAtk() {
     }
 
     // Fetch data dengan params baru
-    getAtk(params)
+    getPaset(params)
   }
   useEffect(() => {
-    getAtk()
-    getOpsi()
+    getPaset()
   }, [])
 
   return (
@@ -417,8 +394,8 @@ export default function DataAtk() {
         pagination={true}
         itemsPerPageOptions={[5, 10, 25, 50]}
         defaultItemsPerPage={10}
-        title="Data ATK"
-        subtitle="Kelola data Alat Tulis Kantor"
+        title="Data Perbaikan Aset"
+        subtitle="Kelola data perbaikan aset"
         serverSide={true}
         onDataChange={handleDataChange}
         currentPage={currentPage}
@@ -428,68 +405,77 @@ export default function DataAtk() {
         currentSortField={sortField}
         currentSortDirection={sortDirection}
       />
-      {/* Modal Delete Single */}
       <DeleteModal
         show={showDeleteModal}
         onClose={handleCloseDeleteModal}
         onConfirm={handleConfirmDelete}
-        title="Hapus Master ATK"
-        message={`Apakah Anda yakin ingin menghapus ATK "${deletingAtk?.nabar}"?`}
+        title="Hapus Perbaikan Aset"
+        message={`Apakah Anda yakin ingin menghapus "${deletingPaset?.kode}"?`}
         loading={deleteLoading}
         size="sm"
       />
-      {/* Modal Delete Multiple */}
       <DeleteModal
         show={showBulkDeleteModal}
         onClose={() => {
-          setShowBulkDeleteModal(false)
-          setBulkDeleteIds([])
+          setShowBulkDeleteModal(false);
+          setBulkDeleteIds([]);
         }}
         onConfirm={handleConfirmBulkDelete}
-        title="Hapus Multiple ATK"
-        message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} ATK?`}
+        title="Hapus Multiple Perbaikan Aset"
+        message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} Perbaikan Aset?`}
         loading={bulkDeleteLoading}
         size="sm"
       />
-      {/* Modal Add/Edit */}
+      <DeleteModal
+        show={showBulkDeleteModal}
+        onClose={() => {
+          setShowBulkDeleteModal(false);
+          setBulkDeleteIds([]);
+        }}
+        onConfirm={handleConfirmBulkDelete}
+        title="Hapus Multiple Perbaikan Aset"
+        message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} Perbaikan Aset?`}
+        loading={bulkDeleteLoading}
+        size="sm"
+      />
       {showAddModal && (
         <Modal
           show={showAddModal}
           onClose={handleCloseAddModal}
-          title={isEditMode ? 'Edit Atk' : 'Tambah Atk Baru'}
-          size="lg"
+          title={
+            isEditMode ? "Edit Perbaikan Aset" : "Tambah Perbaikan Aset Baru"
+          }
+          size="xl"
           closeOnOverlayClick={false}
         >
-          <TambahAtk
+          <AddPaset
             onClose={handleCloseAddModal}
             onSuccess={handleAddSuccess}
-            postAtk={postAtk}
-            editingAtk={editingAtk}
+            postPaset={postPaset}
+            editingPaset={editingPaset}
             isEditMode={isEditMode}
           />
         </Modal>
       )}
-      {/* Modal Export */}
       <ExportModal
         show={showExportModal}
         onClose={() => setShowExportModal(false)}
         data={data}
         columns={columns}
-        filename="data-Atk"
-        title="Export Data ATK"
+        filename="data-perbaikan-aset"
+        title="Export Data Perbaikan Aset"
       />
-
-      {/* Image Viewer */}
       <ImageView
-        show={showImageView}
+        show={showImageView && selectedImage !== null}
         onClose={() => {
           setShowImageView(false)
           setSelectedImage(null)
         }}
         images={selectedImage?.url}
         title={selectedImage?.title}
-        alt={selectedImage?.title || 'ATK Photo'}
+        alt={selectedImage?.title || 'Foto Perbaikan Aset'}
       />
+
     </div>
-  )
+  );
 }

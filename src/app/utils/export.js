@@ -138,20 +138,41 @@ export const prepareExportData = (data, columns, selectedColumns) => {
       const column = columns.find(c => c.key === colKey)
       if (column) {
         let value = item[colKey]
-        
-        // Format data based on column type
-        if (column.type === 'date') {
-          // Format tanggal untuk Excel: DD/MM/YYYY
-          const date = new Date(value)
-          if (!isNaN(date.getTime())) {
-            // Format: DD/MM/YYYY untuk Excel
-            const day = String(date.getDate()).padStart(2, '0')
-            const month = String(date.getMonth() + 1).padStart(2, '0')
-            const year = date.getFullYear()
-            value = `${day}/${month}/${year}`
+        let handled = false
+
+        // Try to use render function first if available and returns primitive
+        if (column.render) {
+          try {
+            const rendered = column.render(value, item)
+            // Check if rendered is primitive (string, number, boolean)
+            if (rendered !== null && typeof rendered !== 'object' && typeof rendered !== 'function') {
+              value = rendered
+              handled = true
+            }
+          } catch (e) {
+            // ignore error, fallback to default
           }
-        } else if (column.type === 'badge') {
-          value = value // Keep original value for badges
+        }
+        
+        if (!handled) {
+          // Format data based on column type
+          if (column.type === 'date' || column.type === 'dateRange') {
+            if (!value) {
+              value = '-'
+            } else {
+              // Format tanggal untuk Excel: DD/MM/YYYY
+              const date = new Date(value)
+              if (!isNaN(date.getTime())) {
+                // Format: DD/MM/YYYY untuk Excel
+                const day = String(date.getDate()).padStart(2, '0')
+                const month = String(date.getMonth() + 1).padStart(2, '0')
+                const year = date.getFullYear()
+                value = `${day}/${month}/${year}`
+              }
+            }
+          } else if (column.type === 'badge') {
+            value = value // Keep original value for badges
+          }
         }
         
         row[column.title] = value

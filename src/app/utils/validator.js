@@ -11,17 +11,17 @@ import validate from "validate.js";
 
 // Fungsi untuk parse string tanggal ke Date object
 // Input format: YYYY-MM-DD (format dari input type="date")
-validate.validators.datetime.parse = function(value, options) {
+validate.validators.datetime.parse = function (value, options) {
   // Jika value sudah berupa Date object, return langsung
   if (value instanceof Date) {
     return value;
   }
-  
+
   // Jika value adalah string kosong atau null/undefined, return null
   if (!value || typeof value !== 'string') {
     return null;
   }
-  
+
   // Parse string YYYY-MM-DD ke Date object
   // Input type="date" mengembalikan format YYYY-MM-DD
   const dateMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -30,31 +30,31 @@ validate.validators.datetime.parse = function(value, options) {
     const month = parseInt(dateMatch[2], 10) - 1; // Month dimulai dari 0
     const day = parseInt(dateMatch[3], 10);
     const date = new Date(year, month, day);
-    
+
     // Validasi apakah tanggal valid
-    if (date.getFullYear() === year && 
-        date.getMonth() === month && 
-        date.getDate() === day) {
+    if (date.getFullYear() === year &&
+      date.getMonth() === month &&
+      date.getDate() === day) {
       return date;
     }
   }
-  
+
   // Jika format tidak sesuai, coba parse dengan Date constructor
   const parsedDate = new Date(value);
   if (!isNaN(parsedDate.getTime())) {
     return parsedDate;
   }
-  
+
   return null;
 };
 
 // Fungsi untuk format Date object ke string
 // Output format: YYYY-MM-DD (format untuk input type="date")
-validate.validators.datetime.format = function(value, options) {
+validate.validators.datetime.format = function (value, options) {
   if (!value) {
     return null;
   }
-  
+
   // Jika value adalah Date object, format ke YYYY-MM-DD
   if (value instanceof Date) {
     const year = value.getFullYear();
@@ -62,7 +62,7 @@ validate.validators.datetime.format = function(value, options) {
     const day = String(value.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
-  
+
   // Jika sudah string, return langsung
   return value;
 };
@@ -236,10 +236,10 @@ export const validateAsetForm = (formData) => {
   // validate.js mengembalikan object dengan field sebagai key dan array error sebagai value
   // Kita ambil pesan error pertama dari setiap array dan hapus prefix "^" jika ada
   const formattedErrors = {};
-  
+
   Object.keys(validationErrors).forEach((field) => {
     let errorMessage = '';
-    
+
     // Ambil pesan error pertama dari array
     if (Array.isArray(validationErrors[field])) {
       errorMessage = validationErrors[field][0] || '';
@@ -248,17 +248,58 @@ export const validateAsetForm = (formData) => {
     } else {
       errorMessage = String(validationErrors[field]);
     }
-    
+
     // Hapus prefix "^" jika ada (validate.js menggunakan "^" untuk custom message)
     if (errorMessage.startsWith('^')) {
       errorMessage = errorMessage.substring(1);
     }
-    
+
     formattedErrors[field] = errorMessage;
   });
 
   // Debug: log formatted errors
   console.log('Formatted errors:', formattedErrors);
+
+  return formattedErrors;
+};
+export const validatePerawtanAsetForm = (formData) => {
+  const constraints = {
+    inventaris_id: {
+      presence: {
+        allowEmpty: false,
+        message: "^Inventaris wajib dipilih"
+      }
+    }
+  };
+
+  // Validasi menggunakan validate.js
+  const validationErrors = validate(formData, constraints);
+
+  // Jika tidak ada error, return object kosong
+  if (!validationErrors) {
+    return {};
+  }
+
+  // Format error dari validate.js
+  const formattedErrors = {};
+  Object.keys(validationErrors).forEach((field) => {
+    let errorMessage = '';
+
+    if (Array.isArray(validationErrors[field])) {
+      errorMessage = validationErrors[field][0] || '';
+    } else if (typeof validationErrors[field] === 'string') {
+      errorMessage = validationErrors[field];
+    } else {
+      errorMessage = String(validationErrors[field]);
+    }
+
+    // Hapus prefix "^" jika ada
+    if (errorMessage.startsWith('^')) {
+      errorMessage = errorMessage.substring(1);
+    }
+
+    formattedErrors[field] = errorMessage;
+  });
 
   return formattedErrors;
 };

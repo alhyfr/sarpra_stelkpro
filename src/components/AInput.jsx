@@ -20,41 +20,48 @@ export default function AInput({
   successText,          // New: text untuk valid feedback (hijau)
   icon: Icon,
   showValidation = true, // New: show/hide validation icons
+  multiline = false,    // New: untuk textarea
+  rows = 3,             // New: jumlah baris untuk textarea
   className = '',
   inputClassName = '',
   ...props
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState(false);
-  
+
   const isPassword = type === 'password';
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
-  
+
   // Determine validation state
   // Error ditampilkan jika ada error (tidak perlu menunggu touched)
   // Ini memungkinkan error langsung terlihat saat form di-submit
   const isInvalid = error && error.trim() !== '';
   const isValid = touched && valid && !error && value;
-  
+
   // Handle blur to mark as touched
   const handleBlur = (e) => {
     setTouched(true);
     if (onBlur) onBlur(e);
   };
 
+  // Filter out custom props yang tidak boleh diteruskan ke DOM element
+  const { multiline: _, rows: __, ...domProps } = props;
+
+  // Normalize value - ensure it's never null or undefined
+  const normalizedValue = value ?? '';
+
   return (
     <div className={`w-full ${className}`}>
       {/* Label */}
       {label && (
-        <label 
-          htmlFor={id} 
-          className={`block text-sm font-medium mb-2 ${
-            isInvalid 
-              ? 'text-red-600 dark:text-red-400' 
-              : isValid 
-                ? 'text-green-600 dark:text-green-400'
-                : 'text-gray-700 dark:text-gray-300'
-          }`}
+        <label
+          htmlFor={id}
+          className={`block text-sm font-medium mb-2 ${isInvalid
+            ? 'text-red-600 dark:text-red-400'
+            : isValid
+              ? 'text-green-600 dark:text-green-400'
+              : 'text-gray-700 dark:text-gray-300'
+            }`}
         >
           {label}
           {required && <span className="text-red-600 ml-1">*</span>}
@@ -66,47 +73,80 @@ export default function AInput({
         {/* Left Icon */}
         {Icon && (
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Icon className={`h-5 w-5 ${
-              isInvalid 
-                ? 'text-red-500' 
-                : isValid 
-                  ? 'text-green-500'
-                  : 'text-gray-400'
-            }`} />
+            <Icon className={`h-5 w-5 ${isInvalid
+              ? 'text-red-500'
+              : isValid
+                ? 'text-green-500'
+                : 'text-gray-400'
+              }`} />
           </div>
         )}
 
-        {/* Input Field */}
-        <input
-          id={id}
-          name={name}
-          type={inputType}
-          value={value}
-          onChange={onChange}
-          onBlur={handleBlur}
-          required={required}
-          disabled={disabled}
-          placeholder={placeholder}
-          className={`
-            block w-full py-3 px-3
-            ${Icon ? 'pl-10' : ''}
-            ${isPassword || (showValidation && (isValid || isInvalid)) ? 'pr-10' : ''}
-            border-2 rounded-lg
-            transition-all duration-200
-            text-gray-900 dark:text-white
-            placeholder-gray-400 dark:placeholder-gray-500
-            bg-white dark:bg-gray-800
-            disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:cursor-not-allowed
-            ${isInvalid 
-              ? 'border-red-500 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-red-50/50 dark:bg-red-900/10' 
-              : isValid
-                ? 'border-green-500 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 bg-green-50/50 dark:bg-green-900/10'
-                : 'border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-[#B91C1C]/20 focus:border-[#B91C1C]'
-            }
-            ${inputClassName}
-          `}
-          {...props}
-        />
+        {/* Input Field or Textarea */}
+        {multiline ? (
+          <textarea
+            id={id}
+            name={name}
+            value={normalizedValue}
+            onChange={onChange}
+            onBlur={handleBlur}
+            required={required}
+            disabled={disabled}
+            placeholder={placeholder}
+            rows={rows}
+            className={`
+              block w-full py-3 px-3
+              ${Icon ? 'pl-10' : ''}
+              ${showValidation && (isValid || isInvalid) ? 'pr-10' : ''}
+              border-2 rounded-lg
+              transition-all duration-200
+              text-gray-900 dark:text-white
+              placeholder-gray-400 dark:placeholder-gray-500
+              bg-white dark:bg-gray-800
+              disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:cursor-not-allowed
+              resize-y
+              ${isInvalid
+                ? 'border-red-500 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-red-50/50 dark:bg-red-900/10'
+                : isValid
+                  ? 'border-green-500 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 bg-green-50/50 dark:bg-green-900/10'
+                  : 'border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-[#B91C1C]/20 focus:border-[#B91C1C]'
+              }
+              ${inputClassName}
+            `}
+            {...domProps}
+          />
+        ) : (
+          <input
+            id={id}
+            name={name}
+            type={inputType}
+            value={normalizedValue}
+            onChange={onChange}
+            onBlur={handleBlur}
+            required={required}
+            disabled={disabled}
+            placeholder={placeholder}
+            className={`
+              block w-full py-3 px-3
+              ${Icon ? 'pl-10' : ''}
+              ${isPassword || (showValidation && (isValid || isInvalid)) ? 'pr-10' : ''}
+              border-2 rounded-lg
+              transition-all duration-200
+              text-gray-900 dark:text-white
+              placeholder-gray-400 dark:placeholder-gray-500
+              bg-white dark:bg-gray-800
+              disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:cursor-not-allowed
+              ${isInvalid
+                ? 'border-red-500 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-red-50/50 dark:bg-red-900/10'
+                : isValid
+                  ? 'border-green-500 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 bg-green-50/50 dark:bg-green-900/10'
+                  : 'border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-[#B91C1C]/20 focus:border-[#B91C1C]'
+              }
+              ${inputClassName}
+            `}
+            {...domProps}
+          />
+        )}
 
         {/* Validation Icon (Right) */}
         {showValidation && !isPassword && (

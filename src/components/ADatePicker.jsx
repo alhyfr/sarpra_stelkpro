@@ -19,14 +19,16 @@ const ADatePicker = ({
   className = "",
   inputClassName = "",
   icon: Icon = Calendar,
+  format, // Custom prop - tidak diteruskan ke DOM
+  displayFormat, // Custom prop - tidak diteruskan ke DOM
   ...props
 }) => {
   const [touched, setTouched] = useState(false);
-  
+
   // Error ditampilkan jika ada error (tidak perlu menunggu touched)
   // Ini memungkinkan error langsung terlihat saat form di-submit
   const isInvalid = error && error.trim() !== '';
-  
+
   // Handle blur to mark as touched
   const handleBlur = (e) => {
     setTouched(true);
@@ -36,12 +38,12 @@ const ADatePicker = ({
   // Format value untuk input type="date" (harus YYYY-MM-DD)
   const formatValueForInput = (val) => {
     if (!val) return "";
-    
+
     // Jika sudah format YYYY-MM-DD, return langsung
     if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
       return val;
     }
-    
+
     // Jika format lain, coba parse
     try {
       const date = new Date(val);
@@ -54,7 +56,7 @@ const ADatePicker = ({
     } catch (e) {
       // ignore
     }
-    
+
     return "";
   };
 
@@ -64,13 +66,12 @@ const ADatePicker = ({
     <div className={`w-full ${className}`}>
       {/* Label */}
       {label && (
-        <label 
-          htmlFor={id} 
-          className={`block text-sm font-medium mb-2 ${
-            isInvalid 
-              ? 'text-red-600 dark:text-red-400' 
-              : 'text-gray-700 dark:text-gray-300'
-          }`}
+        <label
+          htmlFor={id}
+          className={`block text-sm font-medium mb-2 ${isInvalid
+            ? 'text-red-600 dark:text-red-400'
+            : 'text-gray-700 dark:text-gray-300'
+            }`}
         >
           {label}
           {required && <span className="text-red-600 ml-1">*</span>}
@@ -81,13 +82,12 @@ const ADatePicker = ({
       <div className="relative">
         {/* Left Icon */}
         {Icon && (
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Icon className={`h-5 w-5 ${
-              isInvalid 
-                ? 'text-red-500' 
-                : 'text-gray-400'
-            }`} />
-        </div>
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Icon className={`h-5 w-5 ${isInvalid
+              ? 'text-red-500'
+              : 'text-gray-400'
+              }`} />
+          </div>
         )}
 
         {/* Input Field */}
@@ -112,22 +112,21 @@ const ADatePicker = ({
             text-gray-900 dark:text-white
             bg-white dark:bg-gray-800
             disabled:bg-gray-100 dark:disabled:bg-gray-900 disabled:cursor-not-allowed
-            ${isInvalid 
-              ? 'border-red-500 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-red-50/50 dark:bg-red-900/10' 
+            ${isInvalid
+              ? 'border-red-500 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-red-50/50 dark:bg-red-900/10'
               : 'border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-[#B91C1C]/20 focus:border-[#B91C1C]'
             }
             ${inputClassName}
           `}
           {...props}
         />
-        
+
         {/* Calendar Icon di Kanan */}
         <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-          <Calendar className={`h-5 w-5 ${
-            isInvalid 
-              ? 'text-red-500' 
-              : 'text-gray-400'
-          }`} />
+          <Calendar className={`h-5 w-5 ${isInvalid
+            ? 'text-red-500'
+            : 'text-gray-400'
+            }`} />
         </div>
       </div>
 
@@ -136,7 +135,7 @@ const ADatePicker = ({
         <div className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-start animate-in fade-in slide-in-from-top-1 duration-200">
           <AlertCircle className="w-4 h-4 mr-1.5 flex-shrink-0 mt-0.5" />
           <span>{error}</span>
-            </div>
+        </div>
       )}
 
       {/* Custom CSS untuk Date Picker */}

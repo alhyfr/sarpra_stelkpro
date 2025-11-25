@@ -81,9 +81,8 @@ const menuItems = [
     title: 'Sarpra',
     icon: Wallet,
     submenu: [
-      { title: 'Ruangan', href: '/crypto/wallet' },
-      { title: 'Toilet', href: '/crypto/marketplace' },
-      { title: 'Fasilitas', href: '/crypto/details' },
+      { title: 'perawatan aset', href: '/sarpra/perawatan/aset' },
+      { title: 'perawatan bangunan', href: '/sarpra/perawatan/bangunan' },
     ]
   },
   {

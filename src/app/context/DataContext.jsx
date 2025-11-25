@@ -17,9 +17,10 @@ export const DataProvider = ({ children }) => {
   const [atkFilter, setAtkFilter] = useState([]);
   const [memberFilter, setMemberFilter] = useState([]);
   const [pibarFilter, setPibarFilter] = useState([]);
-  const[ruanganFilter, setRuanganFilter] = useState([]);
-  const [waka,setWaka] = useState("");
-  const [teams,setTeams] = useState([]);
+  const [ruanganFilter, setRuanganFilter] = useState([]);
+  const [inventarisFilter, setInventarisFilter] = useState([]);
+  const [waka, setWaka] = useState("");
+  const [teams, setTeams] = useState([]);
   const getOpsi = useCallback(async () => {
     const response = await Api.get("/sp/opsi");
     setRoles(response.data.roles);
@@ -96,6 +97,19 @@ export const DataProvider = ({ children }) => {
       return [];
     }
   }, []);
+  const getInventarisFilter = useCallback(async (search = "") => {
+    const response = await Api.get("/sp/opsi/inventaris-filter?search=" + search);
+    setInventarisFilter(response.data.inventaris);
+  }, []);
+  const InventarisFilter = useCallback(async (search = "") => {
+    try {
+      const response = await Api.get("/sp/opsi/inventaris-filter?search=" + search);
+      return response.data.inventaris || [];
+    } catch (error) {
+      console.error('Error fetching Inventaris filter:', error);
+      return [];
+    }
+  }, []);
 
   // ============================================
   // WEBSOCKET MANAGEMENT
@@ -125,7 +139,7 @@ export const DataProvider = ({ children }) => {
   // Initialize WebSocket connection
   useEffect(() => {
     const websocketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'wss://api7.sistelk.id';
-    
+
     try {
       const ws = new WebSocket(websocketUrl);
       wsRef.current = ws;
@@ -138,7 +152,7 @@ export const DataProvider = ({ children }) => {
         try {
           const msg = JSON.parse(event.data);
           const callbacks = listenersRef.current.get(msg.type);
-          
+
           if (callbacks && callbacks.size > 0) {
             // Call all registered callbacks for this message type
             callbacks.forEach(callback => {
@@ -172,7 +186,7 @@ export const DataProvider = ({ children }) => {
       // Handle WebSocket initialization error silently
     }
   }, []);
- 
+
 
   return (
     <DataContext.Provider
@@ -201,6 +215,9 @@ export const DataProvider = ({ children }) => {
         RuanganFilter,
         waka,
         getWaka,
+        inventarisFilter,
+        getInventarisFilter,
+        InventarisFilter,
       }}
     >
       {children}
