@@ -32,6 +32,8 @@ export default function DataAtk() {
   const [showExportModal, setShowExportModal] = useState(false)
   const [showImageView, setShowImageView] = useState(false)            // Image viewer modal
   const [selectedImage, setSelectedImage] = useState(null)
+  // State untuk menyimpan data masuk/keluar per item (keyed by ATK id)
+  const [masukKeluarData, setMasukKeluarData] = useState({})
   const {
     satuan,
     getOpsi,
@@ -122,17 +124,33 @@ export default function DataAtk() {
       filterable: true,
     },
     {
-      key: 'stok_akhir',
-      title: 'Stok Akhir',
+      key: 'total_masuk',
+      title: 'Masuk',
       sortable: true,
       searchable: true,
       filterable: true,
-      render: (value) => {
-        // API mengembalikan object dengan struktur: {id, kode, nabar, stok_awal, total_masuk, total_keluar, stok_tersedia}
-        if (typeof value === 'object' && value !== null) {
-          return value.stok_tersedia ?? '-'
-        }
-        return value || '-'
+
+    },
+    {
+      key: 'total_keluar',
+      title: 'Keluar',
+      sortable: true,
+      searchable: true,
+      filterable: true,
+
+    },
+
+    {
+      key: 'stok_akhir',
+      title: 'Tersedia',
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      render: (value, item) => {
+        // Hitung dari data item yang sudah memiliki total_masuk dan total_keluar
+        const totalMasuk = parseFloat(item.total_masuk) || 0
+        const totalKeluar = parseFloat(item.total_keluar) || 0
+        return totalMasuk - totalKeluar
       },
     },
     {
@@ -197,15 +215,16 @@ export default function DataAtk() {
     }
   ]
 
-  const getStokAkhir = async (id) => {
+  const getMasukKeluarStok = async (id) => {
     try {
-      const response = await api.get(`/sp/atk/stokakhir/${id}`)
+      const response = await api.get(`/sp/atk/inout/${id}`)
       if (response.data.message === 'success') {
         return response.data.data
       }
+      return { total_masuk: 0, total_keluar: 0 }
     } catch (error) {
-      console.log(error)
-      return 0
+      console.error('Error fetching masuk/keluar:', error)
+      return { total_masuk: 0, total_keluar: 0 }
     }
   }
 
@@ -237,18 +256,21 @@ export default function DataAtk() {
       ])
 
       if (response.data.message === 'success') {
-        // Ambil stok_akhir untuk setiap item
-        const dataWithStokAkhir = await Promise.all(
+        // Ambil data masuk/keluar untuk setiap item
+        const dataWithMasukKeluar = await Promise.all(
           response.data.data.map(async (item) => {
-            const stokAkhir = await getStokAkhir(item.id)
+            const masukKeluarData = await getMasukKeluarStok(item.id)
             return {
               ...item,
-              stok_akhir: stokAkhir || 0
+              masuk: masukKeluarData,
+              keluar: masukKeluarData,
+              Stok: masukKeluarData,
+              stok_akhir: masukKeluarData
             }
           })
         )
 
-        setData(dataWithStokAkhir)
+        setData(dataWithMasukKeluar)
         setTotal(response.data.pagination?.total || response.data.data.length)
         setCurrentPage(response.data.pagination?.current_page || 1)
         setItemsPerPage(response.data.pagination?.per_page || 10)
@@ -395,6 +417,7 @@ export default function DataAtk() {
     // Fetch data dengan params baru
     getAtk(params)
   }
+
   useEffect(() => {
     getAtk()
     getOpsi()
