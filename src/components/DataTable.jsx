@@ -1,13 +1,13 @@
 'use client'
 import { useState, useMemo, useEffect } from 'react'
-import { 
-  Search, 
-  Filter, 
-  Download, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
+import {
+  Search,
+  Filter,
+  Download,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
@@ -15,7 +15,7 @@ import {
   ArrowDown
 } from 'lucide-react'
 
-export default function DataTable({ 
+export default function DataTable({
   data = [],
   columns = [],
   onAdd = null,
@@ -89,16 +89,16 @@ export default function DataTable({
       filtered.sort((a, b) => {
         const aVal = a[sortField]
         const bVal = b[sortField]
-        
+
         if (aVal === null || aVal === undefined) return 1
         if (bVal === null || bVal === undefined) return -1
-        
+
         if (typeof aVal === 'string') {
-          return sortDirection === 'asc' 
+          return sortDirection === 'asc'
             ? aVal.localeCompare(bVal)
             : bVal.localeCompare(aVal)
         }
-        
+
         if (sortDirection === 'asc') {
           return aVal > bVal ? 1 : -1
         } else {
@@ -119,11 +119,11 @@ export default function DataTable({
   // Handlers
   const handleSort = (field) => {
     if (!sortable) return
-    
+
     const newDirection = sortField === field ? (sortDirection === 'asc' ? 'desc' : 'asc') : 'asc'
     setSortField(field)
     setSortDirection(newDirection)
-    
+
     // No server-side call needed for sorting - it's client-side only
     // Sorting is handled by the filteredData useMemo
   }
@@ -131,21 +131,21 @@ export default function DataTable({
   const handleSearch = (value) => {
     setSearchTerm(value)
     setCurrentPage(1) // Reset to first page on search
-    
+
     // Show typing state immediately
     if (value.trim() !== '') {
       setIsTyping(true)
     } else {
       setIsTyping(false)
     }
-    
+
     // Trigger server-side data change
     if (serverSide && onDataChange) {
       // Clear existing timeout
       if (window.searchTimeout) {
         clearTimeout(window.searchTimeout)
       }
-      
+
       // If search is empty, trigger immediately (no debounce)
       if (value === '' || value.trim() === '') {
         setIsTyping(false)
@@ -172,7 +172,7 @@ export default function DataTable({
 
   const handleFilterChange = (key, value, column) => {
     let filterValue = value
-    
+
     // Handle dateRange with getValue function
     if (column?.type === 'dateRange' && value && value !== '') {
       const option = column.filterOptions?.find(opt => opt.value === value)
@@ -180,11 +180,11 @@ export default function DataTable({
         filterValue = option.getValue()
       }
     }
-    
+
     const newFilters = { ...filters, [key]: filterValue }
     setFilters(newFilters)
     setCurrentPage(1) // Reset to first page on filter
-    
+
     // Trigger server-side data change with filters
     if (serverSide && onDataChange) {
       onDataChange({
@@ -199,7 +199,7 @@ export default function DataTable({
 
   const handlePageChange = (page) => {
     setCurrentPage(page)
-    
+
     // Trigger server-side data change (no sort parameters)
     if (serverSide && onDataChange) {
       onDataChange({
@@ -215,7 +215,7 @@ export default function DataTable({
   const handleItemsPerPageChange = (newItemsPerPage) => {
     setItemsPerPage(newItemsPerPage)
     setCurrentPage(1) // Reset to first page
-    
+
     // Trigger server-side data change (no sort parameters)
     if (serverSide && onDataChange) {
       onDataChange({
@@ -230,7 +230,7 @@ export default function DataTable({
 
   const handleSelectAll = (checked) => {
     if (!selectable) return
-    
+
     if (checked) {
       setSelectedItems(currentData.map(item => item.id))
     } else {
@@ -240,7 +240,7 @@ export default function DataTable({
 
   const handleSelectItem = (id, checked) => {
     if (!selectable) return
-    
+
     if (checked) {
       setSelectedItems([...selectedItems, id])
     } else {
@@ -264,11 +264,11 @@ export default function DataTable({
 
   const getSortIcon = (field) => {
     if (!sortable) return null
-    
+
     if (sortField !== field) {
       return <ArrowUpDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
     }
-    return sortDirection === 'asc' 
+    return sortDirection === 'asc'
       ? <ArrowUp className="w-4 h-4 text-red-600" />
       : <ArrowDown className="w-4 h-4 text-red-600" />
   }
@@ -277,7 +277,7 @@ export default function DataTable({
     if (column.render) {
       return column.render(item[column.key], item)
     }
-    
+
     if (column.type === 'badge') {
       const status = item[column.key]
       const baseClasses = "px-2 py-1 rounded-full text-xs font-medium"
@@ -288,25 +288,25 @@ export default function DataTable({
         </span>
       )
     }
-    
+
     if (column.type === 'date') {
       return new Date(item[column.key]).toLocaleDateString()
     }
-    
+
     if (column.type === 'actions') {
       return (
         <div className="flex items-center justify-end gap-2">
           {column.actions?.map((action, index) => {
             // Check if action should be shown
             const shouldShow = typeof action.show === 'function' ? action.show(item) : (action.show !== false)
-            
+
             if (!shouldShow) return null
-            
+
             // Handle dynamic icon, title, and className
             const Icon = typeof action.icon === 'function' ? action.icon(item) : action.icon
             const title = typeof action.title === 'function' ? action.title(item) : action.title
             const className = typeof action.className === 'function' ? action.className(item) : action.className
-            
+
             return (
               <button
                 key={index}
@@ -321,7 +321,7 @@ export default function DataTable({
         </div>
       )
     }
-    
+
     return item[column.key]
   }
 
@@ -335,7 +335,7 @@ export default function DataTable({
         </div>
         <div className="flex items-center gap-2">
           {onExport && (
-            <button 
+            <button
               onClick={onExport}
               className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center gap-2"
             >
@@ -344,7 +344,7 @@ export default function DataTable({
             </button>
           )}
           {onAdd && !hideAddButton && (
-            <button 
+            <button
               onClick={onAdd}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
             >
@@ -396,7 +396,7 @@ export default function DataTable({
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       {column.title}
                     </label>
-                    
+
                     {/* Date Range Filter */}
                     {column.type === 'dateRange' ? (
                       <div className="space-y-2">
@@ -412,7 +412,7 @@ export default function DataTable({
                             </option>
                           ))}
                         </select>
-                        
+
                         {/* Custom Date Range Input */}
                         {filters[column.key] === 'custom' && (
                           <div className="flex gap-2">
@@ -426,7 +426,7 @@ export default function DataTable({
                                 // Store from date in a separate filter key
                                 const newFilters = { ...filters, [`${column.key}_from`]: fromDate }
                                 setFilters(newFilters)
-                                
+
                                 // If we have both dates, trigger the filter
                                 const toDate = filters[`${column.key}_to`] || ''
                                 if (fromDate && toDate) {
@@ -444,7 +444,7 @@ export default function DataTable({
                                 // Store to date in a separate filter key
                                 const newFilters = { ...filters, [`${column.key}_to`]: toDate }
                                 setFilters(newFilters)
-                                
+
                                 // If we have both dates, trigger the filter
                                 const fromDate = filters[`${column.key}_from`] || ''
                                 if (fromDate && toDate) {
@@ -550,11 +550,10 @@ export default function DataTable({
                   </th>
                 )}
                 {columns.map((column) => (
-                  <th 
+                  <th
                     key={column.key}
-                    className={`px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${
-                      sortable && column.sortable !== false ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600' : ''
-                    } ${column.type === 'actions' ? 'text-right' : ''}`}
+                    className={`px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${sortable && column.sortable !== false ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600' : ''
+                      } ${column.type === 'actions' ? 'text-right' : ''}`}
                     onClick={() => sortable && column.sortable !== false && column.type !== 'actions' && handleSort(column.key)}
                   >
                     <div className="flex items-center gap-1">
@@ -567,8 +566,8 @@ export default function DataTable({
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {currentData.map((item, index) => (
-                <tr 
-                  key={item.id} 
+                <tr
+                  key={item.id}
                   className="hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   {selectable && (
@@ -582,8 +581,8 @@ export default function DataTable({
                     </td>
                   )}
                   {columns.map((column) => (
-                    <td 
-                      key={column.key} 
+                    <td
+                      key={column.key}
                       className={`px-6 py-4 ${column.wrap ? 'whitespace-normal break-words' : 'whitespace-nowrap'} ${column.type === 'actions' ? 'text-right' : ''}`}
                       style={{
                         ...(column.minWidth && { minWidth: column.minWidth }),
@@ -596,27 +595,86 @@ export default function DataTable({
                 </tr>
               ))}
             </tbody>
+            {/* Column Summary/Total Row */}
+            {columns.some(col => col.showSummary) && (
+              <tfoot className="bg-gray-100 dark:bg-gray-700 border-t-2 border-gray-300 dark:border-gray-600">
+                <tr>
+                  {selectable && (
+                    <td className="px-6 py-4"></td>
+                  )}
+                  {columns.map((column) => (
+                    <td
+                      key={column.key}
+                      className={`px-6 py-4 font-semibold text-gray-900 dark:text-gray-100 ${column.type === 'actions' ? 'text-right' : ''}`}
+                    >
+                      {column.showSummary ? (
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 uppercase">Total</span>
+                          <span className="text-sm font-bold">
+                            {(() => {
+                              const sum = currentData.reduce((acc, item) => {
+                                const value = parseFloat(item[column.key]) || 0
+                                return acc + value
+                              }, 0)
+                              return column.summaryFormat ? column.summaryFormat(sum) : sum.toLocaleString()
+                            })()}
+                          </span>
+                        </div>
+                      ) : column.key === columns[0].key ? (
+                        <span className="text-sm">Total</span>
+                      ) : null}
+                    </td>
+                  ))}
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
+
+        {/* Summary Section - Displayed below table for better visibility */}
+        {columns.some(col => col.showSummary) && (
+          <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 border-t-2 border-gray-300 dark:border-gray-600">
+            <div className="flex flex-wrap gap-6">
+              {columns.filter(col => col.showSummary).map((column) => {
+                const sum = currentData.reduce((acc, item) => {
+                  const value = parseFloat(item[column.key]) || 0
+                  return acc + value
+                }, 0)
+                const formattedSum = column.summaryFormat ? column.summaryFormat(sum) : sum.toLocaleString()
+
+                return (
+                  <div key={column.key} className="flex flex-col">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">
+                      Total {column.title}
+                    </span>
+                    <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      {formattedSum}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Pagination */}
         {pagination && (
           <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 sm:px-6">
             <div className="flex-1 flex justify-between sm:hidden">
-                  <button
-                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
+              <button
+                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
             </div>
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
               <div>
@@ -650,7 +708,7 @@ export default function DataTable({
                   {(() => {
                     const maxVisiblePages = 4;
                     const pages = [];
-                    
+
                     if (totalPages <= maxVisiblePages) {
                       // Show all pages if total pages <= maxVisiblePages
                       for (let i = 1; i <= totalPages; i++) {
@@ -681,19 +739,18 @@ export default function DataTable({
                         pages.push(totalPages);
                       }
                     }
-                    
+
                     return pages.map((page, index) => (
                       <button
                         key={index}
                         onClick={() => typeof page === 'number' ? handlePageChange(page) : null}
                         disabled={page === '...'}
-                        className={`px-3 py-2 text-sm border rounded ${
-                          page === currentPage
-                            ? 'bg-red-600 text-white border-red-600'
-                            : page === '...'
+                        className={`px-3 py-2 text-sm border rounded ${page === currentPage
+                          ? 'bg-red-600 text-white border-red-600'
+                          : page === '...'
                             ? 'bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-default'
                             : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
-                        }`}
+                          }`}
                       >
                         {page}
                       </button>
