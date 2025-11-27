@@ -29,12 +29,15 @@ validate.validators.datetime.parse = function (value, options) {
     const year = parseInt(dateMatch[1], 10);
     const month = parseInt(dateMatch[2], 10) - 1; // Month dimulai dari 0
     const day = parseInt(dateMatch[3], 10);
-    const date = new Date(year, month, day);
 
-    // Validasi apakah tanggal valid
-    if (date.getFullYear() === year &&
-      date.getMonth() === month &&
-      date.getDate() === day) {
+    // PERBAIKAN: Gunakan Date.UTC untuk menghindari timezone issues
+    // Kemudian buat Date object dari UTC timestamp
+    const date = new Date(Date.UTC(year, month, day));
+
+    // Validasi apakah tanggal valid menggunakan UTC methods
+    if (date.getUTCFullYear() === year &&
+      date.getUTCMonth() === month &&
+      date.getUTCDate() === day) {
       return date;
     }
   }
@@ -55,11 +58,11 @@ validate.validators.datetime.format = function (value, options) {
     return null;
   }
 
-  // Jika value adalah Date object, format ke YYYY-MM-DD
+  // Jika value adalah Date object, format ke YYYY-MM-DD menggunakan UTC
   if (value instanceof Date) {
-    const year = value.getFullYear();
-    const month = String(value.getMonth() + 1).padStart(2, '0');
-    const day = String(value.getDate()).padStart(2, '0');
+    const year = value.getUTCFullYear();
+    const month = String(value.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(value.getUTCDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
 
@@ -221,11 +224,6 @@ export const validateAsetForm = (formData) => {
   // validate.js akan otomatis memvalidasi sesuai dengan constraints yang didefinisikan
   const validationErrors = validate(formData, constraints);
 
-  // Debug: log raw errors dari validate.js
-  if (validationErrors) {
-    console.log('Raw validation errors from validate.js:', validationErrors);
-  }
-
   // Jika tidak ada error, return object kosong
   // validate.js mengembalikan undefined jika tidak ada error
   if (!validationErrors) {
@@ -256,9 +254,6 @@ export const validateAsetForm = (formData) => {
 
     formattedErrors[field] = errorMessage;
   });
-
-  // Debug: log formatted errors
-  console.log('Formatted errors:', formattedErrors);
 
   return formattedErrors;
 };

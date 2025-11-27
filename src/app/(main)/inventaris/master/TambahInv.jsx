@@ -7,6 +7,7 @@ import AFile from "@/components/AFile";
 import ARadio from "@/components/ARadio";
 import ADatePicker from "@/components/ADatePicker";
 import Button from "@/components/Button";
+import dayjs from "dayjs";
 import { validateAsetForm } from "@/app/utils/validator";
 import {
   User,
@@ -30,6 +31,7 @@ export default function TambahInv({
   postInv = null,
   editingInv = null,
   isEditMode = false,
+  isCopyMode = false,
   satuan = [],
   dana = [],
   gedung = [],
@@ -67,10 +69,53 @@ export default function TambahInv({
   const [showErrors, setShowErrors] = useState(false);
   const [availableRuangan, setAvailableRuangan] = useState([]);
 
+  // Helper function untuk memformat tanggal ke YYYY-MM-DD
+  const formatDateForInput = (dateValue) => {
+    if (!dateValue) return "";
+
+    // Jika sudah format YYYY-MM-DD, return langsung
+    if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+      return dateValue;
+    }
+
+    // Jika format ISO 8601 (2024-11-27T16:00:00.000Z)
+    // PENTING: Gunakan UTC methods untuk menghindari timezone shift
+    if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(dateValue)) {
+      try {
+        const date = new Date(dateValue);
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      } catch (e) {
+        // Fallback: ambil bagian sebelum T
+        return dateValue.split('T')[0];
+      }
+    }
+
+    // Jika format DD/MM/YYYY atau DD-MM-YYYY
+    if (typeof dateValue === 'string' && /^\d{2}[/-]\d{2}[/-]\d{4}$/.test(dateValue)) {
+      const parts = dateValue.split(/[/-]/);
+      return `${parts[2]}-${parts[1]}-${parts[0]}`; // Convert to YYYY-MM-DD
+    }
+
+    // Fallback: coba parse dengan dayjs
+    try {
+      const parsed = dayjs(dateValue);
+      if (parsed.isValid()) {
+        return parsed.format("YYYY-MM-DD");
+      }
+    } catch (e) {
+      console.error("Error parsing date:", e);
+    }
+
+    return "";
+  };
+
   useEffect(() => {
-    if (isEditMode && editingInv) {
+    if ((isEditMode || isCopyMode) && editingInv) {
       setFormData({
-        kode: editingInv.kode || "",
+        kode: isCopyMode ? "" : (editingInv.kode || ""), // Kosongkan kode saat copy untuk menghindari duplikasi
         desc: editingInv.desc || "",
         spec: editingInv.spec || "",
         gedung_id: editingInv.gedung_id || "",
@@ -82,10 +127,10 @@ export default function TambahInv({
         jml: editingInv.jml || "1",
         satuan: editingInv.satuan || "",
         harga: editingInv.harga || "",
-        tgl: editingInv.tgl || "",
+        tgl: formatDateForInput(editingInv.tgl),
         sumber_dana_id: editingInv.sumber_dana_id || "",
-        bukti: editingInv.bukti || "",
-        gambar: editingInv.gambar || "",
+        bukti: isCopyMode ? "" : (editingInv.bukti || ""), // Kosongkan file saat copy
+        gambar: isCopyMode ? "" : (editingInv.gambar || ""), // Kosongkan file saat copy
         status: editingInv.status || "",
         pic: editingInv.pic || "",
         kode_ypt: editingInv.kode_ypt || "",
@@ -94,7 +139,7 @@ export default function TambahInv({
         kategori: editingInv.kategori || "",
       });
     }
-  }, [isEditMode, editingInv]);
+  }, [isEditMode, isCopyMode, editingInv]);
 
   // Update available ruangan when ruangan context changes
   useEffect(() => {
@@ -103,12 +148,12 @@ export default function TambahInv({
     }
   }, [ruangan]);
 
-  // Load ruangan when editing and gedung_id is available
+  // Load ruangan when editing/copying and gedung_id is available
   useEffect(() => {
-    if (isEditMode && editingInv?.gedung_id && getRuanganByGedung) {
+    if ((isEditMode || isCopyMode) && editingInv?.gedung_id && getRuanganByGedung) {
       getRuanganByGedung(editingInv.gedung_id);
     }
-  }, [isEditMode, editingInv?.gedung_id, getRuanganByGedung]);
+  }, [isEditMode, isCopyMode, editingInv?.gedung_id, getRuanganByGedung]);
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -181,7 +226,7 @@ export default function TambahInv({
 
     // Set errors ke state
     setErrors(newErrors);
-    
+
     // Return true jika tidak ada error (object kosong)
     return Object.keys(newErrors).length === 0;
   };
@@ -657,7 +702,7 @@ export default function TambahInv({
         {/* Submit Button */}
         <div className="flex justify-end pt-4">
           <Button type="submit" loading={loading} className="px-8">
-            {isEditMode ? "Update Aset" : "Simpan Aset"}
+            {isEditMode ? "Update Aset" : isCopyMode ? "Copy Aset" : "Simpan Aset"}
           </Button>
         </div>
       </form>

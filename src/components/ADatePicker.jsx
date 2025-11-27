@@ -44,13 +44,19 @@ const ADatePicker = ({
       return val;
     }
 
-    // Jika format lain, coba parse
+    // Jika format ISO 8601 (2024-11-27T16:00:00.000Z), ambil bagian tanggal saja
+    if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(val)) {
+      return val.split('T')[0];
+    }
+
+    // Jika format lain, coba parse dengan UTC untuk menghindari timezone shift
     try {
       const date = new Date(val);
       if (!isNaN(date.getTime())) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
+        // Gunakan UTC methods untuk menghindari timezone conversion
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
       }
     } catch (e) {

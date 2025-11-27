@@ -6,7 +6,7 @@ import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import DeleteModal from "@/components/Delete";
 // import ExportModal from "@/components/ExportModal";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, CopyPlus } from "lucide-react";
 import api from "@/app/utils/Api";
 import dayjs from "dayjs";
 import TambahInv from "./TambahInv";
@@ -15,11 +15,11 @@ import { useData } from "@/app/context/DataContext";
 // Dynamic imports untuk komponen yang menggunakan browser APIs
 const ExportModal = dynamic(() => import('@/components/ExportModal'), { ssr: false });
 const Stiker = dynamic(() => import('./Stiker'), { ssr: false });
-const Vbukti = dynamic(() => import('./Vbukti'), { 
+const Vbukti = dynamic(() => import('./Vbukti'), {
   ssr: false,
   loading: () => <div className="w-10 h-10 rounded-full bg-gray-200"></div>
 });
-const Vgambar = dynamic(() => import('./Vgambar'), { 
+const Vgambar = dynamic(() => import('./Vgambar'), {
   ssr: false,
   loading: () => <div className="w-10 h-10 rounded-full bg-gray-200"></div>
 });
@@ -45,7 +45,9 @@ export default function DataInv() {
 
   const [showAddModal, setShowAddModal] = useState(false); // Modal tambah/edit data
   const [editingInv, setEditingInv] = useState(null); // Data yang sedang diedit
+  const [copyInv, setCopyInv] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isCopyMode, setIsCopyMode] = useState(false); // Mode copy untuk duplikasi data
   const [showDeleteModal, setShowDeleteModal] = useState(false); // Modal konfirmasi hapus
   const [deletingInv, setDeletingInv] = useState(null); // Data yang akan dihapus
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -76,8 +78,8 @@ export default function DataInv() {
       format: "DD-MM-YYYY",
       render: (value) => dayjs(value).format("DD-MM-YYYY"),
       filterOptions: [
-        { 
-          value: "last3Months", 
+        {
+          value: "last3Months",
           label: "3 Bulan Terakhir",
           getValue: () => {
             const threeMonthsAgo = dayjs().subtract(3, 'month').startOf('month').format("YYYY-MM-DD");
@@ -85,8 +87,8 @@ export default function DataInv() {
             return `${threeMonthsAgo},${today}`;
           }
         },
-        { 
-          value: "custom", 
+        {
+          value: "custom",
           label: "Custom Range",
           isCustomRange: true
         }
@@ -259,6 +261,11 @@ export default function DataInv() {
           title: "Delete",
           onClick: (item) => handleDelete(item),
         },
+        {
+          icon: CopyPlus,
+          title: "Copy",
+          onClick: (item) => handleCopy(item),
+        }
       ],
     },
   ];
@@ -295,7 +302,6 @@ export default function DataInv() {
         setTotal(response.data.total);
         setCurrentPage(response.data.page);
         setItemsPerPage(response.data.per_page);
-        // console.log(response.data.data)
       }
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -316,14 +322,15 @@ export default function DataInv() {
       const config =
         form instanceof FormData
           ? {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            }
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
           : {};
 
       // Check if we have editingInv to determine if it's update or create
-      if (editingInv && editingInv.id) {
+      // Copy mode always creates new data (POST), even if editingInv exists
+      if (editingInv && editingInv.id && isEditMode && !isCopyMode) {
         // Update existing inventaris
         // Untuk update dengan file, beberapa API perlu POST dengan _method=PUT
         if (form instanceof FormData) {
@@ -334,7 +341,7 @@ export default function DataInv() {
           response = await api.put(`/sp/aset/${editingInv.id}`, form, config);
         }
       } else {
-        // Create new inventaris
+        // Create new inventaris (untuk mode tambah atau copy)
         response = await api.post("/sp/aset", form, config);
       }
 
@@ -344,6 +351,7 @@ export default function DataInv() {
         setShowAddModal(false);
         setEditingInv(null);
         setIsEditMode(false);
+        setIsCopyMode(false);
         return response.data;
       }
     } catch (error) {
@@ -414,23 +422,33 @@ export default function DataInv() {
   const handleAdd = () => {
     setEditingInv(null);
     setIsEditMode(false);
+    setIsCopyMode(false);
     setShowAddModal(true);
   };
   const handleEdit = (item) => {
     setEditingInv(item);
     setIsEditMode(true);
+    setIsCopyMode(false);
+    setShowAddModal(true);
+  };
+  const handleCopy = (item) => {
+    setEditingInv(item);
+    setIsEditMode(false);
+    setIsCopyMode(true);
     setShowAddModal(true);
   };
   const handleCloseAddModal = () => {
     setShowAddModal(false);
     setEditingInv(null);
     setIsEditMode(false);
+    setIsCopyMode(false);
   };
   const handleAddSuccess = (newTeam) => {
     getInv();
     setShowAddModal(false);
     setEditingInv(null);
     setIsEditMode(false);
+    setIsCopyMode(false);
   };
   const handleExport = () => {
     setShowExportModal(true);
@@ -532,7 +550,7 @@ export default function DataInv() {
         <Modal
           show={showAddModal}
           onClose={handleCloseAddModal}
-          title={isEditMode ? "Edit Aset" : "Tambah Aset"}
+          title={isEditMode ? "Edit Aset" : isCopyMode ? "Copy Aset" : "Tambah Aset"}
           size="fullscreen"
           closeOnOverlayClick={false}
         >
@@ -542,6 +560,7 @@ export default function DataInv() {
             postInv={postInv}
             editingInv={editingInv}
             isEditMode={isEditMode}
+            isCopyMode={isCopyMode}
             satuan={satuan}
             dana={dana}
             gedung={gedung}
@@ -562,21 +581,21 @@ export default function DataInv() {
         title="Export Data Invantaris Aset"
       />
 
-       {/* Modal Stiker */}
-       {showStikerModal && (
-         <Modal
-           show={showStikerModal}
-           onClose={handleCloseStikerModal}
-           title="Cetak Stiker"
-           size="lg"
-         >
-           <Stiker 
-             selectedItems={selectedItems}
-             data={data}
-             onClose={handleCloseStikerModal}
-           />
-         </Modal>
-       )}
+      {/* Modal Stiker */}
+      {showStikerModal && (
+        <Modal
+          show={showStikerModal}
+          onClose={handleCloseStikerModal}
+          title="Cetak Stiker"
+          size="lg"
+        >
+          <Stiker
+            selectedItems={selectedItems}
+            data={data}
+            onClose={handleCloseStikerModal}
+          />
+        </Modal>
+      )}
     </>
   );
 }
