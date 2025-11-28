@@ -34,10 +34,10 @@ import { X, ZoomIn, ZoomOut, Download, ChevronLeft, ChevronRight } from 'lucide-
  *   title="Photo Gallery"
  * />
  */
-export default function ImageView({ 
-  show = false, 
-  onClose, 
-  images, 
+export default function ImageView({
+  show = false,
+  onClose,
+  images,
   initialIndex = 0,
   alt = 'Image',
   title,
@@ -128,7 +128,7 @@ export default function ImageView({
 
   const handleDownload = () => {
     if (!currentImage) return
-    
+
     const link = document.createElement('a')
     link.href = currentImage
     link.download = `image-${currentIndex + 1}.jpg`
@@ -150,7 +150,7 @@ export default function ImageView({
   if (!mounted || !show) return null
 
   return createPortal(
-    <div 
+    <div
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fadeIn"
       onClick={onClose}
     >
@@ -170,7 +170,7 @@ export default function ImageView({
               </p>
             )}
           </div>
-          
+
           {/* Close Button */}
           <button
             onClick={onClose}
@@ -183,7 +183,7 @@ export default function ImageView({
       </div>
 
       {/* Image Container */}
-      <div 
+      <div
         className="relative w-full h-full flex items-center justify-center p-20"
         onClick={(e) => e.stopPropagation()}
       >
@@ -223,23 +223,21 @@ export default function ImageView({
               handlePrev()
             }}
             disabled={currentIndex === 0}
-            className={`absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all ${
-              currentIndex === 0 ? 'opacity-30 cursor-not-allowed' : ''
-            }`}
+            className={`absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all ${currentIndex === 0 ? 'opacity-30 cursor-not-allowed' : ''
+              }`}
             aria-label="Previous image"
           >
             <ChevronLeft size={32} />
           </button>
-          
+
           <button
             onClick={(e) => {
               e.stopPropagation()
               handleNext()
             }}
             disabled={currentIndex === imageArray.length - 1}
-            className={`absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all ${
-              currentIndex === imageArray.length - 1 ? 'opacity-30 cursor-not-allowed' : ''
-            }`}
+            className={`absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all ${currentIndex === imageArray.length - 1 ? 'opacity-30 cursor-not-allowed' : ''
+              }`}
             aria-label="Next image"
           >
             <ChevronRight size={32} />
@@ -258,9 +256,8 @@ export default function ImageView({
                 handleZoomOut()
               }}
               disabled={scale <= 0.5}
-              className={`p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors ${
-                scale <= 0.5 ? 'opacity-30 cursor-not-allowed' : ''
-              }`}
+              className={`p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors ${scale <= 0.5 ? 'opacity-30 cursor-not-allowed' : ''
+                }`}
               aria-label="Zoom out"
             >
               <ZoomOut size={20} />
@@ -278,9 +275,8 @@ export default function ImageView({
                 handleZoomIn()
               }}
               disabled={scale >= 3}
-              className={`p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors ${
-                scale >= 3 ? 'opacity-30 cursor-not-allowed' : ''
-              }`}
+              className={`p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors ${scale >= 3 ? 'opacity-30 cursor-not-allowed' : ''
+                }`}
               aria-label="Zoom in"
             >
               <ZoomIn size={20} />

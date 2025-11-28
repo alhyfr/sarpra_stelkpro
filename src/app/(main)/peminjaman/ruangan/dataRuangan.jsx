@@ -50,106 +50,107 @@ export default function DataRuangan() {
       ],
     },
     {
-        key:'peminjam',
-        title: "Peminjam",
-        sortable: true,
-        searchable: true,
-        filterable: true,
+      key: 'peminjam',
+      title: "Peminjam",
+      sortable: true,
+      searchable: true,
+      filterable: true,
     },
     {
-        key:'ruangan',
-        title: "Ruangan",
-        sortable: true,
-        searchable: true,
-        filterable: true,
+      key: 'ruangan',
+      title: "Ruangan",
+      sortable: true,
+      searchable: true,
+      filterable: true,
     },
     {
-        key:"kegiatan",
-        title: "Kegiatan",
-        sortable: true,
-        searchable: true,
-        filterable: true,
+      key: "kegiatan",
+      title: "Kegiatan",
+      sortable: true,
+      searchable: true,
+      filterable: true,
     },
     {
-        key:"jam_mulai",
-        title: "Jam Mulai",
-        sortable: true,
-        searchable: true,
-        filterable: true,
+      key: "jam_mulai",
+      title: "Jam Mulai",
+      sortable: true,
+      searchable: true,
+      filterable: true,
     },
     {
-        key:"jam_selesai",
-        title: "Jam Selesai",
-        sortable: true,
-        searchable: true,
-        filterable: true,
+      key: "jam_selesai",
+      title: "Jam Selesai",
+      sortable: true,
+      searchable: true,
+      filterable: true,
     },
     {
-        key:"status",
-        title: "Status",
-        sortable: true,
-        searchable: true,
-        filterable: true,
-        filterOptions: [
-            { value: "proses", label: "Proses" },
-            { value: "konfirmasi", label: "Konfirmasi" },
-        ],
-        render: (value, item) => {
-          return <Aswitch
-            value={value}
-            onChange={(newStatus) => handleStatusChange(item, newStatus)}
-            size="sm"
-            onValue="konfirmasi"
-            offValue="proses"
-            showIcons={true}
-            labels={{
-              on: 'Konfirmasi',
-              off: 'Proses'
-            }}
-          />
+      key: "status",
+      title: "Status",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      filterOptions: [
+        { value: "proses", label: "Proses" },
+        { value: "konfirmasi", label: "Konfirmasi" },
+      ],
+      render: (value, item) => {
+        return <Aswitch
+          value={value}
+          onChange={(newStatus) => handleStatusChange(item, newStatus)}
+          size="sm"
+          onValue="konfirmasi"
+          offValue="proses"
+          showIcons={true}
+          labels={{
+            on: 'Konfirmasi',
+            off: 'Proses'
+          }}
+
+        />
+      }
+    },
+    {
+      key: "tgl_end",
+      title: "Tanggal Selesai",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      type: "dateRange",
+      format: "DD-MM-YYYY",
+      render: (value) => {
+        if (!value || value === "" || value === null) {
+          return <span className="text-gray-500 italic">None</span>;
         }
-    },
-    {
-        key:"tgl_end",
-        title: "Tanggal Selesai",
-        sortable: true,
-        searchable: true,
-        filterable: true,
-        type: "dateRange",
-        format: "DD-MM-YYYY",
-        render: (value) => {
-          if (!value || value === "" || value === null) {
-            return <span className="text-gray-500 italic">None</span>;
-          }
-          return dayjs(value).format("DD-MM-YYYY");
-        }
+        return dayjs(value).format("DD-MM-YYYY");
+      }
 
     },
     {
-        key:"actions",
-        title: "Actions",
-        sortable: true,
-        searchable: true,
-        filterable: true,
-        type: "actions",
-        actions: [
-            {
-                icon: Printer,
-                title: "Struk",
-                onClick: (item) => handleStruk(item),
-                show: (item) => item.status === 'konfirmasi',
-            },
-            {
-                icon: Edit,
-                title: "Edit",
-                onClick: (item) => handleEdit(item),
-            },
-            {
-                icon: Trash2,
-                title: "Delete",
-                onClick: (item) => handleDelete(item),
-            },
-        ],
+      key: "actions",
+      title: "Actions",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      type: "actions",
+      actions: [
+        {
+          icon: Printer,
+          title: "Struk",
+          onClick: (item) => handleStruk(item),
+          show: (item) => item.status === 'konfirmasi',
+        },
+        {
+          icon: Edit,
+          title: "Edit",
+          onClick: (item) => handleEdit(item),
+        },
+        {
+          icon: Trash2,
+          title: "Delete",
+          onClick: (item) => handleDelete(item),
+        },
+      ],
     }
   ];
   const getPinru = async (params = {}, showLoading = true) => {
@@ -175,15 +176,15 @@ export default function DataRuangan() {
       }
 
       const [response] = await Promise.all([
-        api.get(`/sp/pinruangan?${queryParams}`),  
+        api.get(`/sp/pinruangan?${queryParams}`),
         minLoadingTime
       ])
-      
+
       if (response.data.message === 'success') {
-        setData(response.data.data)              
-        setTotal(response.data.pagination?.total || response.data.data.length)            
-        setCurrentPage(response.data.pagination?.current_page || 1)       
-        setItemsPerPage(response.data.pagination?.per_page || 10)  
+        setData(response.data.data)
+        setTotal(response.data.pagination?.total || response.data.data.length)
+        setCurrentPage(response.data.pagination?.current_page || 1)
+        setItemsPerPage(response.data.pagination?.per_page || 10)
       }
     } catch (error) {
       setData([])
@@ -197,16 +198,16 @@ export default function DataRuangan() {
   const postPinru = async (form) => {
     try {
       let response
-    
+
       // Setup config untuk multipart/form-data jika upload file
       const config = form instanceof FormData ? {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
       } : {}
-      
+
       // Check if we have editingAtk to determine if it's update or create
-      if (editingPinru && editingPinru.id) {    
+      if (editingPinru && editingPinru.id) {
         if (form instanceof FormData) {
           form.append('_method', 'PUT')  // Laravel method spoofing
           response = await api.put(`/sp/pinruangan/${editingPinru.id}`, form, config)
@@ -215,7 +216,7 @@ export default function DataRuangan() {
         }
       } else {
         response = await api.post('/sp/pinruangan', form, config)
-      }      
+      }
       if (response.data.message === 'success') {
         // Refresh data setelah berhasil
         getPinru()
@@ -256,7 +257,7 @@ export default function DataRuangan() {
   }
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false)
-    setDeletingPinru(null)  
+    setDeletingPinru(null)
     setDeleteLoading(false)
   }
   const handleBulkDelete = (selectedIds) => {
@@ -270,7 +271,7 @@ export default function DataRuangan() {
       // Delete multiple users
       const deletePromises = bulkDeleteIds.map(id => api.delete(`/sp/pinruangan/${id}`))  // 🔧 GANTI: endpoint delete
       await Promise.all(deletePromises)
-      getPinru()  
+      getPinru()
       setShowBulkDeleteModal(false)
       setBulkDeleteIds([])
     } catch (error) {
@@ -280,24 +281,24 @@ export default function DataRuangan() {
     }
   }
   const handleAdd = () => {
-    setEditingPinru(null)  
+    setEditingPinru(null)
     setIsEditMode(false)
     setShowAddModal(true)
   }
   const handleEdit = (item) => {
-    setEditingPinru(item)  
+    setEditingPinru(item)
     setIsEditMode(true)
     setShowAddModal(true)
   }
   const handleCloseAddModal = () => {
     setShowAddModal(false)
-    setEditingPinru(null)  
+    setEditingPinru(null)
     setIsEditMode(false)
   }
   const handleAddSuccess = (newAtk) => {
-    getPinru()  
+    getPinru()
     setShowAddModal(false)
-    setEditingPinru(null)  
+    setEditingPinru(null)
     setIsEditMode(false)
   }
   const handleExport = () => {
@@ -384,7 +385,7 @@ export default function DataRuangan() {
         currentSortField={sortField}
         currentSortDirection={sortDirection}
       />
-        <DeleteModal
+      <DeleteModal
         show={showDeleteModal}
         onClose={handleCloseDeleteModal}
         onConfirm={handleConfirmDelete}
@@ -405,7 +406,7 @@ export default function DataRuangan() {
         loading={bulkDeleteLoading}
         size="sm"
       />
-            {showAddModal && (
+      {showAddModal && (
         <Modal
           show={showAddModal}
           onClose={handleCloseAddModal}
@@ -424,7 +425,7 @@ export default function DataRuangan() {
           />
         </Modal>
       )}
-       <ExportModal
+      <ExportModal
         show={showExportModal}
         onClose={() => setShowExportModal(false)}
         data={data}

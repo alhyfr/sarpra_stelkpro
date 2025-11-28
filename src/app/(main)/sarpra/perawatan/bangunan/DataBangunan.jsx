@@ -45,25 +45,54 @@ export default function DataBangunan() {
         }
         return `${baseURL}/${filename}`;
     };
-    const handleViewImageBefoto = (item) => {
-        const imageUrl = getImageUrl(item.befoto);
-        if (imageUrl) {
+    const handleViewImage = (item, initialIndex = 0) => {
+        const images = [];
+        const titles = [];
+
+        // Add befoto if exists
+        const befotoUrl = getImageUrl(item.befoto);
+        if (befotoUrl) {
+            images.push(befotoUrl);
+            titles.push(item.nabar ? `${item.nabar} (Sebelum)` : "Foto Sebelum");
+        }
+
+        // Add lastfoto if exists
+        const lastfotoUrl = getImageUrl(item.lasfoto);
+        if (lastfotoUrl) {
+            images.push(lastfotoUrl);
+            titles.push(item.nabar ? `${item.nabar} (Setelah)` : "Foto Setelah");
+        }
+
+
+        if (images.length > 0) {
+            // Determine target URL based on what was clicked
+            let targetUrl = null;
+            if (initialIndex === 0) targetUrl = befotoUrl;
+            else if (initialIndex === 1) targetUrl = lastfotoUrl;
+
+
+            // Find the index of the target URL in the final images array
+            let actualIndex = images.indexOf(targetUrl);
+            if (actualIndex === -1) actualIndex = 0; // Fallback to first image if target not found
+
+
             setSelectedImage({
-                url: imageUrl,
-                title: item.nabar || "Foto Sebelum",
+                urls: images,
+                initialIndex: actualIndex,
+                title: item.nabar || "Foto Perbaikan Bangunan",
+                titles: titles // Optional: if ImageView supported per-image titles, but it supports one title. We can use the main title.
             });
             setShowImageView(true);
+        } else {
         }
     };
+
+    const handleViewImageBefoto = (item) => {
+        handleViewImage(item, 0);
+    };
+
     const handleViewImageLastfoto = (item) => {
-        const imageUrl = getImageUrl(item.lastfoto);
-        if (imageUrl) {
-            setSelectedImage({
-                url: imageUrl,
-                title: item.nabar || "Foto Setelah",
-            });
-            setShowImageView(true);
-        }
+        handleViewImage(item, 1);
     };
     const columns = [
         {
@@ -135,7 +164,10 @@ export default function DataBangunan() {
                 return (
                     <div
                         className="w-10 h-10 rounded-md overflow-hidden bg-gray-200 dark:bg-gray-700 cursor-pointer hover:ring-2 hover:ring-red-500 transition-all"
-                        onClick={() => handleViewImageBefoto(item)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewImageBefoto(item);
+                        }}
                         title="Klik untuk melihat gambar"
                     >
                         <img
@@ -154,7 +186,7 @@ export default function DataBangunan() {
             }
         },
         {
-            key: "lastfoto",
+            key: "lasfoto",
             title: "Gambar Setelah",
             render: (value, item) => {
                 const imageUrl = getImageUrl(value)
@@ -172,7 +204,10 @@ export default function DataBangunan() {
                 return (
                     <div
                         className="w-10 h-10 rounded-md overflow-hidden bg-gray-200 dark:bg-gray-700 cursor-pointer hover:ring-2 hover:ring-red-500 transition-all"
-                        onClick={() => handleViewImageLastfoto(item)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewImageLastfoto(item);
+                        }}
                         title="Klik untuk melihat gambar"
                     >
                         <img
@@ -186,7 +221,9 @@ export default function DataBangunan() {
                                 parent.innerHTML = `<span class="text-xs text-gray-500 dark:text-gray-400 font-medium">${item.nabar?.charAt(0).toUpperCase() || '?'}</span>`
                             }}
                         />
+
                     </div>
+
                 )
             }
         },
@@ -435,6 +472,79 @@ export default function DataBangunan() {
                 currentSortField={sortField}
                 currentSortDirection={sortDirection}
             />
+            <DeleteModal
+                show={showDeleteModal}
+                onClose={handleCloseDeleteModal}
+                onConfirm={handleConfirmDelete}
+                title="Hapus Perbaikan Komponen Bangunan"
+                message={`Apakah Anda yakin ingin menghapus "${deletingBangunan?.kode}"?`}
+                loading={deleteLoading}
+                size="sm"
+            />
+            <DeleteModal
+                show={showBulkDeleteModal}
+                onClose={() => {
+                    setShowBulkDeleteModal(false);
+                    setBulkDeleteIds([]);
+                }}
+                onConfirm={handleConfirmBulkDelete}
+                title="Hapus Multiple Perbaikan Komponen Bangunan"
+                message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} Perbaikan Komponen Bangunan?`}
+                loading={bulkDeleteLoading}
+                size="sm"
+            />
+            <DeleteModal
+                show={showBulkDeleteModal}
+                onClose={() => {
+                    setShowBulkDeleteModal(false);
+                    setBulkDeleteIds([]);
+                }}
+                onConfirm={handleConfirmBulkDelete}
+                title="Hapus Multiple Perbaikan Komponen Bangunan"
+                message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} Perbaikan Aset?`}
+                loading={bulkDeleteLoading}
+                size="sm"
+            />
+            {showAddModal && (
+                <Modal
+                    show={showAddModal}
+                    onClose={handleCloseAddModal}
+                    title={
+                        isEditMode ? "Edit Perbaikan Aset" : "Tambah Perbaikan Aset Baru"
+                    }
+                    size="xl"
+                    closeOnOverlayClick={false}
+                >
+                    <TambahBangunan
+                        onClose={handleCloseAddModal}
+                        onSuccess={handleAddSuccess}
+                        postBangunan={postBangunan}
+                        editingBangunan={editingBangunan}
+                        isEditMode={isEditMode}
+                    />
+                </Modal>
+            )}
+            <ExportModal
+                show={showExportModal}
+                onClose={() => setShowExportModal(false)}
+                data={data}
+                columns={columns}
+                filename="data-perbaikan-bangunan"
+                title="Export Data Perbaikan Bangunan"
+            />
+
+            <ImageView
+                show={showImageView && selectedImage !== null}
+                onClose={() => {
+                    setShowImageView(false)
+                    setSelectedImage(null)
+                }}
+                images={selectedImage?.urls}
+                initialIndex={selectedImage?.initialIndex}
+                title={selectedImage?.title}
+                alt={selectedImage?.title || 'Foto Perbaikan Bangunan'}
+            />
+
         </div>
     )
 }

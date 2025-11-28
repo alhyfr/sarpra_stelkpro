@@ -5,18 +5,19 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from '@/assets/logo_ori.png';
 import Image from 'next/image';
-import { 
-  LayoutDashboard, 
-  Mail, 
-  MessageSquare, 
-  Calendar, 
-  FileText,
-  Sparkles,
-  Wallet,
+import {
+  LayoutDashboard,
+  Mail,
+  MessageSquare,
+  Calendar,
+  FlaskRound,
+  Package,
+  PackageSearch,
   Layers,
   Settings,
   ChevronDown,
   Users,
+  Hammer,
   X
 } from 'lucide-react';
 
@@ -28,12 +29,12 @@ const menuItems = [
   },
   {
     title: 'Inventaris',
-    icon: LayoutDashboard,
+    icon: Package,
     submenu: [
       { title: 'Aset Tetap', href: '/inventaris/master' },
       { title: 'ATK', href: '/inventaris/atk' },
-      { title: 'Barang Non ATK', href: '/inventaris/habis-pakai'},
-      {title: 'Aset Pending', href:'/inventaris/pending'}
+      { title: 'Barang Non ATK', href: '/inventaris/habis-pakai' },
+      { title: 'Aset Pending', href: '/inventaris/pending' }
     ]
   },
   {
@@ -45,9 +46,9 @@ const menuItems = [
     ]
   },
   {
-    title: 'COE',
+    title: 'Monitoring',
     icon: Calendar,
-    href: '/calendar'
+    href: '/monitoring'
   },
   {
     title: 'Users',
@@ -55,11 +56,12 @@ const menuItems = [
     submenu: [
       { title: 'User Account', href: '/users/acount' },
       { title: 'Team', href: '/users/teams' },
+      { title: 'Support', href: '/users/support' },
     ]
   },
   {
     title: 'Peminjaman',
-    icon: Sparkles,
+    icon: PackageSearch,
     submenu: [
       { title: 'Barang Pinjaman', href: '/peminjaman/barang-pinjaman' },
       { title: 'Peminjaman Barang', href: '/peminjaman/barang' },
@@ -69,7 +71,7 @@ const menuItems = [
   },
   {
     title: 'Laboratorium',
-    icon: Wallet,
+    icon: FlaskRound,
     submenu: [
       { title: 'Wallet', href: '/crypto/wallet' },
       { title: 'Marketplace', href: '/crypto/marketplace' },
@@ -79,10 +81,20 @@ const menuItems = [
   },
   {
     title: 'Sarpra',
-    icon: Wallet,
+    icon: Hammer,
     submenu: [
       { title: 'perawatan aset', href: '/sarpra/perawatan/aset' },
       { title: 'perawatan bangunan', href: '/sarpra/perawatan/bangunan' },
+      { title: 'gedung', href: '/sarpra/gedung' },
+      { title: 'ruangan', href: '/sarpra/ruangan' },
+    ]
+  },
+  {
+    title: 'Calendar Of Event',
+    icon: Calendar,
+    submenu: [
+      { title: 'Tahunan', href: '/coe/tahunan' },
+      { title: 'Eksternal', href: '/coe/eksternal' },
     ]
   },
   {
@@ -107,7 +119,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
   useEffect(() => {
     menuItems.forEach((item, index) => {
       if (item.submenu) {
-        const hasActiveSubmenu = item.submenu.some(subItem => 
+        const hasActiveSubmenu = item.submenu.some(subItem =>
           pathname === subItem.href || pathname.startsWith(subItem.href + '/')
         );
         if (hasActiveSubmenu) {
@@ -144,7 +156,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
           <span className="font-bold text-2xl text-gray-400 dark:text-white">Property</span>
         </Link>
         {/* Close button for mobile */}
-        <button 
+        <button
           onClick={onClose}
           className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
         >
@@ -160,28 +172,25 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
               <div>
                 <button
                   onClick={() => toggleSubmenu(index)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors group ${
-                    hasActiveSubmenu(item.submenu)
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors group ${hasActiveSubmenu(item.submenu)
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <item.icon className="w-5 h-5" />
                     <span className="font-medium">{item.title}</span>
                   </div>
-                  <ChevronDown 
-                    className={`w-4 h-4 transition-transform duration-300 ${
-                      openMenus[index] ? 'rotate-180' : 'rotate-0'
-                    }`}
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-300 ${openMenus[index] ? 'rotate-180' : 'rotate-0'
+                      }`}
                   />
                 </button>
-                <div 
-                  className={`ml-4 overflow-hidden transition-all duration-300 ease-in-out ${
-                    openMenus[index] 
-                      ? 'max-h-96 opacity-100 mt-1' 
-                      : 'max-h-0 opacity-0'
-                  }`}
+                <div
+                  className={`ml-4 overflow-hidden transition-all duration-300 ease-in-out ${openMenus[index]
+                    ? 'max-h-96 opacity-100 mt-1'
+                    : 'max-h-0 opacity-0'
+                    }`}
                 >
                   <div className="space-y-1">
                     {item.submenu.map((subItem, subIndex) => {
@@ -190,11 +199,10 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
                         <Link
                           key={subIndex}
                           href={subItem.href}
-                          className={`block px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
-                            isActive
-                              ? 'bg-blue-600 text-white font-medium shadow-sm'
-                              : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 transform hover:translate-x-1'
-                          }`}
+                          className={`block px-3 py-2 text-sm rounded-lg transition-all duration-200 ${isActive
+                            ? 'bg-blue-600 text-white font-medium shadow-sm'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 transform hover:translate-x-1'
+                            }`}
                         >
                           {subItem.title}
                         </Link>
@@ -206,11 +214,10 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
             ) : (
               <Link
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${
-                  isActiveLink(item.href)
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${isActiveLink(item.href)
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
               >
                 <item.icon className="w-5 h-5" />
                 <span className="font-medium">{item.title}</span>
@@ -232,10 +239,9 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside 
-        className={`hidden lg:block h-screen sticky top-0 transition-all duration-300 ${
-          isOpen ? 'w-64' : 'w-0'
-        } overflow-hidden`}
+      <aside
+        className={`hidden lg:block h-screen sticky top-0 transition-all duration-300 ${isOpen ? 'w-64' : 'w-0'
+          } overflow-hidden`}
       >
         {sidebarContent}
       </aside>
@@ -245,11 +251,11 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
         {isOpen && (
           <>
             {/* Backdrop */}
-            <div 
+            <div
               className="fixed inset-0 bg-black/50 z-40"
               onClick={onClose}
             />
-            
+
             {/* Drawer */}
             <aside className="fixed left-0 top-0 w-64 h-screen z-50 transform transition-transform duration-300">
               {sidebarContent}

@@ -74,37 +74,26 @@ validate.validators.datetime.format = function (value, options) {
  * ============================================
  * CONSTRAINTS UNTUK VALIDASI FORM ASET/INVENTARIS
  * ============================================
- * 
- * Constraints ini digunakan oleh library validate.js untuk memvalidasi form data.
- * Setiap field memiliki aturan validasi yang berbeda sesuai kebutuhan.
  */
 export const constraints = {
-  // 1. KODE ASET - Wajib diisi
   kode: {
     presence: {
       allowEmpty: false,
       message: "^Kode aset wajib diisi"
     }
   },
-
-  // 2. DESKRIPSI - Wajib diisi
   desc: {
     presence: {
       allowEmpty: false,
       message: "^Deskripsi aset wajib diisi"
     }
   },
-
-  // 3. GEDUNG ID - Wajib dipilih (harus ada nilai)
   gedung_id: {
     presence: {
       allowEmpty: false,
       message: "^Gedung wajib dipilih"
     }
   },
-
-  // 4. JUMLAH - Wajib diisi dan harus berupa angka
-  // validate.js otomatis mengkonversi string numerik ke number
   jml: {
     presence: {
       allowEmpty: false,
@@ -116,17 +105,12 @@ export const constraints = {
       message: "^Jumlah harus berupa angka dan lebih dari 0"
     }
   },
-
-  // 5. SATUAN - Wajib diisi
   satuan: {
     presence: {
       allowEmpty: false,
       message: "^Satuan wajib diisi"
     }
   },
-
-  // 6. HARGA - Wajib diisi dan harus berupa angka
-  // validate.js otomatis mengkonversi string numerik ke number
   harga: {
     presence: {
       allowEmpty: false,
@@ -138,8 +122,6 @@ export const constraints = {
       message: "^Harga harus berupa angka dan tidak boleh negatif"
     }
   },
-
-  // 7. TANGGAL - Wajib diisi dan harus format tanggal yang valid
   tgl: {
     presence: {
       allowEmpty: false,
@@ -150,16 +132,12 @@ export const constraints = {
       message: "^Format tanggal tidak valid"
     }
   },
-
-  // 8. SUMBER DANA ID - Wajib dipilih (harus ada nilai)
   sumber_dana_id: {
     presence: {
       allowEmpty: false,
       message: "^Sumber dana wajib dipilih"
     }
   },
-
-  // 9. STATUS - Wajib dipilih (harus ada nilai)
   status: {
     presence: {
       allowEmpty: false,
@@ -170,75 +148,35 @@ export const constraints = {
       message: "^Status harus dipilih (ON atau OFF)"
     }
   },
-
-  // 10. PIC (Penanggung Jawab) - Wajib diisi
   pic: {
     presence: {
       allowEmpty: false,
       message: "^PIC wajib diisi"
     }
   },
-
-  // 11. KATEGORI - Wajib dipilih (harus ada nilai)
   kategori: {
     presence: {
       allowEmpty: false,
       message: "^Kategori wajib dipilih"
     }
   }
-
-  // CATATAN: Field berikut bersifat OPSIONAL, tidak perlu validasi:
-  // - spec (Spesifikasi)
-  // - ruang (Ruangan - bisa kosong)
-  // - noseri (Nomor Seri)
-  // - merk (Merk)
-  // - type (Type)
-  // - color (Warna)
-  // - bukti (Bukti Pembelian)
-  // - gambar (Gambar Aset)
-  // - kode_ypt (Kode YPT)
-  // - kode_sim (Kode SIMKUG)
-  // - ket (Keterangan)
 };
 
 /**
  * ============================================
- * FUNGSI VALIDASI FORM ASET/INVENTARIS
+ * HELPER FUNCTION - FORMAT ERROR MESSAGES
  * ============================================
- * 
- * Fungsi ini menggunakan library validate.js untuk memvalidasi form data aset.
- * 
- * @param {Object} formData - Data form yang akan divalidasi
- * @returns {Object} - Object berisi errors (kosong jika valid)
- * 
- * Contoh penggunaan:
- * const errors = validateAsetForm(formData);
- * if (Object.keys(errors).length === 0) {
- *   // Form valid, lanjutkan submit
- * } else {
- *   // Ada error, tampilkan pesan error
- * }
  */
-export const validateAsetForm = (formData) => {
-  // Validasi menggunakan validate.js
-  // validate.js akan otomatis memvalidasi sesuai dengan constraints yang didefinisikan
-  const validationErrors = validate(formData, constraints);
-
-  // Jika tidak ada error, return object kosong
-  // validate.js mengembalikan undefined jika tidak ada error
+const formatValidationErrors = (validationErrors) => {
   if (!validationErrors) {
     return {};
   }
 
-  // Format error dari validate.js agar sesuai dengan format yang diharapkan
-  // validate.js mengembalikan object dengan field sebagai key dan array error sebagai value
-  // Kita ambil pesan error pertama dari setiap array dan hapus prefix "^" jika ada
   const formattedErrors = {};
 
   Object.keys(validationErrors).forEach((field) => {
     let errorMessage = '';
 
-    // Ambil pesan error pertama dari array
     if (Array.isArray(validationErrors[field])) {
       errorMessage = validationErrors[field][0] || '';
     } else if (typeof validationErrors[field] === 'string') {
@@ -247,7 +185,6 @@ export const validateAsetForm = (formData) => {
       errorMessage = String(validationErrors[field]);
     }
 
-    // Hapus prefix "^" jika ada (validate.js menggunakan "^" untuk custom message)
     if (errorMessage.startsWith('^')) {
       errorMessage = errorMessage.substring(1);
     }
@@ -257,44 +194,111 @@ export const validateAsetForm = (formData) => {
 
   return formattedErrors;
 };
-export const validatePerawtanAsetForm = (formData) => {
-  const constraints = {
-    inventaris_id: {
-      presence: {
-        allowEmpty: false,
-        message: "^Inventaris wajib dipilih"
-      }
-    }
+
+/**
+ * ============================================
+ * HELPER FUNCTION - CREATE VALIDATOR
+ * ============================================
+ */
+const createValidator = (constraints) => {
+  return (formData) => {
+    const validationErrors = validate(formData, constraints);
+    return formatValidationErrors(validationErrors);
   };
-
-  // Validasi menggunakan validate.js
-  const validationErrors = validate(formData, constraints);
-
-  // Jika tidak ada error, return object kosong
-  if (!validationErrors) {
-    return {};
-  }
-
-  // Format error dari validate.js
-  const formattedErrors = {};
-  Object.keys(validationErrors).forEach((field) => {
-    let errorMessage = '';
-
-    if (Array.isArray(validationErrors[field])) {
-      errorMessage = validationErrors[field][0] || '';
-    } else if (typeof validationErrors[field] === 'string') {
-      errorMessage = validationErrors[field];
-    } else {
-      errorMessage = String(validationErrors[field]);
-    }
-
-    // Hapus prefix "^" jika ada
-    if (errorMessage.startsWith('^')) {
-      errorMessage = errorMessage.substring(1);
-    }
-
-    formattedErrors[field] = errorMessage;
-  });
-
-  return formattedErrors;
 };
+
+/**
+ * ============================================
+ * VALIDATORS
+ * ============================================
+ */
+
+// Validator untuk form Aset/Inventaris
+export const validateAsetForm = createValidator(constraints);
+
+// Validator untuk form Perawatan Aset
+export const validatePerawtanAsetForm = createValidator({
+  inventaris_id: {
+    presence: {
+      allowEmpty: false,
+      message: "^Inventaris wajib dipilih"
+    }
+  }
+});
+
+// Validator untuk form Bangunan
+export const validateBangunanForm = createValidator({
+  nama_bagian: {
+    presence: {
+      allowEmpty: false,
+      message: "^Nama bagian wajib diisi"
+    }
+  },
+  jenis_kerusakan: {
+    presence: {
+      allowEmpty: false,
+      message: "^Jenis kerusakan wajib diisi"
+    }
+  },
+  tindakan: {
+    presence: {
+      allowEmpty: false,
+      message: "^Tindakan wajib diisi"
+    }
+  },
+  tgl_masuk: {
+    presence: {
+      allowEmpty: false,
+      message: "^Tanggal masuk wajib diisi"
+    }
+  },
+  pic: {
+    presence: {
+      allowEmpty: false,
+      message: "^PIC wajib diisi"
+    }
+  },
+  status: {
+    presence: {
+      allowEmpty: false,
+      message: "^Status wajib diisi"
+    }
+  }
+});
+
+// Validator untuk form Gedung
+export const validateGedungForm = createValidator({
+  gedung: {
+    presence: {
+      allowEmpty: false,
+      message: "^Gedung wajib diisi"
+    }
+  },
+  ket: {
+    presence: {
+      allowEmpty: false,
+      message: "^Keterangan wajib diisi"
+    }
+  }
+});
+
+export const validateRuanganForm = createValidator({
+  ruangan: {
+    presence: {
+      allowEmpty: false,
+      message: "^Ruangan wajib diisi"
+    }
+  },
+  gedung_id: {
+    presence: {
+      allowEmpty: false,
+      message: "^Gedung wajib dipilih"
+    }
+  },
+  status: {
+    presence: {
+      allowEmpty: false,
+      message: "^Status wajib diisi"
+    }
+  }
+});
