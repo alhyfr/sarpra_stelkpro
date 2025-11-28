@@ -58,9 +58,29 @@ export default function DataMon() {
             title: 'Tanggal Monitoring',
             sortable: true,
             searchable: true,
-            render: (value, item) => {
-                return dayjs(value).format('DD-MM-YYYY')
-            }
+            type: "dateRange",
+            format: "DD-MM-YYYY",
+            render: (value) => {
+                if (!value) return '-';
+                return dayjs(value).format("DD-MM-YYYY");
+            },
+            filterOptions: [
+                {
+                    value: "last3Months",
+                    label: "3 Bulan Terakhir",
+                    getValue: () => {
+                        const threeMonthsAgo = dayjs().subtract(3, 'month').startOf('month').format("YYYY-MM-DD");
+                        const today = dayjs().format("YYYY-MM-DD");
+                        return `${threeMonthsAgo},${today}`;
+                    }
+                },
+                {
+                    value: "custom",
+                    label: "Custom Range",
+                    isCustomRange: true
+                }
+            ],
+
         },
         {
             key: 'kode',
