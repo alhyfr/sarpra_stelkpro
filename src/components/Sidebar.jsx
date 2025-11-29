@@ -73,10 +73,10 @@ const menuItems = [
     title: 'Laboratorium',
     icon: FlaskRound,
     submenu: [
-      { title: 'Wallet', href: '/crypto/wallet' },
-      { title: 'Marketplace', href: '/crypto/marketplace' },
-      { title: 'Marketplace Details', href: '/crypto/details' },
-      { title: 'Portfolios', href: '/crypto/portfolios' },
+      { title: 'Daftar Laboratorium', href: '/lab/daftar' },
+      { title: 'Invantaris Laboratorium', href: '/lab/inv' },
+      { title: 'Bahan Praktikum', href: '/lab/bahan' },
+      { title: 'Jadwal Penggunaan', href: '/lab/jadwal' },
     ]
   },
   {
@@ -101,9 +101,9 @@ const menuItems = [
     title: 'Settings',
     icon: Settings,
     submenu: [
-      { title: 'Company', href: '/settings/company' },
-      { title: 'Notification', href: '/settings/notification' },
-      { title: 'Theme', href: '/settings/theme' },
+      { title: 'satuan', href: '/settings/satuan' },
+      { title: 'Sumber Dana', href: '/settings/sumber' },
+      { title: 'Kategori Aset', href: '/settings/kategori' },
       { title: 'Currencies', href: '/settings/currencies' },
       { title: 'Languages', href: '/settings/languages' },
       { title: 'Payment Gateway', href: '/settings/payment' },

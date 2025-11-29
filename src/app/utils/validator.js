@@ -302,3 +302,76 @@ export const validateRuanganForm = createValidator({
     }
   }
 });
+
+
+export const validateSatuanForm = createValidator({
+  satuan: {
+    presence: {
+      allowEmpty: false,
+      message: "^Satuan wajib diisi"
+    }
+  }
+});
+
+export const validateKategoriForm = createValidator({
+  kategori: {
+    presence: {
+      allowEmpty: false,
+      message: "^Kategori wajib diisi"
+    }
+  }
+});
+
+export const validateSumberForm = createValidator({
+  sumber: {
+    presence: {
+      allowEmpty: false,
+      message: "^Sumber wajib diisi"
+    }
+  },
+  status: {
+    presence: {
+      allowEmpty: false,
+      message: "^Status wajib diisi"
+    }
+  }
+});
+
+export const validateSupportForm = createValidator({
+  kode: {
+    presence: {
+      allowEmpty: false,
+      message: "^Nama wajib diisi"
+    }
+  },
+  nama: {
+    presence: {
+      allowEmpty: false,
+      message: "^Alamat wajib diisi"
+    }
+  },
+  alamat: {
+    presence: {
+      allowEmpty: false,
+      message: "^Email wajib diisi"
+    }
+  },
+  jk: {
+    presence: {
+      allowEmpty: false,
+      message: "^Jenis kelamin wajib diisi"
+    }
+  },
+  status: {
+    presence: {
+      allowEmpty: false,
+      message: "^Status wajib diisi"
+    }
+  },
+  hp: {
+    presence: {
+      allowEmpty: false,
+      message: "^Keterangan wajib diisi"
+    }
+  }
+});

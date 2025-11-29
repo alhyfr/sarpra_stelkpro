@@ -273,9 +273,17 @@ export default function DataTable({
       : <ArrowDown className="w-4 h-4 text-red-600" />
   }
 
-  const renderCell = (item, column) => {
+  const renderCell = (item, column, rowIndex = 0) => {
     if (column.render) {
-      return column.render(item[column.key], item)
+      return column.render(item[column.key], item, rowIndex)
+    }
+
+    if (column.type === 'index') {
+      // Calculate row number based on pagination
+      const rowNumber = serverSide 
+        ? (currentPage - 1) * itemsPerPage + rowIndex + 1
+        : startIndex + rowIndex + 1
+      return rowNumber
     }
 
     if (column.type === 'badge') {
@@ -589,7 +597,7 @@ export default function DataTable({
                         ...(column.maxWidth && { maxWidth: column.maxWidth })
                       }}
                     >
-                      {renderCell(item, column)}
+                      {renderCell(item, column, index)}
                     </td>
                   ))}
                 </tr>
