@@ -195,14 +195,17 @@ export default function DataAset() {
         setLoading(true)
       }
       const minLoadingTime = new Promise(resolve => setTimeout(resolve, 800))
+      
       const queryParams = new URLSearchParams({
         page: params.page || currentPage,
         per_page: params.per_page || itemsPerPage
       })
+      
       const searchValue = params.search !== undefined ? params.search : searchTerm
       if (searchValue && searchValue.trim() !== '') {
         queryParams.append('search', searchValue)
       }
+      
       if (params.filters) {
         Object.entries(params.filters).forEach(([key, value]) => {
           if (value) {
@@ -215,13 +218,16 @@ export default function DataAset() {
         api.get(`/sp/perbaikan-aset?${queryParams}`),
         minLoadingTime
       ])
+      
       if (response.data.status === 'success') {
         setData(response.data.data)
-        setTotal(response.data.pagination?.total || response.data.data.length)
-        setCurrentPage(response.data.pagination?.current_page || 1)
-        setItemsPerPage(response.data.pagination?.per_page || 10)
+        // Use same pattern as DataInv.jsx - check both structures for compatibility
+        setTotal(response.data.total || response.data.pagination?.total || response.data.data.length)
+        setCurrentPage(response.data.page || response.data.pagination?.current_page || 1)
+        setItemsPerPage(response.data.per_page || response.data.pagination?.per_page || 10)
       }
     } catch (error) {
+      console.error('Error fetching perbaikan aset:', error)
       setData([])
       setTotal(0)
     } finally {
@@ -370,7 +376,8 @@ export default function DataAset() {
       setSortDirection(params.sortDirection)
     }
 
-    // Fetch data dengan params baru
+    // Fetch data dengan params yang dikirimkan dari DataTable
+    // getPaset will use params if provided, otherwise fallback to current state
     getPaset(params)
   }
   useEffect(() => {

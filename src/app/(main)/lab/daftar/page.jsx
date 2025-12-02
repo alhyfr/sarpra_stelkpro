@@ -1,10 +1,11 @@
 'use client'
 import ProtectedRoute from "@/components/ProtectedRoute";
+import DataDaftar from "./DataDaftar";
 export default function DaftarLaboratorium() {
     return (
         <div>
             <ProtectedRoute>
-                <h1>Daftar Laboratorium</h1>
+                <DataDaftar />
             </ProtectedRoute>
         </div>
     )

@@ -9,6 +9,7 @@ import api from '@/app/utils/Api'
 import TambahSupport from './TambahSupport'
 import { useData } from '@/app/context/DataContext'
 import ImageView from '@/components/ImageView'
+import Aswitch from '@/components/Aswitch';
 
 const STORAGE_URL = process.env.NEXT_PUBLIC_API_STORAGE || ''
 
@@ -158,6 +159,23 @@ export default function DataSupport() {
         { value: 'aktif', label: 'AKTIF' },
         { value: 'non-aktif', label: 'NON AKTIF' },
       ],
+      render: (value, item) => {
+        return (
+          <Aswitch
+            value={value}
+            onChange={(newStatus) => handleStatusChange(item, newStatus)}
+            size="sm"
+            onValue="aktif"
+            offValue="non-aktif"
+            showIcons={true}
+            labels={{
+              on: 'AKTIF',
+              off: 'NON AKTIF'
+            }}
+          />
+        )
+      }
+      
     },
     {
       key: 'actions',
@@ -366,6 +384,18 @@ export default function DataSupport() {
 
     // Fetch data dengan params baru
     getSupport(params)
+  }
+  const handleStatusChange = async (item, newStatus) => {
+    try {
+      await api.put(`/sp/support/status/${item.id}`, {
+        status: newStatus,
+      });
+      getSupport()
+    } catch (error) {
+      console.error('Error updating status:', error)
+    } finally {
+      setLoading(false)
+    }
   }
   useEffect(() => {
     getSupport()  // 🔧 GANTI: sesuaikan nama function (contoh: getProducts, getCategories)

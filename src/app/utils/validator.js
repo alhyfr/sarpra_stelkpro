@@ -375,3 +375,29 @@ export const validateSupportForm = createValidator({
     }
   }
 });
+export const validateDaftarLabForm = createValidator({
+  nama_lab: {
+    presence: {
+      allowEmpty: false,
+      message: "^Nama lab wajib diisi"
+    }
+  },
+  jurusan: {
+    presence: {
+      allowEmpty: false,
+      message: "^Jurusan wajib diisi"
+    }
+  },
+  laboran: {
+    presence: {
+      allowEmpty: false,
+      message: "^Laboran wajib diisi"
+    }
+  },
+  ruangan_id: {
+    presence: {
+      allowEmpty: false,
+      message: "^Ruangan wajib dipilih"
+    }
+  }
+});

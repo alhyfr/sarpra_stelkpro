@@ -284,9 +284,10 @@ export default function DataBangunan() {
             ])
             if (response.data.status === 'success') {
                 setData(response.data.data)
-                setTotal(response.data.pagination?.total || response.data.data.length)
-                setCurrentPage(response.data.pagination?.current_page || 1)
-                setItemsPerPage(response.data.pagination?.per_page || 10)
+                // Use same pattern as DataInv.jsx - check both structures for compatibility
+                setTotal(response.data.total || response.data.pagination?.total || response.data.data.length)
+                setCurrentPage(response.data.page || response.data.pagination?.current_page || 1)
+                setItemsPerPage(response.data.per_page || response.data.pagination?.per_page || 10)
             }
         } catch (error) {
             setData([])
