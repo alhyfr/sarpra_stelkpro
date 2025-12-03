@@ -189,7 +189,7 @@ export default function DataInv() {
                 minLoadingTime
             ])
 
-            if (response.data.message === 'success') {
+            if (response.data.status === 'success') {
                 setData(response.data.data)
                 setTotal(response.data.total)
                 setCurrentPage(response.data.page)

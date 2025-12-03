@@ -358,24 +358,39 @@ export default function DataJadwal() {
   return (
     <div>
       <DataTable
+        // Data & Loading
         data={data}
         total={total}
         loading={loading}
+
+        // Columns Configuration
         columns={columns}
+
+        // Search & Filter
         searchable={true}
         filterable={true}
         sortable={true}
+
+        // Selection & Actions
         selectable={true}
         onAdd={handleAdd}
         onExport={handleExport}
         onBulkDelete={handleBulkDelete}
+
+        // Pagination
         pagination={true}
         itemsPerPageOptions={[5, 10, 25, 50]}
         defaultItemsPerPage={10}
+
+        // Title
         title="Data Jadwal Lab"
         subtitle="Kelola data Jadwal Lab"
+
+        // Server-side Mode (PENTING!)
         serverSide={true}
-        onDataChange={handleDataChange}
+        onDataChange={handleDataChange}  // ⚡ INI YANG PENTING - menghubungkan search/filter dengan API
+
+        // Controlled State (sync dengan parent)
         currentPage={currentPage}
         currentItemsPerPage={itemsPerPage}
         currentSearch={searchTerm}
