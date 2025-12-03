@@ -179,6 +179,7 @@ export default function TambahBahan({
         { value: 'bahan kimia', label: 'Bahan Kimia' },
         { value: 'peralatan praktikum', label: 'Peralatan Praktikum' },
         { value: 'instrumen praktikum', label: 'Instrumen Praktikum' },
+        { value: 'bahan praktikum', label: 'Bahan Praktikum' },
         {value: 'lainnya', label: 'Lainnya'},
     ]
     const satuanOptions = [

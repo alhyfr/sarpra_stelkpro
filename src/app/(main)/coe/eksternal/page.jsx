@@ -1,9 +1,12 @@
 'use client'
-
+import ProtectedRoute from "@/components/ProtectedRoute";
+import DataEx from "./DataEx";
 export default function Eksternal() {
     return (
         <div>
-            <h1>Eksternal</h1>
+            <ProtectedRoute>
+                <DataEx />
+            </ProtectedRoute>
         </div>
     )
 }
