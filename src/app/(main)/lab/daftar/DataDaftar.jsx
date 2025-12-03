@@ -171,13 +171,12 @@ export default function DataDaftar() {
 
             if (response.data.status === 'success') {
                 setData(response.data.data)
-                // Use same pattern as DataInv.jsx - check both structures for compatibility
-                setTotal(response.data.total || response.data.pagination?.total || response.data.data.length)
-                setCurrentPage(response.data.page || response.data.pagination?.current_page || 1)
-                setItemsPerPage(response.data.per_page || response.data.pagination?.per_page || 10)
+                setTotal(response.data.total)
+                setCurrentPage(response.data.page)
+                setItemsPerPage(response.data.per_page)
             }
         } catch (error) {
-            console.error('Error fetching users:', error)
+            console.error('Error fetching daftar lab:', error)
             setData([])
             setTotal(0)
         } finally {
