@@ -6,10 +6,12 @@ import DeleteModal from '@/components/Delete'
 import ExportModal from '@/components/ExportModal'
 import { Edit, Trash2 } from 'lucide-react'
 import api from '@/app/utils/Api'
-import TambahDaftar from './TambahDaftar'
+import TambahInv from './TambahInv'
 import ImageView from '@/components/ImageView'
+import { useData } from '@/app/context/DataContext'
 const STORAGE_URL = process.env.NEXT_PUBLIC_API_STORAGE || ''
-export default function DataDaftar() {
+export default function DataInv() {
+    const { labs,getOpsi } = useData()
     const [data, setData] = useState([])           // Data yang ditampilkan di table
     const [total, setTotal] = useState(0)         // Total data dari server (untuk pagination)
     const [loading, setLoading] = useState(false) // Loading state saat fetch data
@@ -20,10 +22,10 @@ export default function DataDaftar() {
     const [sortDirection, setSortDirection] = useState('asc') // Arah sorting (asc/desc)
     const [filters, setFilters] = useState({})
     const [showAddModal, setShowAddModal] = useState(false)     // Modal tambah/edit data
-    const [editingDaftar, setEditingDaftar] = useState(null)        // Data yang sedang diedit
+    const [editingInv, setEditingInv] = useState(null)        // Data yang sedang diedit
     const [isEditMode, setIsEditMode] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)     // Modal konfirmasi hapus
-    const [deletingDaftar, setDeletingDaftar] = useState(null)           // Data yang akan dihapus
+    const [deletingInv, setDeletingInv] = useState(null)           // Data yang akan dihapus
     const [deleteLoading, setDeleteLoading] = useState(false)
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false) // Modal konfirmasi hapus multiple
     const [bulkDeleteIds, setBulkDeleteIds] = useState([])               // Array ID yang akan dihapus
@@ -45,47 +47,63 @@ export default function DataDaftar() {
         return `${STORAGE_URL}/${filename}`
     }
     const handleViewImage = (item) => {
-        const imageUrl = getImageUrl(item.foto)
+        const imageUrl = getImageUrl(item.gambar)
         if (imageUrl) {
             setSelectedImage({
                 url: imageUrl,
-                title: item.nama,
-                description: `${item.gedung || ''}`
+                title: item.desc,
+                description: `${item.ruang || ''}`
             })
             setShowImageView(true)
         }
     }
     const columns = [
         {
+            key: 'kode',
+            title: 'kode',
+            sortable: true,
+            searchable: true,
+        },
+        {
+            key: 'inventaris_desc',
+            title: 'desc',
+            sortable: true,
+            searchable: true,
+        },
+        {
+            key: 'ruang',
+            title: 'ruang',
+            sortable: true,
+            searchable: true,
+        },
+        {
             key: 'nama_lab',
             title: 'Nama Lab',
             sortable: true,
             searchable: true,
+            filterOptions: labs.map((item) => ({
+                value: item.nama_lab,
+                label: item.nama_lab,
+            })),
         },
         {
-            key: 'ruangan',
-            title: 'Ruangan',
+            key: 'kondisi',
+            title: 'Kondisi',
+            sortable: true,
+            searchable: true,
+            filterOptions: [
+                { value: "baik", label: "Baik" },
+                { value: "rusak", label: "Rusak" },
+            ],
+        },
+        {
+            key: 'ket',
+            title: 'Keterangan',
             sortable: true,
             searchable: true,
         },
         {
-            key: 'jurusan',
-            title: 'Jurusan',
-            sortable: true,
-            searchable: true,
-            wrap: true,
-            minWidth: '300px',
-        },
-        {
-            key: 'laboran',
-            title: 'Laboran',
-            sortable: true,
-            searchable: true,
-            wrap: true,
-            minWidth: '300px',
-        },
-        {
-            key: 'foto',
+            key: 'gambar',
             title: 'Foto',
             render: (value, item) => {
                 const imageUrl = getImageUrl(value)
@@ -94,7 +112,7 @@ export default function DataDaftar() {
                     return (
                         <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 flex items-center justify-center rounded-md">
                             <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                                {item.gedung?.charAt(0).toUpperCase() || '?'}
+                                {item.gambar?.charAt(0).toUpperCase() || '?'}
                             </span>
                         </div>
                     )
@@ -111,7 +129,7 @@ export default function DataDaftar() {
                     >
                         <img
                             src={imageUrl}
-                            alt={item.gedung || 'Foto Gedung'}
+                            alt={item.gambar || 'Foto Gambar'}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                                 e.target.style.display = 'none'
@@ -141,8 +159,10 @@ export default function DataDaftar() {
                 },
             ],
         },
+
+
     ]
-    const getDaftarLab = async (params = {}, showLoading = true) => {
+    const getInventarisLab = async (params = {}, showLoading = true) => {
         try {
             if (showLoading) {
                 setLoading(true)
@@ -165,11 +185,11 @@ export default function DataDaftar() {
             }
 
             const [response] = await Promise.all([
-                api.get(`/sp/daftar-lab?${queryParams}`),
+                api.get(`/sp/inventaris-lab?${queryParams}`),
                 minLoadingTime
             ])
 
-            if (response.data.status === 'success') {
+            if (response.data.message === 'success') {
                 setData(response.data.data)
                 // Use same pattern as DataInv.jsx - check both structures for compatibility
                 setTotal(response.data.total || response.data.pagination?.total || response.data.data.length)
@@ -186,7 +206,7 @@ export default function DataDaftar() {
             }
         }
     }
-    const postDaftarLab = async (form) => {
+    const postInventarisLab = async (form) => {
         try {
             let response
             const config = form instanceof FormData ? {
@@ -194,18 +214,18 @@ export default function DataDaftar() {
                     'Content-Type': 'multipart/form-data',
                 }
             } : {}
-            if (editingDaftar && editingDaftar.id) {
+            if (editingInv && editingInv.id) {
                 if (form instanceof FormData) {
                     form.append('_method', 'PUT')
-                    response = await api.put(`/sp/daftar-lab/${editingDaftar.id}`, form, config)
+                    response = await api.put(`/sp/inventaris-lab/${editingInv.id}`, form, config)
                 } else {
-                    response = await api.put(`/sp/daftar-lab/${editingDaftar.id}`, form, config)
+                    response = await api.put(`/sp/inventaris-lab/${editingInv.id}`, form, config)
                 }
             } else {
-                response = await api.post('/sp/daftar-lab', form, config)
+                response = await api.post('/sp/inventaris-lab', form, config)
             }
             if (response.data.status === 'success') {
-                getDaftarLab()
+                getInventarisLab()
                 setShowAddModal(false)
                 setEditingDaftar(null)
                 setIsEditMode(false)
@@ -222,27 +242,27 @@ export default function DataDaftar() {
         }
     }
     const handleDelete = (item) => {
-        setDeletingDaftar(item)
+        setDeletingInv(item)
         setShowDeleteModal(true)
     }
     const handleConfirmDelete = async () => {
-        if (!deletingDaftar) return
+        if (!deletingInv) return
 
         setDeleteLoading(true)
         try {
-            await api.delete(`/sp/daftar-lab/${deletingDaftar.id}`)
-            getDaftarLab()
+            await api.delete(`/sp/inventaris-lab/${deletingInv.id}`)
+            getInventarisLab()
             setShowDeleteModal(false)
-            setDeletingDaftar(null)
+            setDeletingInv(null)
         } catch (error) {
-            console.error('Error deleting daftar lab:', error)
+            console.error('Error deleting inventaris lab:', error)
         } finally {
             setDeleteLoading(false)
         }
     }
     const handleCloseDeleteModal = () => {
         setShowDeleteModal(false)
-        setDeletingDaftar(null)
+        setDeletingInv(null)
         setDeleteLoading(false)
     }
     // Bulk delete handlers
@@ -256,36 +276,36 @@ export default function DataDaftar() {
         setBulkDeleteLoading(true)
         try {
             // Delete multiple users
-            const deletePromises = bulkDeleteIds.map(id => api.delete(`/sp/daftar-lab/${id}`))  // 🔧 GANTI: endpoint delete
+            const deletePromises = bulkDeleteIds.map(id => api.delete(`/sp/inventaris-lab/${id}`))  // 🔧 GANTI: endpoint delete
             await Promise.all(deletePromises)
-            getDaftarLab()
+            getInventarisLab()
             setShowBulkDeleteModal(false)
             setBulkDeleteIds([])
         } catch (error) {
-            console.error('Error bulk deleting daftar lab :', error)
+            console.error('Error bulk deleting inventaris lab :', error)
         } finally {
             setBulkDeleteLoading(false)
         }
     }
     const handleAdd = () => {
-        setEditingDaftar(null)
+        setEditingInv(null)
         setIsEditMode(false)
         setShowAddModal(true)
     }
     const handleEdit = (item) => {
-        setEditingDaftar(item)
+        setEditingInv(item)
         setIsEditMode(true)
         setShowAddModal(true)
     }
     const handleCloseAddModal = () => {
         setShowAddModal(false)
-        setEditingDaftar(null)
+        setEditingInv(null)
         setIsEditMode(false)
     }
     const handleAddSuccess = (newTeam) => {
-        getDaftarLab()
+        getInventarisLab()
         setShowAddModal(false)
-        setEditingDaftar(null)
+        setEditingInv(null)
         setIsEditMode(false)
     }
     const handleExport = () => {
@@ -313,10 +333,11 @@ export default function DataDaftar() {
         }
 
         // Fetch data dengan params baru
-        getDaftarLab(params)
+        getInventarisLab(params)
     }
     useEffect(() => {
-        getDaftarLab()
+        getInventarisLab()
+        getOpsi()
     }, [])
     return (
         <div>
@@ -335,8 +356,8 @@ export default function DataDaftar() {
                 pagination={true}
                 itemsPerPageOptions={[5, 10, 25, 50]}
                 defaultItemsPerPage={10}
-                title="Data Daftar Lab"
-                subtitle="Kelola data Daftar Lab"
+                title="Data Inventaris Lab"
+                subtitle="Kelola data Inventaris Lab"
                 serverSide={true}
                 onDataChange={handleDataChange}  
                 currentPage={currentPage}
@@ -346,12 +367,12 @@ export default function DataDaftar() {
                 currentSortField={sortField}
                 currentSortDirection={sortDirection}
             />
-            <DeleteModal
+                        <DeleteModal
                 show={showDeleteModal}
                 onClose={handleCloseDeleteModal}
                 onConfirm={handleConfirmDelete}
-                title="Hapus Daftar Lab"
-                message={`Apakah Anda yakin ingin menghapus daftar lab "${deletingDaftar?.nama_lab}"?`}
+                title="Hapus Inventaris Lab"
+                message={`Apakah Anda yakin ingin menghapus inventaris lab "${deletingInv?.inventaris_desc}"?`}
                 loading={deleteLoading}
                 size="sm"
             />
@@ -364,8 +385,8 @@ export default function DataDaftar() {
                     setBulkDeleteIds([])
                 }}
                 onConfirm={handleConfirmBulkDelete}
-                title="Hapus Multiple Daftar Lab"
-                message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} daftar lab?`}
+                title="Hapus Multiple Inventaris Lab"
+                message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} inventaris lab?`}
                 loading={bulkDeleteLoading}
                 size="sm"
             />
@@ -373,16 +394,17 @@ export default function DataDaftar() {
                 <Modal
                     show={showAddModal}
                     onClose={handleCloseAddModal}
-                    title={isEditMode ? 'Edit Daftar Lab' : 'Tambah Daftar Lab Baru'}
+                    title={isEditMode ? 'Edit Inventaris Lab' : 'Tambah Inventaris Lab Baru'}
                     size="md"
                     closeOnOverlayClick={false}
                 >
-                    <TambahDaftar
+                    <TambahInv
                         onClose={handleCloseAddModal}
                         onSuccess={handleAddSuccess}
-                        postDaftarLab={postDaftarLab}
-                        editingDaftar={editingDaftar}
+                        postInventarisLab={postInventarisLab}
+                        editingInventarisLab={editingInv}
                         isEditMode={isEditMode}
+                        labs={labs}
                     />
                 </Modal>
             )}
@@ -408,7 +430,6 @@ export default function DataDaftar() {
                 description={selectedImage?.description}
                 alt={selectedImage?.title || 'Daftar Lab Photo'}
             />
-
         </div>
     )
 }

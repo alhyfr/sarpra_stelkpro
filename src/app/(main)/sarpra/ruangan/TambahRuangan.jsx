@@ -29,9 +29,14 @@ export default function TambahRuangan({
     const [showErrors, setShowErrors] = useState(false)
     useEffect(() => {
         if (isEditMode && editingRuangan) {
+            // Handle gedung_id dari berbagai format: langsung atau dari relasi object
+            const gedungId = editingRuangan.gedung_id || editingRuangan.gedung?.id || ''
+            // Konversi ke string untuk memastikan kompatibilitas dengan ASelect
+            const gedungIdString = gedungId ? String(gedungId) : ''
+            
             setForm({
                 ruangan: editingRuangan.ruangan || '',
-                gedung_id: editingRuangan.gedung_id || '',
+                gedung_id: gedungIdString,
                 status: editingRuangan.status || '',
                 ket: editingRuangan.ket || '',
                 luas: editingRuangan.luas || '',
@@ -165,7 +170,7 @@ export default function TambahRuangan({
                     placeholder="Pilih Gedung"
                     value={form.gedung_id}
                     options={gedung.map((item) => ({
-                        value: item.id,
+                        value: String(item.id),
                         label: item.gedung,
                     }))}
                     onChange={handleInputChange}

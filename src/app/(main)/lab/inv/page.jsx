@@ -1,10 +1,11 @@
 'use client'
 import ProtectedRoute from "@/components/ProtectedRoute";
+import DataInv from "./DataInv";
 export default function InvantarisLaboratorium() {
     return (
         <div>
             <ProtectedRoute>
-                <h1>Invantaris Laboratorium</h1>
+                <DataInv />
             </ProtectedRoute>
         </div>
     )

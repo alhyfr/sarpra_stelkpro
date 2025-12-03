@@ -1,10 +1,11 @@
 'use client'
 import ProtectedRoute from "@/components/ProtectedRoute";
+import DataJadwal from "./DataJadwal";
 export default function JadwalPenggunaan() {
     return (
         <div>
             <ProtectedRoute>
-                <h1>Jadwal Penggunaan</h1>
+                <DataJadwal />
             </ProtectedRoute>
         </div>
     )

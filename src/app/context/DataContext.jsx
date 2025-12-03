@@ -21,6 +21,7 @@ export const DataProvider = ({ children }) => {
   const [inventarisFilter, setInventarisFilter] = useState([]);
   const [waka, setWaka] = useState("");
   const [teams, setTeams] = useState([]);
+  const [labs, setLabs] = useState([]);
   const getOpsi = useCallback(async () => {
     const response = await Api.get("/sp/opsi");
     setRoles(response.data.roles);
@@ -29,6 +30,7 @@ export const DataProvider = ({ children }) => {
     setDana(response.data.sumberDana);
     setGedung(response.data.gedung);
     setKategoriAset(response.data.kategoriAset);
+    setLabs(response.data.labs);
   }, []);
   const getWaka = async () => {
     const response = await Api.get("/sp/teams");
@@ -218,6 +220,7 @@ export const DataProvider = ({ children }) => {
         inventarisFilter,
         getInventarisFilter,
         InventarisFilter,
+        labs,
       }}
     >
       {children}

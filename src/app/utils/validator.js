@@ -401,3 +401,87 @@ export const validateDaftarLabForm = createValidator({
     }
   }
 });
+export const validateInventarisLabForm = createValidator({
+  lab_id: {
+    presence: {
+      allowEmpty: false,
+      message: "^Lab wajib dipilih"
+    }
+  },
+  inventaris_id: {
+    presence: {
+      allowEmpty: false,
+      message: "^Inventaris wajib dipilih"
+    }
+  },
+});
+export const validateBahanForm = createValidator({
+  nama_barang: {
+    presence: {
+      allowEmpty: false,
+      message: "^Nama bahan wajib diisi"
+    }
+  },
+  kategori: {
+    presence: {
+      allowEmpty: false,
+      message: "^Kategori wajib diisi"
+    }
+  },
+  satuan: {
+    presence: {
+      allowEmpty: false,
+      message: "^Satuan wajib diisi"
+    }
+  },
+  stok_awal: {
+    presence: {
+      allowEmpty: false,
+      message: "^Stok awal wajib diisi"
+    }
+  },
+  stok_minimum: {
+    presence: {
+      allowEmpty: false,
+      message: "^Stok minimum wajib diisi"
+    }
+  },
+  lokasi: {
+    presence: {
+      allowEmpty: false,
+      message: "^Lokasi wajib diisi"
+    }
+  },
+  kondisi: {
+    presence: {
+      allowEmpty: false,
+      message: "^Kondisi wajib diisi"
+    }
+  },
+});
+export const validateJadwalLabForm = createValidator({
+  lab_id: {
+    presence: {
+      allowEmpty: false,
+      message: "^Lab wajib dipilih"
+    }
+  },
+  mapel: {
+    presence: {
+      allowEmpty: false,
+      message: "^Mapel wajib diisi"
+    }
+  },
+  topik: {
+    presence: {
+      allowEmpty: false,
+      message: "^Topik wajib diisi"
+    }
+  },
+  pj: {
+    presence: {
+      allowEmpty: false,
+      message: "^Fasilitator wajib dipilih"
+    }
+  }
+});
