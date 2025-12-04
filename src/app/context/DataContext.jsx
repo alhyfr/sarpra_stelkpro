@@ -221,6 +221,7 @@ export const DataProvider = ({ children }) => {
         getInventarisFilter,
         InventarisFilter,
         labs,
+        teams,
       }}
     >
       {children}

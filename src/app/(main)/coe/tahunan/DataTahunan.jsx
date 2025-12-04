@@ -6,10 +6,10 @@ import DeleteModal from "@/components/Delete";
 import ExportModal from "@/components/ExportModal";
 import { Edit, Trash2 } from "lucide-react";
 import api from "@/app/utils/Api";
-import TambahEx from "./TambahEx";
+import TambahTahunan from "./TambahTahunan";
 import dayjs from "dayjs";
-import SignBoard from "./signBoard";
-export default function DataEx() {
+import Aswitch from "@/components/Aswitch";
+export default function DataTahunan() {
   const [data, setData] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -20,10 +20,10 @@ export default function DataEx() {
   const [sortDirection, setSortDirection] = useState("asc");
   const [filters, setFilters] = useState({});
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingEvent, setEditingEvent] = useState(null);
+  const [editingTahunan, setEditingTahunan] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deletingEvent, setDeletingEvent] = useState(null);
+  const [deletingTahunan, setDeletingTahunan] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [bulkDeleteIds, setBulkDeleteIds] = useState([]);
@@ -46,7 +46,7 @@ export default function DataEx() {
       sortable: true,
     },
     {
-      key: "tgl_mulai",
+      key: "tgl",
       title: "Tanggal Mulai",
       searchable: true,
       filterable: true,
@@ -74,7 +74,7 @@ export default function DataEx() {
       ],
     },
     {
-      key: "tgl_selesai",
+      key: "end",
       title: "Tanggal Selesai",
       searchable: true,
       filterable: true,
@@ -102,19 +102,38 @@ export default function DataEx() {
       ],
     },
     {
-      key: "ruangan",
-      title: "Ruangan",
+      key: "lokasi",
+      title: "Lokasi",
       searchable: true,
       filterable: true,
       sortable: true,
     },
     {
-        key: "sign_board",
-        title: "Sign",
-        searchable: false,
-        filterable: false,
-        sortable: false,
-        render: (value, item) => <SignBoard item={item} />,
+      key: "status",
+      title: "Status",
+      searchable: true,
+      filterable: true,
+      sortable: true,
+      filterOptions: [
+        { value: "selasai", label: "Completed" },
+        { value: "cancelled", label: "Cancelled" },
+      ],
+      render: (value, item) => {
+        return (
+          <Aswitch
+            value={value}
+            onChange={(newStatus) => handleStatusChange(item, newStatus)}
+            size="sm"
+            onValue="selesai"
+            offValue="cancel"
+            showIcons={true}
+            labels={{
+              on: "Completed",
+              off: "Cancelled",
+            }}
+          />
+        );
+      },
     },
     {
       key: "actions",
@@ -135,7 +154,7 @@ export default function DataEx() {
       ],
     },
   ];
-  const getEvent = async (params = {}, showLoading = true) => {
+  const getTahunan = async (params = {}, showLoading = true) => {
     try {
       if (showLoading) {
         setLoading(true);
@@ -159,7 +178,7 @@ export default function DataEx() {
       }
 
       const [response] = await Promise.all([
-        api.get(`/sp/coe/event?${queryParams}`),
+        api.get(`/sp/coe/tahunan?${queryParams}`),
         minLoadingTime,
       ]);
 
@@ -180,7 +199,7 @@ export default function DataEx() {
       }
     }
   };
-  const postEvent = async (form) => {
+  const postTahunan = async (form) => {
     try {
       let response;
 
@@ -193,33 +212,33 @@ export default function DataEx() {
               },
             }
           : {};
-      if (editingEvent && editingEvent.id) {
+      if (editingTahunan && editingTahunan.id) {
         if (form instanceof FormData) {
           form.append("_method", "PUT");
           response = await api.put(
-            `/sp/coe/event/${editingEvent.id}`,
+            `/sp/coe/tahunan/${editingTahunan.id}`,
             form,
             config
           );
         } else {
           response = await api.put(
-            `/sp/coe/event/${editingEvent.id}`,
+            `/sp/coe/tahunan/${editingTahunan.id}`,
             form,
             config
           );
         }
       } else {
-        response = await api.post("/sp/coe/event", form, config);
+        response = await api.post("/sp/coe/tahunan", form, config);
       }
       if (response.data.status === "success") {
-        getEvent();
+        getTahunan();
         setShowAddModal(false);
-        setEditingEvent(null);
+        setEditingTahunan(null);
         setIsEditMode(false);
         return response.data;
       }
     } catch (error) {
-      console.error("Error saving event:", error);
+      console.error("Error saving tahunan:", error);
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);
       } else if (error.message) {
@@ -230,28 +249,38 @@ export default function DataEx() {
     }
   };
   const handleDelete = (item) => {
-    setDeletingEvent(item);
+    setDeletingTahunan(item);
     setShowDeleteModal(true);
   };
+  const handleStatusChange = async (item, newStatus) => {
+    try {
+      await api.put(`/sp/coe/tahunan-status/${item.id}`, {
+        status: newStatus,
+      });
+      getTahunan();
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
+  };
   const handleConfirmDelete = async () => {
-    if (!deletingEvent) return;
+    if (!deletingTahunan) return;
 
     setDeleteLoading(true);
     try {
-      await api.delete(`/sp/coe/event/${deletingEvent.id}`); // Fix: gunakan id dari object
+      await api.delete(`/sp/coe/tahunan/${deletingTahunan.id}`); // Fix: gunakan id dari object
       // Refresh data after delete
-      getEvent(); // Fix: nama function yang benar
+      getTahunan(); // Fix: nama function yang benar
       setShowDeleteModal(false);
-      setDeletingEvent(null); // Fix: nama variable yang benar
+      setDeletingTahunan(null); // Fix: nama variable yang benar
     } catch (error) {
-      console.error("Error deleting event:", error); // Fix: pesan error
+      console.error("Error deleting tahunan:", error); // Fix: pesan error
     } finally {
       setDeleteLoading(false);
     }
   };
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false);
-    setDeletingEvent(null);
+    setDeletingTahunan(null);
     setDeleteLoading(false);
   };
   const handleBulkDelete = (selectedIds) => {
@@ -265,37 +294,37 @@ export default function DataEx() {
     try {
       // Delete multiple users
       const deletePromises = bulkDeleteIds.map((id) =>
-        api.delete(`/sp/coe/event/${id}`)
+        api.delete(`/sp/coe/tahunan/${id}`)
       ); // 🔧 GANTI: endpoint delete
       await Promise.all(deletePromises);
-      getEvent();
+      getTahunan();
       setShowBulkDeleteModal(false);
       setBulkDeleteIds([]);
     } catch (error) {
-      console.error("Error bulk deleting event :", error);
+      console.error("Error bulk deleting tahunan :", error);
     } finally {
       setBulkDeleteLoading(false);
     }
   };
   const handleAdd = () => {
-    setEditingEvent(null);
+    setEditingTahunan(null);
     setIsEditMode(false);
     setShowAddModal(true);
   };
   const handleEdit = (item) => {
-    setEditingEvent(item);
+    setEditingTahunan(item);
     setIsEditMode(true);
     setShowAddModal(true);
   };
   const handleCloseAddModal = () => {
     setShowAddModal(false);
-    setEditingEvent(null);
+    setEditingTahunan(null);
     setIsEditMode(false);
   };
   const handleAddSuccess = (newTeam) => {
-    getEvent();
+    getTahunan();
     setShowAddModal(false);
-    setEditingEvent(null);
+    setEditingTahunan(null);
     setIsEditMode(false);
   };
   const handleExport = () => {
@@ -322,12 +351,11 @@ export default function DataEx() {
       setSortDirection(params.sortDirection);
     }
     // Fetch data dengan params baru
-    getEvent(params);
+    getTahunan(params);
   };
   useEffect(() => {
-    getEvent();
+    getTahunan();
   }, []);
-
   return (
     <div>
       <DataTable
@@ -352,7 +380,7 @@ export default function DataEx() {
         defaultItemsPerPage={10}
         // Title
         title="Calendar of Events"
-        subtitle="Eksternal Event"
+        subtitle="UNIT IT,LAB, & SARPRA"
         // Server-side Mode (PENTING!)
         serverSide={true}
         onDataChange={handleDataChange} // ⚡ INI YANG PENTING - menghubungkan search/filter dengan API
@@ -364,12 +392,12 @@ export default function DataEx() {
         currentSortField={sortField}
         currentSortDirection={sortDirection}
       />
-       <DeleteModal
+            <DeleteModal
         show={showDeleteModal}
         onClose={handleCloseDeleteModal}
         onConfirm={handleConfirmDelete}
-        title="Hapus Event"
-        message={`Apakah Anda yakin ingin menghapus event "${deletingEvent?.kegiatan}"?`}
+        title="Hapus Tahunan"
+        message={`Apakah Anda yakin ingin menghapus tahunan "${deletingTahunan?.tahunan}"?`}
         loading={deleteLoading}
         size="sm"
       />
@@ -381,8 +409,8 @@ export default function DataEx() {
           setBulkDeleteIds([]);
         }}
         onConfirm={handleConfirmBulkDelete}
-        title="Hapus Multiple Event"
-        message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} event?`}
+        title="Hapus Multiple Tahunan"
+        message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} tahunan?`}
         loading={bulkDeleteLoading}
         size="sm"
       />
@@ -390,15 +418,15 @@ export default function DataEx() {
         <Modal
           show={showAddModal}
           onClose={handleCloseAddModal}
-          title={isEditMode ? "Edit Event" : "Tambah Event Baru"}
+          title={isEditMode ? "Edit Tahunan" : "Tambah Tahunan Baru"}
           width="700px"
           closeOnOverlayClick={false}
         >
-          <TambahEx
+          <TambahTahunan
             onClose={handleCloseAddModal}
             onSuccess={handleAddSuccess}
-            postEvent={postEvent}
-            editingEvent={editingEvent}
+            postTahunan={postTahunan}
+            editingTahunan={editingTahunan}
             isEditMode={isEditMode}
           />
         </Modal>
@@ -408,8 +436,8 @@ export default function DataEx() {
         onClose={() => setShowExportModal(false)}
         data={data}
         columns={columns}
-        filename="data-event"
-        title="Export Data Event"
+        filename="data-tahunan"
+        title="Export Data Tahunan"
       />
     </div>
   );

@@ -485,3 +485,66 @@ export const validateJadwalLabForm = createValidator({
     }
   }
 });
+export const validateTahunanForm = createValidator({
+  kegiatan: {
+    presence: {
+      allowEmpty: false,
+      message: "^Kegiatan wajib diisi"
+    }
+  },
+  tgl: {
+    presence: {
+      allowEmpty: false,
+      message: "^Tanggal wajib diisi"
+    }
+  },
+  end: {
+    presence: {
+      allowEmpty: false,
+      message: "^Tanggal selesai wajib diisi"
+    }
+  },
+  lokasi: {
+    presence: {
+      allowEmpty: false,
+      message: "^Lokasi wajib diisi"
+    }
+  },
+  status: {
+    presence: {
+      allowEmpty: false,
+      message: "^Status wajib diisi"
+    }
+  },
+  team_id: {
+    presence: {
+      allowEmpty: false,
+      message: "^Team wajib dipilih"
+    }
+  }
+});
+export const validateEventForm = createValidator({
+  kegiatan: {
+    presence: {
+      allowEmpty: false,
+      message: "^Kegiatan wajib diisi"
+    }
+  },
+  tgl_mulai: {
+    presence: {
+      allowEmpty: false,
+      message: "^Tanggal mulai wajib diisi"
+    } },
+  tgl_selesai: {
+    presence: {
+      allowEmpty: false,
+      message: "^Tanggal selesai wajib diisi"
+    }
+  },
+  ruangan_id: {
+    presence: {
+      allowEmpty: false,
+      message: "^Ruangan wajib dipilih"
+    }
+  }
+});

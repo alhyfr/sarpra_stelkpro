@@ -1,9 +1,12 @@
 'use client'
-
+import ProtectedRoute from "@/components/ProtectedRoute";
+import DataTahunan from "./DataTahunan";
 export default function Tahunan() {
     return (
         <div>
-            <h1>Tahunan</h1>
+            <ProtectedRoute>
+                <DataTahunan />
+            </ProtectedRoute>
         </div>
     )
 }
