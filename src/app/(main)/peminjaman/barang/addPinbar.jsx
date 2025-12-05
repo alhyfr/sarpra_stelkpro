@@ -29,6 +29,7 @@ export default function AddPinbar({
     kondisi_kembali: "",
     keterangan: "",
     foto: "",
+    jml:0,
   });
   useEffect(() => {
     getOpsi();
@@ -54,6 +55,7 @@ export default function AddPinbar({
         kondisi_kembali: editingPinbar.kondisi_kembali || "",
         keterangan: editingPinbar.keterangan || "",
         foto: editingPinbar.foto || "",
+        jml: editingPinbar.jml || 0,
       });
     }
   }, [isEditMode, editingPinbar]);
@@ -192,6 +194,7 @@ export default function AddPinbar({
         submitData.append("kondisi_kembali", ensureString(formData.kondisi_kembali));
         submitData.append("keterangan", ensureString(formData.keterangan));
         submitData.append("foto", formData.foto);
+        submitData.append("jml", ensureString(formData.jml));
       }else{
         submitData = {
           barpin_id: ensureString(formData.barpin_id),
@@ -205,6 +208,7 @@ export default function AddPinbar({
           kondisi_kembali: ensureString(formData.kondisi_kembali),
           keterangan: ensureString(formData.keterangan),
           foto: formData.foto || null,
+          jml: ensureString(formData.jml),
         }
       }
       if(postPinbar) {
@@ -224,6 +228,7 @@ export default function AddPinbar({
         kondisi_kembali: "",
         keterangan: "",
         foto: "",
+        jml: 0,
       });
       setSelectedBarpin(null);
       setSelectedMember(null);
@@ -393,9 +398,21 @@ export default function AddPinbar({
               options={kondisiOptions}
             />
 
+            <AInput
+              id="jml"
+              name="jml"
+              label="JUMLAH"
+              placeholder="Masukkan jumlah"
+              type="number"
+              min="1"
+              value={formData.jml}
+              onChange={handleInputChange}
+              error={showErrors ? errors.jml : ""}
+            />
+
             <div>
               <label htmlFor="keterangan" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                KETERANGAN <span className="text-red-600">*</span>
+                KETERANGAN
               </label>
               <textarea
                 id="keterangan"
@@ -411,10 +428,8 @@ export default function AddPinbar({
                   text-gray-900 dark:text-white
                   placeholder-gray-400 dark:placeholder-gray-500
                   bg-white dark:bg-gray-800
-                 
                 `}
               />
-              
             </div>
 
            
