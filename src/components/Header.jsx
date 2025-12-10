@@ -15,6 +15,8 @@ import {
   LogOut,
   Inbox
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Combo } from 'next/font/google';
 
 export default function Header({ onMenuClick }) {
   const { user, logout, isRedirecting } = useAuth();
@@ -90,6 +92,10 @@ export default function Header({ onMenuClick }) {
     { name: 'India', flag: '🇮🇳' },
     { name: 'Canada', flag: '🇨🇦' },
   ];
+  const router = useRouter();
+  const handleAkun = () => {
+    router.push('/profile/akun');
+  }
 
   return (
     <header className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30">
@@ -286,7 +292,7 @@ export default function Header({ onMenuClick }) {
               </div>
               <div className="hidden lg:block text-left">
                 <div className="text-sm font-medium">{user?.name || 'User'}</div>
-                <div className="text-xs text-gray-500">{user?.role || 'Admin'}</div>
+                <div className="text-xs text-gray-500">{user?.level===1 ? 'Admin' : 'User'}</div>
               </div>
               <ChevronDown className="w-4 h-4 hidden lg:block" />
             </button>
@@ -297,7 +303,7 @@ export default function Header({ onMenuClick }) {
                   <div className="font-semibold">{user?.name || 'User'}</div>
                   <div className="text-sm text-gray-500">{user?.email}</div>
                 </div>
-                <button className="w-full px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-left flex items-center gap-2">
+                <button onClick={handleAkun} className="w-full cursor-pointer px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-left flex items-center gap-2">
                   <User className="w-4 h-4" />
                   <span className="text-sm">My Profile</span>
                 </button>
@@ -312,7 +318,7 @@ export default function Header({ onMenuClick }) {
                 <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
                   <button 
                     onClick={logout}
-                    className="w-full px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-left flex items-center gap-2 text-red-600 dark:text-red-400"
+                    className="w-full cursor-pointer px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-left flex items-center gap-2 text-red-600 dark:text-red-400"
                   >
                     <LogOut className="w-4 h-4" />
                     <span className="text-sm">Log Out</span>

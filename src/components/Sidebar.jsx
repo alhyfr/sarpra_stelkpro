@@ -104,9 +104,6 @@ const menuItems = [
       { title: 'satuan', href: '/settings/satuan' },
       { title: 'Sumber Dana', href: '/settings/sumber' },
       { title: 'Kategori Aset', href: '/settings/kategori' },
-      { title: 'Currencies', href: '/settings/currencies' },
-      { title: 'Languages', href: '/settings/languages' },
-      { title: 'Payment Gateway', href: '/settings/payment' },
     ]
   },
 ];
@@ -200,7 +197,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
                           key={subIndex}
                           href={subItem.href}
                           className={`block px-3 py-2 text-sm rounded-lg transition-all duration-200 ${isActive
-                            ? 'bg-blue-600 text-white font-medium shadow-sm'
+                            ? 'bg-red-800 text-white font-medium shadow-sm'
                             : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 transform hover:translate-x-1'
                             }`}
                         >

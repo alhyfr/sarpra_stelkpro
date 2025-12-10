@@ -186,6 +186,24 @@ export default function DataBangunan() {
             }
         },
         {
+            key: "tgl_selesai",
+            title: "Tanggal Selesai",
+            sortable: true,
+            searchable: true,
+            filterable: true,
+            format: "DD-MM-YYYY",
+            render: (value) => {
+                if (!value || value === null || value === '') {
+                    return (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                            Progress
+                        </span>
+                    );
+                }
+                return dayjs(value).format("DD-MM-YYYY");
+            },
+        },
+        {
             key: "lasfoto",
             title: "Gambar Setelah",
             render: (value, item) => {

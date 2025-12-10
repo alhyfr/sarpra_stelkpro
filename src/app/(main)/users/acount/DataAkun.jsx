@@ -43,6 +43,11 @@ const [data, setData] = useState([])           // Data yang ditampilkan di table
       searchable: true,
     },
     {
+      key: 'email',
+      title: 'USERNAME',
+      searchable: true,
+    },
+    {
       key: 'role',
       title: 'LEVEL',
       searchable: true,

@@ -49,7 +49,7 @@ export default function TambahDaftar({
         ket: "",
       });
       setSelectedRuangan(null);
-    }
+      }
   }, [isEditMode, editingDaftar]);
 
   // Set selected ruangan from ruanganFilter when in edit mode
@@ -76,7 +76,7 @@ export default function TambahDaftar({
         const newId = selectedItem.id || selectedItem.ruangan_id || selectedItem.ruangan;
         
         if (String(currentId) !== String(newId)) {
-          setSelectedRuangan(selectedItem);
+        setSelectedRuangan(selectedItem);
           setFormData((prev) => ({
             ...prev,
             ruangan_id: selectedItem.id || selectedItem.ruangan_id || selectedItem.ruangan || editingDaftar.ruangan_id,
@@ -188,23 +188,23 @@ export default function TambahDaftar({
           error={showErrors ? errors.nama_lab : ""}
         />
         <ASearchableSelect
-          id="ruangan"
-          name="ruangan"
-          label="RUANGAN"
-          placeholder="Cari ruangan..."
+              id="ruangan"
+              name="ruangan"
+              label="RUANGAN"
+              placeholder="Cari ruangan..."
           value={selectedRuangan?.ruangan || selectedRuangan?.id || selectedRuangan?.ruangan_id || formData.ruangan_id || ""}
-          onChange={handleInputChange}
-          onSelect={handleRuanganSelect}
+              onChange={handleInputChange}
+              onSelect={handleRuanganSelect}
           error={showErrors ? errors.ruangan_id : ""}
-          required
-          options={ruanganFilter || []}
-          searchFunction={RuanganFilter}
-          displayKey="ruangan"
-          valueKey="ruangan"
-          searchKey="ruangan"
-          minSearchLength={2}
-          noResultsText="Ruangan tidak ditemukan"
-        />
+              required
+              options={ruanganFilter || []}
+              searchFunction={RuanganFilter}
+              displayKey="ruangan"
+              valueKey="ruangan"
+              searchKey="ruangan"
+              minSearchLength={2}
+              noResultsText="Ruangan tidak ditemukan"
+            />
         <AInput
           id="laboran"
           icon={User}

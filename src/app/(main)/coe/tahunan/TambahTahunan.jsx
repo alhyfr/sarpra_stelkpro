@@ -131,83 +131,83 @@ export default function TambahTahunan({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Kegiatan - Full Width */}
           <div className="md:col-span-2">
-            <AInput
-              id="kegiatan"
-              icon={NotebookText}
-              name="kegiatan"
-              label="Kegiatan"
-              placeholder="Masukkan Kegiatan"
-              value={form.kegiatan}
-              onChange={handleInputChange}
-              error={showErrors ? errors.kegiatan : ""}
+        <AInput
+          id="kegiatan"
+          icon={NotebookText}
+          name="kegiatan"
+          label="Kegiatan"
+          placeholder="Masukkan Kegiatan"
+          value={form.kegiatan}
+          onChange={handleInputChange}
+          error={showErrors ? errors.kegiatan : ""}
               required
-            />
+        />
           </div>
 
           {/* Tanggal Mulai */}
-          <ADatePicker
-            id="tgl"
-            icon={Calendar}
-            name="tgl"
+        <ADatePicker
+          id="tgl"
+          icon={Calendar}
+          name="tgl"
             label="Tanggal Mulai"
             placeholder="Pilih Tanggal Mulai"
-            value={form.tgl}
-            onChange={handleInputChange}
-            error={showErrors ? errors.tgl : ""}
+          value={form.tgl}
+          onChange={handleInputChange}
+          error={showErrors ? errors.tgl : ""}
             required
-          />
+        />
 
           {/* Tanggal Selesai */}
-          <ADatePicker
-            id="end"
-            icon={Calendar}
-            name="end"
-            label="Tanggal Selesai"
-            placeholder="Pilih Tanggal Selesai"
-            value={form.end}
-            onChange={handleInputChange}
-            error={showErrors ? errors.end : ""}
+        <ADatePicker
+          id="end"
+          icon={Calendar}
+          name="end"
+          label="Tanggal Selesai"
+          placeholder="Pilih Tanggal Selesai"
+          value={form.end}
+          onChange={handleInputChange}
+          error={showErrors ? errors.end : ""}
             required
-          />
+        />
 
           {/* Lokasi */}
-          <AInput
-            id="lokasi"
-            icon={MapPin}
-            name="lokasi"
-            label="Lokasi"
-            placeholder="Masukkan Lokasi"
-            value={form.lokasi}
-            onChange={handleInputChange}
-            error={showErrors ? errors.lokasi : ""}
+        <AInput
+          id="lokasi"
+          icon={MapPin}
+          name="lokasi"
+          label="Lokasi"
+          placeholder="Masukkan Lokasi"
+          value={form.lokasi}
+          onChange={handleInputChange}
+          error={showErrors ? errors.lokasi : ""}
             required
-          />
+        />
 
           {/* Status */}
-          <ASelect
-            id="status"
-            icon={Check}
-            name="status"
-            label="Status"
-            placeholder="Pilih Status"
-            value={form.status}
-            onChange={handleInputChange}
-            error={showErrors ? errors.status : ""}
+        <ASelect
+          id="status"
+          icon={Check}
+          name="status"
+          label="Status"
+          placeholder="Pilih Status"
+          value={form.status}
+          onChange={handleInputChange}
+          error={showErrors ? errors.status : ""}
             options={statusOptions}
             required
-          />
+        />
 
           {/* Team - Full Width */}
           <div className="md:col-span-2">
-            <ASelect
-              id="team_id"
-              icon={Users}
-              name="team_id"
-              label="Team"
-              placeholder="Pilih Team"
-              value={form.team_id}
-              onChange={handleInputChange}
-              error={showErrors ? errors.team_id : ""}
+        <ASelect
+          id="team_id"
+          icon={Users}
+          name="team_id"
+          label="Team"
+          placeholder="Pilih Team"
+          value={form.team_id}
+          onChange={handleInputChange}
+          error={showErrors ? errors.team_id : ""}
               options={teams.map((item) => ({
                 value: String(item.id),
                 label: item.nama || item.nama_team || item.jabatan || `Team ${item.id}`,
@@ -227,9 +227,9 @@ export default function TambahTahunan({
           >
             Batal
           </Button>
-          <Button type="submit" disabled={loading}>
-            {loading ? "Menyimpan..." : isEditMode ? "Update" : "Simpan"}
-          </Button>
+        <Button type="submit" disabled={loading}>
+          {loading ? "Menyimpan..." : isEditMode ? "Update" : "Simpan"}
+        </Button>
         </div>
       </form>
     </div>
