@@ -212,7 +212,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
               <Link
                 href={item.href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${isActiveLink(item.href)
-                  ? 'bg-blue-600 text-white shadow-md'
+                  ? 'bg-red-800 text-white shadow-md'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
               >

@@ -1,86 +1,81 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import Loading from '@/components/Loading';
-import { 
-  Menu, 
-  Search, 
-  Bell, 
-  Mail, 
-  Globe, 
+import {
+  Menu,
+  Search,
+  Bell,
+  Mail,
+  Globe,
   ChevronDown,
   User,
   Settings,
   LogOut,
   Inbox
 } from 'lucide-react';
+import api from '@/app/utils/Api';
 import { useRouter } from 'next/navigation';
 import { Combo } from 'next/font/google';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import "dayjs/locale/id";
 
+dayjs.extend(relativeTime);
+dayjs.locale('id');
 export default function Header({ onMenuClick }) {
   const { user, logout, isRedirecting } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showMessages, setShowMessages] = useState(false);
   const [showLanguage, setShowLanguage] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const[notifikasi,setNotifikasi] = useState([]);
+  
+  const notificationsRef = useRef(null);
+  const languageRef = useRef(null);
+  const profileRef = useRef(null);
 
-  const notifications = [
-    {
-      title: 'Congratulations',
-      message: 'Your profile has been Verified',
-      time: '23 Mins ago',
-      avatar: '🎉'
-    },
-    {
-      title: 'Ronald Richards',
-      message: 'You can stitch between artboards',
-      time: '23 Mins ago',
-      avatar: 'RR'
-    },
-    {
-      title: 'Arlene McCoy',
-      message: 'Invite you to prototyping',
-      time: '23 Mins ago',
-      avatar: 'AM'
-    },
-    {
-      title: 'Annette Black',
-      message: 'Invite you to prototyping',
-      time: '23 Mins ago',
-      avatar: 'AB'
-    },
-    {
-      title: 'Darlene Robertson',
-      message: 'Invite you to prototyping',
-      time: '23 Mins ago',
-      avatar: 'DR'
-    },
-  ];
+  const toNotifikasi = useRouter();
+  const handleNotifikasi = () => {
+    toNotifikasi.push('/users/notifikasi');
+    setShowNotifications(false);
+  }
 
-  const messages = [
-    {
-      name: 'Kathryn Murphy',
-      message: "hey! there i'm...",
-      time: '12:30 PM',
-      unread: 8,
-      avatar: 'KM'
-    },
-    {
-      name: 'Kathryn Murphy',
-      message: "hey! there i'm...",
-      time: '12:30 PM',
-      unread: 2,
-      avatar: 'KM'
-    },
-    {
-      name: 'Kathryn Murphy',
-      message: "hey! there i'm...",
-      time: '12:30 PM',
-      unread: 0,
-      avatar: 'KM'
-    },
-  ];
+  const getNotifikasi = async () => {
+    try {
+      const response = await api.get('/sp/notifikasi');
+      setNotifikasi(response.data);
+      console.log(response.data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      setNotifikasi([]);
+    }
+  }
+  useEffect(() => {
+    getNotifikasi();
+  }, []);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+      if (languageRef.current && !languageRef.current.contains(event.target)) {
+        setShowLanguage(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setShowProfile(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+
 
   const languages = [
     { name: 'English', flag: '🇬🇧' },
@@ -99,7 +94,7 @@ export default function Header({ onMenuClick }) {
 
   return (
     <header className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30">
-        <div className="h-full flex items-center justify-between px-4 lg:px-6">
+      <div className="h-full flex items-center justify-between px-4 lg:px-6">
         {/* Left Section */}
         <div className="flex items-center gap-4">
           {/* Menu Button - Visible on all screens */}
@@ -130,12 +125,11 @@ export default function Header({ onMenuClick }) {
           </button>
 
           {/* Language Selector */}
-          <div className="relative">
+          <div className="relative" ref={languageRef}>
             <button
               onClick={() => {
                 setShowLanguage(!showLanguage);
                 setShowNotifications(false);
-                setShowMessages(false);
                 setShowProfile(false);
               }}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
@@ -163,72 +157,12 @@ export default function Header({ onMenuClick }) {
             )}
           </div>
 
-          {/* Messages */}
-          <div className="relative">
-            <button
-              onClick={() => {
-                setShowMessages(!showMessages);
-                setShowNotifications(false);
-                setShowLanguage(false);
-                setShowProfile(false);
-              }}
-              className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
-            >
-              <Mail className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
-
-            {showMessages && (
-              <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-                <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                  <h3 className="font-semibold">Message</h3>
-                  <span className="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 text-xs px-2 py-1 rounded-full">
-                    05
-                  </span>
-                </div>
-                <div className="max-h-96 overflow-y-auto">
-                  {messages.map((msg, index) => (
-                    <div
-                      key={index}
-                      className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                          {msg.avatar}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium text-sm">{msg.name}</h4>
-                            <span className="text-xs text-gray-500">{msg.time}</span>
-                          </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                            {msg.message}
-                          </p>
-                        </div>
-                        {msg.unread > 0 && (
-                          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                            {msg.unread}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-center">
-                  <button className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                    See All Message
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
 
           {/* Notifications */}
-          <div className="relative">
+          <div className="relative" ref={notificationsRef}>
             <button
               onClick={() => {
                 setShowNotifications(!showNotifications);
-                setShowMessages(false);
                 setShowLanguage(false);
                 setShowProfile(false);
               }}
@@ -243,32 +177,38 @@ export default function Header({ onMenuClick }) {
                 <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                   <h3 className="font-semibold">Notifications</h3>
                   <span className="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 text-xs px-2 py-1 rounded-full">
-                    05
+                    {Array.isArray(notifikasi) ? notifikasi.length : 0}
                   </span>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
-                  {notifications.map((notif, index) => (
+                  {Array.isArray(notifikasi) && notifikasi.length > 0 ? (
+                    notifikasi.map((notif, index) => (
                     <div
                       key={index}
                       className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0"
                     >
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                          {notif.avatar}
+                          {notif.username ? notif.username.substring(0, 2).toUpperCase() : '??'}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-sm">{notif.title}</h4>
+                          <h4 className="font-medium text-sm">{notif.username}</h4>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {notif.message}
+                            {notif.aktifitas}
                           </p>
-                          <span className="text-xs text-gray-500 mt-1">{notif.time}</span>
+                          <span className="text-xs text-gray-500 mt-1">{dayjs(notif.created_at).locale("id").fromNow()}</span>
                         </div>
                       </div>
                     </div>
-                  ))}
+                    ))
+                  ) : (
+                    <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
+                      Tidak ada notifikasi
+                    </div>
+                  )}
                 </div>
                 <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-center">
-                  <button className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                  <button onClick={handleNotifikasi} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
                     See All Notification
                   </button>
                 </div>
@@ -277,12 +217,11 @@ export default function Header({ onMenuClick }) {
           </div>
 
           {/* Profile */}
-          <div className="relative">
+          <div className="relative" ref={profileRef}>
             <button
               onClick={() => {
                 setShowProfile(!showProfile);
                 setShowNotifications(false);
-                setShowMessages(false);
                 setShowLanguage(false);
               }}
               className="flex items-center gap-2 p-1.5 pr-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
@@ -292,7 +231,7 @@ export default function Header({ onMenuClick }) {
               </div>
               <div className="hidden lg:block text-left">
                 <div className="text-sm font-medium">{user?.name || 'User'}</div>
-                <div className="text-xs text-gray-500">{user?.level===1 ? 'Admin' : 'User'}</div>
+                <div className="text-xs text-gray-500">{user?.level === 1 ? 'Admin' : 'User'}</div>
               </div>
               <ChevronDown className="w-4 h-4 hidden lg:block" />
             </button>
@@ -316,7 +255,7 @@ export default function Header({ onMenuClick }) {
                   <span className="text-sm">Setting</span>
                 </button>
                 <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
-                  <button 
+                  <button
                     onClick={logout}
                     className="w-full cursor-pointer px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-left flex items-center gap-2 text-red-600 dark:text-red-400"
                   >

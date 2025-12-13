@@ -194,9 +194,11 @@ export function AuthProvider({ children }) {
       setRedirectType('logout')
       
       // Optional: Panggil API logout jika ada
+      await Api.post('/logout')
       // await Api.post('/auth/logout')
       
       // Delay untuk show loading
+
       await new Promise(resolve => setTimeout(resolve, 800))
     } catch (error) {
       // Error handling jika ada API logout
