@@ -38,7 +38,7 @@ export default function AktifitasTerbru() {
         getActivities();
     }, []);
     return (
-        <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2">
+        <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2">
             {activities.map((activity, index) => (
                 <div key={activity.id} className="flex gap-4">
                     <div className="relative">

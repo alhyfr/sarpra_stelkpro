@@ -57,6 +57,16 @@ export default function DashboardChart() {
           bottom: 0,
           left: 10,
         },
+        xaxis: {
+          lines: {
+            show: false,
+          },
+        },
+        yaxis: {
+          lines: {
+            show: true,
+          },
+        },
       },
       tooltip: {
         y: {
@@ -73,6 +83,31 @@ export default function DashboardChart() {
   });
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('tahun_ini');
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    // Check for dark mode
+    const checkDarkMode = () => {
+      if (typeof window !== 'undefined') {
+        const isDarkMode = document.documentElement.classList.contains('dark') || 
+                          window.matchMedia('(prefers-color-scheme: dark)').matches;
+        setIsDark(isDarkMode);
+      }
+    };
+    
+    checkDarkMode();
+    
+    // Watch for theme changes
+    const observer = new MutationObserver(checkDarkMode);
+    if (typeof document !== 'undefined') {
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
+    }
+    
+    return () => observer.disconnect();
+  }, []);
 
   const getChartData = async (filterType = 'tahun_ini') => {
     try {
@@ -116,7 +151,7 @@ export default function DashboardChart() {
 
   if (loading) {
     return (
-      <div className="h-[350px] w-full flex items-center justify-center">
+      <div className="min-h-[300px] sm:min-h-[350px] w-full flex items-center justify-center p-4">
         <div className="text-gray-500 dark:text-gray-400">Memuat data...</div>
       </div>
     );
@@ -124,39 +159,100 @@ export default function DashboardChart() {
 
   if (!chartData || !chartData.options || !chartData.series) {
     return (
-      <div className="h-[350px] w-full flex items-center justify-center">
+      <div className="min-h-[300px] sm:min-h-[350px] w-full flex items-center justify-center p-4">
         <div className="text-gray-500 dark:text-gray-400">Data tidak tersedia</div>
       </div>
     );
   }
 
   return (
-    <div className="h-[350px] w-full">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+    <div className="w-full p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
+        <div className="flex-1">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-1">
             Aktivitas Bulanan
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             Ringkasan aktivitas sistem bulan ini
           </p>
         </div>
-        <select 
-          value={filter === 'tahun_ini' ? 'Tahun Ini' : 'Bulan Ini'}
-          onChange={handleFilterChange}
-          className="text-sm bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-gray-600 dark:text-gray-300"
-        >
-          <option>Tahun Ini</option>
-          <option>Bulan Ini</option>
-        </select>
+        <div className="flex-shrink-0">
+          <select 
+            value={filter === 'tahun_ini' ? 'Tahun Ini' : 'Bulan Ini'}
+            onChange={handleFilterChange}
+            className="w-full sm:w-auto text-xs sm:text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all"
+          >
+            <option>Tahun Ini</option>
+            <option>Bulan Ini</option>
+          </select>
+        </div>
       </div>
-      <Chart
-        options={chartData.options}
-        series={chartData.series}
-        type="bar"
-        height="100%"
-        width="100%"
-      />
+      <div className="w-full overflow-x-auto">
+        <div className="min-h-[250px] sm:min-h-[300px] md:min-h-[350px] w-full">
+          <Chart
+            options={{
+              ...chartData.options,
+              chart: {
+                ...chartData.options.chart,
+                height: 'auto',
+                toolbar: { show: false },
+                fontFamily: 'inherit',
+              },
+              theme: {
+                mode: isDark ? 'dark' : 'light',
+              },
+              legend: {
+                ...chartData.options.legend,
+                position: 'top',
+                horizontalAlign: 'right',
+                fontSize: '12px',
+                itemMargin: {
+                  horizontal: 8,
+                  vertical: 4,
+                },
+                labels: {
+                  colors: isDark ? '#d1d5db' : '#374151',
+                },
+              },
+              xaxis: {
+                ...chartData.options.xaxis,
+                labels: {
+                  style: {
+                    fontSize: '11px',
+                    colors: isDark ? '#9ca3af' : '#6b7280',
+                  },
+                },
+              },
+              grid: {
+                ...chartData.options.grid,
+                borderColor: isDark ? '#374151' : '#f1f5f9',
+              },
+              responsive: [
+                {
+                  breakpoint: 640,
+                  options: {
+                    legend: {
+                      position: 'bottom',
+                      horizontalAlign: 'center',
+                    },
+                    xaxis: {
+                      labels: {
+                        style: {
+                          fontSize: '10px',
+                        },
+                      },
+                    },
+                  },
+                },
+              ],
+            }}
+            series={chartData.series}
+            type="bar"
+            height="100%"
+            width="100%"
+          />
+        </div>
+      </div>
     </div>
   );
 }

@@ -106,7 +106,7 @@ export default function StokAtk() {
                 </div>
             ) : (
                 <div className="overflow-x-auto">
-                    <div className="min-w-full overflow-y-auto max-h-[500px]">
+                    <div className="min-w-full overflow-y-auto max-h-[300px]">
                         <table className="w-full">
                             <thead className="sticky top-0 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-800 border-b border-gray-200 dark:border-gray-600">
                                 <tr>
