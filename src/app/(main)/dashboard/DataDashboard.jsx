@@ -18,6 +18,7 @@ import JadLabMendatang from './JadLabMendatang'
 import Team from './Team'
 import StokAtk from './StokAtk'
 import StatGrid from './StatGrid'
+import StatInv from './StatInv'
 
 // Dynamically import Chart to avoid SSR issues
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
@@ -53,7 +54,7 @@ export default function DataDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Column 1: Trends & Status */}
                     <div className="grid grid-cols-1 gap-6">
-                        <PeminjamanRuanganChart />
+                        <StatInv />
                         <StatusLaporanChart />
                     </div>
 
