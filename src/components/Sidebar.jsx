@@ -57,6 +57,7 @@ const menuItems = [
       { title: 'User Account', href: '/users/acount' },
       { title: 'Team', href: '/users/teams' },
       { title: 'Support', href: '/users/support' },
+      { title: 'Member', href: '/users/member' },
     ]
   },
   {

@@ -534,7 +534,8 @@ export const validateEventForm = createValidator({
     presence: {
       allowEmpty: false,
       message: "^Tanggal mulai wajib diisi"
-    } },
+    }
+  },
   tgl_selesai: {
     presence: {
       allowEmpty: false,
@@ -548,3 +549,38 @@ export const validateEventForm = createValidator({
     }
   }
 });
+
+// Validator untuk form Member
+export const validateMemberForm = createValidator({
+  mid: {
+    presence: {
+      allowEmpty: false,
+      message: "^Kode Member wajib diisi"
+    }
+  },
+  name: {
+    presence: {
+      allowEmpty: false,
+      message: "^Nama Member wajib diisi"
+    }
+  },
+  unit: {
+    presence: {
+      allowEmpty: false,
+      message: "^Unit wajib diisi"
+    }
+  },
+  kategori: {
+    presence: {
+      allowEmpty: false,
+      message: "^Kategori wajib dipilih"
+    }
+  },
+  status: {
+    presence: {
+      allowEmpty: false,
+      message: "^Status wajib dipilih"
+    }
+  }
+});
+

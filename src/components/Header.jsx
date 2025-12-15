@@ -29,8 +29,8 @@ export default function Header({ onMenuClick }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLanguage, setShowLanguage] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const[notifikasi,setNotifikasi] = useState([]);
-  
+  const [notifikasi, setNotifikasi] = useState([]);
+
   const notificationsRef = useRef(null);
   const languageRef = useRef(null);
   const profileRef = useRef(null);
@@ -45,7 +45,6 @@ export default function Header({ onMenuClick }) {
     try {
       const response = await api.get('/sp/notifikasi');
       setNotifikasi(response.data);
-      console.log(response.data);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       setNotifikasi([]);
@@ -183,23 +182,23 @@ export default function Header({ onMenuClick }) {
                 <div className="max-h-96 overflow-y-auto">
                   {Array.isArray(notifikasi) && notifikasi.length > 0 ? (
                     notifikasi.map((notif, index) => (
-                    <div
-                      key={index}
-                      className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                          {notif.username ? notif.username.substring(0, 2).toUpperCase() : '??'}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-sm">{notif.username}</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {notif.aktifitas}
-                          </p>
-                          <span className="text-xs text-gray-500 mt-1">{dayjs(notif.created_at).locale("id").fromNow()}</span>
+                      <div
+                        key={index}
+                        className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                            {notif.username ? notif.username.substring(0, 2).toUpperCase() : '??'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm">{notif.username}</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {notif.aktifitas}
+                            </p>
+                            <span className="text-xs text-gray-500 mt-1">{dayjs(notif.created_at).locale("id").fromNow()}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
                     ))
                   ) : (
                     <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
