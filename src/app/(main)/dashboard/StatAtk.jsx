@@ -62,6 +62,7 @@ export default function StatAtk() {
     });
     const [loading, setLoading] = useState(true);
     const [isDark, setIsDark] = useState(false);
+    const [dataCount, setDataCount] = useState(0);
 
     useEffect(() => {
         // Check for dark mode
@@ -113,10 +114,30 @@ export default function StatAtk() {
                     ? categories.map(cat => String(cat))
                     : [];
 
+                // Hitung jumlah data untuk menentukan tinggi chart
+                const count = chartCategories.length;
+                setDataCount(count);
+
+                // Hitung tinggi chart dinamis berdasarkan jumlah data
+                // Minimum 300px, setiap item tambahan +60px, maksimum 2000px
+                const dynamicHeight = Math.min(Math.max(300, count * 60), 2000);
+
                 setChartData(prev => ({
                     series: chartSeries,
                     options: {
                         ...prev.options,
+                        chart: {
+                            ...prev.options.chart,
+                            height: dynamicHeight,
+                        },
+                        plotOptions: {
+                            ...prev.options.plotOptions,
+                            bar: {
+                                ...prev.options.plotOptions.bar,
+                                // Sesuaikan barHeight berdasarkan jumlah data
+                                barHeight: count > 10 ? '70%' : count > 5 ? '60%' : '45%',
+                            },
+                        },
                         xaxis: {
                             ...prev.options.xaxis,
                             categories: chartCategories
@@ -128,6 +149,7 @@ export default function StatAtk() {
             }
         } catch (error) {
             console.error("Error fetching ATK statistics:", error);
+            setDataCount(0);
             setChartData(prev => ({
                 ...prev,
                 series: [{
@@ -159,17 +181,23 @@ export default function StatAtk() {
                     <div className="text-gray-500 dark:text-gray-400">Tidak ada data</div>
                 </div>
             ) : (
-                <div className="w-full overflow-x-auto">
-                    <div className="min-h-[300px] sm:min-h-[400px] md:min-h-[450px] w-full" style={{ minWidth: '600px' }}>
-                        <Chart
-                            options={{
-                                ...chartData.options,
-                                chart: {
-                                    ...chartData.options.chart,
-                                    height: 'auto',
-                                    toolbar: { show: false },
-                                    fontFamily: 'inherit',
-                                },
+                <div className="w-full">
+                    <div className="w-full overflow-x-auto overflow-y-auto max-h-[600px] sm:max-h-[700px] md:max-h-[800px]">
+                        <div 
+                            className="w-full" 
+                            style={{ 
+                                minWidth: dataCount > 5 ? '100%' : '600px',
+                                height: `${chartData.options.chart.height}px`
+                            }}
+                        >
+                            <Chart
+                                options={{
+                                    ...chartData.options,
+                                    chart: {
+                                        ...chartData.options.chart,
+                                        toolbar: { show: false },
+                                        fontFamily: 'inherit',
+                                    },
                                 theme: {
                                     mode: isDark ? 'dark' : 'light',
                                 },
@@ -240,10 +268,16 @@ export default function StatAtk() {
                             }}
                             series={chartData.series}
                             type="bar"
-                            height="100%"
+                            height={chartData.options.chart.height}
                             width="100%"
                         />
+                        </div>
                     </div>
+                    {dataCount > 10 && (
+                        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
+                            Scroll untuk melihat semua data ({dataCount} item)
+                        </div>
+                    )}
                 </div>
             )}
         </div>
