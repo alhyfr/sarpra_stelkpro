@@ -182,7 +182,7 @@ export default function StatAtk() {
                 </div>
             ) : (
                 <div className="w-full">
-                    <div className="w-full overflow-x-auto overflow-y-auto max-h-[600px] sm:max-h-[700px] md:max-h-[800px]">
+                    <div className="w-full overflow-x-auto overflow-y-auto max-h-[300px] sm:max-h-[400px] md:max-h-[500px]">
                         <div 
                             className="w-full" 
                             style={{ 
