@@ -240,13 +240,13 @@ export default function StatInv() {
                         </div>
                     </div>
                 ) : (
-                    <Chart
-                        options={chartData.options}
-                        series={chartData.series}
-                        type="area"
-                        height="100%"
-                        width="100%"
-                    />
+                <Chart
+                    options={chartData.options}
+                    series={chartData.series}
+                    type="area"
+                    height="100%"
+                    width="100%"
+                />
                 )}
             </div>
         </div>
