@@ -28,8 +28,8 @@ export default function JadLabMendatang() {
             <div className="space-y-4">
                 {schedules
                     .sort((a, b) => {
-                        // Urutkan berdasarkan tanggal terbaru (descending)
-                        return dayjs(b.tgl).valueOf() - dayjs(a.tgl).valueOf()
+                        // Urutkan berdasarkan tanggal terdekat (ascending)
+                        return dayjs(a.tgl).valueOf() - dayjs(b.tgl).valueOf()
                     })
                     .slice(0, 3)
                     .map((item, idx) => (
