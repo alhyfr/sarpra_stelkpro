@@ -6,28 +6,28 @@ const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 export default function DashboardChart() {
   const [chartData, setChartData] = useState({
-    series: [],
-    options: {
-      chart: {
+        series: [],
+        options: {
+            chart: {
         type: "bar",
-        height: 350,
-        toolbar: { show: false },
+                height: 350,
+                toolbar: { show: false },
         fontFamily: "inherit",
-      },
-      plotOptions: {
-        bar: {
-          horizontal: false,
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: false,
           columnWidth: "55%",
-          borderRadius: 4,
-        },
-      },
-      dataLabels: { enabled: false },
-      stroke: {
-        show: true,
-        width: 2,
+                    borderRadius: 4,
+                },
+            },
+            dataLabels: { enabled: false },
+            stroke: {
+                show: true,
+                width: 2,
         colors: ["transparent"],
-      },
-      xaxis: {
+            },
+            xaxis: {
         categories: [
           "Feb",
           "Mar",
@@ -39,22 +39,22 @@ export default function DashboardChart() {
           "Sep",
           "Oct",
         ],
-        axisBorder: { show: false },
+                axisBorder: { show: false },
         axisTicks: { show: false },
-      },
-      yaxis: {
+            },
+            yaxis: {
         show: false,
-      },
-      fill: { opacity: 1 },
+            },
+            fill: { opacity: 1 },
       colors: ["#3b82f6", "#10b981", "#f59e0b"],
-      grid: {
-        show: true,
+            grid: {
+                show: true,
         borderColor: "#f1f5f9",
-        strokeDashArray: 4,
-        padding: {
-          top: 0,
-          right: 0,
-          bottom: 0,
+                strokeDashArray: 4,
+                padding: {
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
           left: 10,
         },
         xaxis: {
@@ -67,10 +67,10 @@ export default function DashboardChart() {
             show: true,
           },
         },
-      },
-      tooltip: {
-        y: {
-          formatter: function (val) {
+            },
+            tooltip: {
+                y: {
+                    formatter: function (val) {
             return val + " data";
           },
         },
@@ -200,8 +200,8 @@ export default function DashboardChart() {
               },
               theme: {
                 mode: isDark ? 'dark' : 'light',
-              },
-              legend: {
+            },
+            legend: {
                 ...chartData.options.legend,
                 position: 'top',
                 horizontalAlign: 'right',
@@ -246,11 +246,11 @@ export default function DashboardChart() {
                 },
               ],
             }}
-            series={chartData.series}
-            type="bar"
-            height="100%"
-            width="100%"
-          />
+                series={chartData.series}
+                type="bar"
+                height="100%"
+                width="100%"
+            />
         </div>
       </div>
     </div>

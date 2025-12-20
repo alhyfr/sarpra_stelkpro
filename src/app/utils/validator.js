@@ -584,3 +584,62 @@ export const validateMemberForm = createValidator({
   }
 });
 
+export const validateSertiForm = createValidator({
+  penerima: {
+    presence: {
+      allowEmpty: false,
+      message: "^Penerima wajib diisi"
+    }
+  },
+  unit: {
+    presence: {
+      allowEmpty: false,
+      message: "^Unit wajib diisi"
+    }
+  },
+  jabatan: {
+    presence: {
+      allowEmpty: false,
+      message: "^Jabatan wajib diisi"
+    }
+  },
+  team_id: {
+    presence: {
+      allowEmpty: false,
+      message: "^Team wajib dipilih"
+    }
+  }
+});
+
+export const validateListForm = createValidator({
+  stbar_id: {
+    presence: {
+      allowEmpty: false,
+      message: "^Stbar wajib dipilih"
+    }
+  },
+  nabar: {
+    presence: {
+      allowEmpty: false,
+      message: "^Nabar wajib diisi"
+    }
+  },
+  jml: {
+    presence: {
+      allowEmpty: false,
+      message: "^Jml wajib diisi"
+    }
+  },
+  kondisi: {
+    presence: {
+      allowEmpty: false,
+      message: "^Kondisi wajib diisi"
+    }
+  },
+  ruangan: {
+    presence: {
+      allowEmpty: false,
+      message: "^Ruangan wajib dipilih"
+    }
+  }
+});

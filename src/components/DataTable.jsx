@@ -70,31 +70,6 @@ export default function DataTable({
     }
   }, [])
 
-  // Sync internal state with props when in server-side mode
-  useEffect(() => {
-    if (serverSide) {
-      if (propCurrentPage !== undefined && propCurrentPage !== currentPage) {
-        setCurrentPage(propCurrentPage)
-      }
-      if (propCurrentItemsPerPage !== undefined && propCurrentItemsPerPage !== itemsPerPage) {
-        setItemsPerPage(propCurrentItemsPerPage)
-      }
-      if (propCurrentSearch !== undefined && propCurrentSearch !== searchTerm) {
-        setSearchTerm(propCurrentSearch)
-      }
-      if (propCurrentFilters !== undefined && JSON.stringify(propCurrentFilters) !== JSON.stringify(filters)) {
-        setFilters(propCurrentFilters)
-      }
-      if (propCurrentSortField !== undefined && propCurrentSortField !== sortField) {
-        setSortField(propCurrentSortField)
-      }
-      if (propCurrentSortDirection !== undefined && propCurrentSortDirection !== sortDirection) {
-        setSortDirection(propCurrentSortDirection)
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serverSide, propCurrentPage, propCurrentItemsPerPage, propCurrentSearch, propCurrentSortField, propCurrentSortDirection])
-
   // Client-side sorting only (filters are server-side)
   const filteredData = useMemo(() => {
     let filtered = data

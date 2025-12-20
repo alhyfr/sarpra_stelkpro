@@ -7,8 +7,6 @@ import Logo from '@/assets/logo_ori.png';
 import Image from 'next/image';
 import {
   LayoutDashboard,
-  Mail,
-  MessageSquare,
   Calendar,
   FlaskRound,
   Package,
@@ -18,7 +16,8 @@ import {
   ChevronDown,
   Users,
   Hammer,
-  X
+  X,
+  Handshake
 } from 'lucide-react';
 
 const menuItems = [
@@ -97,6 +96,11 @@ const menuItems = [
       { title: 'Tahunan', href: '/coe/tahunan' },
       { title: 'Eksternal', href: '/coe/eksternal' },
     ]
+  },
+  {
+    title: 'Serah Terima',
+    icon: Handshake,
+    href: '/serah-terima'
   },
   {
     title: 'Settings',

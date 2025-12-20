@@ -56,7 +56,6 @@ export default function Slider({
     showArrows = true,
     height = 'h-48', // Default height, bisa berupa Tailwind class atau number (px)
     objectFit = 'cover', // 'cover', 'contain', 'fill', 'none', 'scale-down'
-    onSlideChange, // Callback function ketika slide berubah
     className = ''
 }) {
     const [currentIndex, setCurrentIndex] = useState(0)
@@ -82,27 +81,18 @@ export default function Slider({
 
     const [direction, setDirection] = useState(0) // 1 untuk next, -1 untuk previous
 
-    // Callback ketika currentIndex berubah
-    useEffect(() => {
-        if (onSlideChange) {
-            onSlideChange(currentIndex)
-        }
-    }, [currentIndex, onSlideChange])
-
     const goToPrevious = () => {
         setDirection(-1)
-        setCurrentIndex((prevIndex) => {
-            const newIndex = prevIndex === 0 ? images.length - 1 : prevIndex - 1
-            return newIndex
-        })
+        setCurrentIndex((prevIndex) => 
+            prevIndex === 0 ? images.length - 1 : prevIndex - 1
+        )
     }
 
     const goToNext = () => {
         setDirection(1)
-        setCurrentIndex((prevIndex) => {
-            const newIndex = prevIndex === images.length - 1 ? 0 : prevIndex + 1
-            return newIndex
-        })
+        setCurrentIndex((prevIndex) => 
+            prevIndex === images.length - 1 ? 0 : prevIndex + 1
+        )
     }
 
     const goToSlide = (index) => {

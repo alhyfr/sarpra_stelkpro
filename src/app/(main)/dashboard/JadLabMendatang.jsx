@@ -33,17 +33,17 @@ export default function JadLabMendatang() {
                     })
                     .slice(0, 3)
                     .map((item, idx) => (
-                        <div key={idx} className="flex items-start gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                            <div className="flex-shrink-0 w-12 text-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-                                <span className="block text-xs font-semibold text-gray-500 uppercase">{dayjs(item.tgl).format('MMM')}</span>
-                                <span className="block text-lg font-bold text-gray-900 dark:text-white">{dayjs(item.tgl).format('DD')}</span>
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-semibold text-gray-900 dark:text-white">{item.kegiatan}</h4>
-                                <p className="text-xs text-gray-500">{item.nama_lab}</p>
-                            </div>
+                    <div key={idx} className="flex items-start gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                        <div className="flex-shrink-0 w-12 text-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                            <span className="block text-xs font-semibold text-gray-500 uppercase">{dayjs(item.tgl).format('MMM')}</span>
+                            <span className="block text-lg font-bold text-gray-900 dark:text-white">{dayjs(item.tgl).format('DD')}</span>
                         </div>
-                    ))}
+                        <div>
+                            <h4 className="text-sm font-semibold text-gray-900 dark:text-white">{item.kegiatan}</h4>
+                                <p className="text-xs text-gray-500">{item.nama_lab}</p>
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     )
