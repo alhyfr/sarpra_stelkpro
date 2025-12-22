@@ -608,6 +608,12 @@ export const validateSertiForm = createValidator({
       allowEmpty: false,
       message: "^Team wajib dipilih"
     }
+  },
+  nip: {
+    presence: {
+      allowEmpty: false,
+      message: "^NIP wajib diisi"
+    }
   }
 });
 

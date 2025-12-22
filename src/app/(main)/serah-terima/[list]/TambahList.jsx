@@ -300,7 +300,7 @@ export default function TambahList({
               options={ruanganFilter || []}
               searchFunction={RuanganFilter}
               displayKey="ruangan"
-              valueKey="id"
+              valueKey="ruangan"
               searchKey="ruangan"
               minSearchLength={2}
               noResultsText="Ruangan tidak ditemukan"

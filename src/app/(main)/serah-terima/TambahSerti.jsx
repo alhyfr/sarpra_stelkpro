@@ -21,6 +21,7 @@ export default function TambahSerti({
     jabatan: "",
     tgl: "",
     team_id: "",
+    nip: ""
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -39,6 +40,8 @@ export default function TambahSerti({
         jabatan: editingSerti.jabatan || "",
         tgl: editingSerti.tgl || "",
         team_id: editingSerti.team_id || "",
+        nip: editingSerti.nip || ""
+
       });
     } else if (!isEditMode) {
       setFormData({
@@ -47,6 +50,7 @@ export default function TambahSerti({
         jabatan: "",
         tgl: "",
         team_id: "",
+        nip: ""
       });
     }
   }, [isEditMode, editingSerti]);
@@ -73,6 +77,7 @@ export default function TambahSerti({
       jabatan: "",
       tgl: "",
       team_id: "",
+      nip: ""
     });
     setShowErrors(false);
     setErrors({});
@@ -104,6 +109,7 @@ export default function TambahSerti({
         jabatan: formData.jabatan,
         tgl: formData.tgl,
         team_id: formData.team_id,
+        nip: formData.nip
       };
 
       if (postSerti) {
@@ -119,6 +125,7 @@ export default function TambahSerti({
         jabatan: "",
         tgl: "",
         team_id: "",
+        nip: ""
       });
       setShowErrors(false);
       setErrors({});
@@ -156,9 +163,9 @@ export default function TambahSerti({
               options={
                 teams
                   ? teams.map((item) => ({
-                      value: String(item.id),
-                      label: item.nama || item.jabatan || `Team ${item.id}`,
-                    }))
+                    value: String(item.id),
+                    label: item.nama || item.jabatan || `Team ${item.id}`,
+                  }))
                   : []
               }
             />
@@ -174,6 +181,19 @@ export default function TambahSerti({
               value={formData.tgl}
               onChange={handleInputChange}
               error={showErrors ? errors.tgl : ""}
+              required
+            />
+          </div>
+          <div>
+            <AInput
+              id="nip"
+              icon={User}
+              name="nip"
+              label="NIP"
+              placeholder="Masukkan NIP"
+              value={formData.nip}
+              onChange={handleInputChange}
+              error={showErrors ? errors.nip : ""}
               required
             />
           </div>

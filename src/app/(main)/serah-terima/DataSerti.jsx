@@ -13,9 +13,9 @@ import dayjs from "dayjs";
 import { useData } from "@/app/context/DataContext";
 import { useRouter } from "next/navigation";
 const Vbukti = dynamic(() => import("../inventaris/master/Vbukti"), {
-    ssr: false,
-    loading: () => <div className="w-10 h-10 rounded-full bg-gray-200"></div>,
-  });
+  ssr: false,
+  loading: () => <div className="w-10 h-10 rounded-full bg-gray-200"></div>,
+});
 
 export default function DataSerti() {
   const { getOpsi, gedung } = useData();
@@ -48,45 +48,51 @@ export default function DataSerti() {
       render: (value) => dayjs(value).format('DD-MM-YYYY'),
     },
     {
-        key: 'penerima',
-        title: 'NAMA PENERIMA',
-        sortable: true,
-        searchable: true,
+      key: 'nip',
+      title: 'NIP',
+      sortable: true,
+      searchable: true,
     },
     {
-        key: 'unit',
-        title: 'UNIT',
-        sortable: true,
-        searchable: true,
+      key: 'penerima',
+      title: 'NAMA PENERIMA',
+      sortable: true,
+      searchable: true,
     },
     {
-        key: 'jabatan',
-        title: 'JABATAN',
-        sortable: true,
-        searchable: true,
+      key: 'unit',
+      title: 'UNIT',
+      sortable: true,
+      searchable: true,
     },
     {
-        key: 'nama',
-        title: 'PENYERAH',
-        sortable: true,
-        searchable: true,
+      key: 'jabatan',
+      title: 'JABATAN',
+      sortable: true,
+      searchable: true,
     },
     {
-        key:'list',
-        title: 'LIST',
-        sortable: false,
-        searchable: false,
-        render: (value, item) => {
-          if (!item || !item.id) return null;
-          
-          // Simpan data ke sessionStorage sebelum navigasi
-          const handleClick = () => {
-            sessionStorage.setItem(`serah_terima_${item.id}`, JSON.stringify(item));
-          };
-          
-          return (
-            <Link href={`/serah-terima/${item.id}`} onClick={handleClick}>
-              <button className="
+      key: 'nama',
+      title: 'PENYERAH',
+      sortable: true,
+      searchable: true,
+    },
+    {
+      key: 'list',
+      title: 'LIST',
+      sortable: false,
+      searchable: false,
+      render: (value, item) => {
+        if (!item || !item.id) return null;
+
+        // Simpan data ke sessionStorage sebelum navigasi
+        const handleClick = () => {
+          sessionStorage.setItem(`serah_terima_${item.id}`, JSON.stringify(item));
+        };
+
+        return (
+          <Link href={`/serah-terima/${item.id}`} onClick={handleClick}>
+            <button className="
                 inline-flex items-center justify-center gap-2
                 px-4 py-2
                 text-sm font-medium text-white
@@ -98,33 +104,33 @@ export default function DataSerti() {
                 transform hover:scale-105 active:scale-95
                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
               ">
-                <FileText className="w-4 h-4" />
-                Data
-              </button>
-            </Link>
-          );
-        },
-    },
-      {
-        key: "actions",
-        title: "ACTIONS",
-        sortable: true,
-        searchable: true,
-        filterable: true,
-        type: "actions",
-        actions: [
-          {
-            icon: Edit,
-            title: "Edit",
-            onClick: (item) => handleEdit(item),
-          },
-          {
-            icon: Trash2,
-            title: "Delete",
-            onClick: (item) => handleDelete(item),
-          },
-        ],
+              <FileText className="w-4 h-4" />
+              Data
+            </button>
+          </Link>
+        );
       },
+    },
+    {
+      key: "actions",
+      title: "ACTIONS",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      type: "actions",
+      actions: [
+        {
+          icon: Edit,
+          title: "Edit",
+          onClick: (item) => handleEdit(item),
+        },
+        {
+          icon: Trash2,
+          title: "Delete",
+          onClick: (item) => handleDelete(item),
+        },
+      ],
+    },
   ]
   const getSerti = async (params = {}, showLoading = true) => {
     try {
@@ -181,7 +187,7 @@ export default function DataSerti() {
             },
           }
           : {};
-      if (editingSerti && editingSerti.id && isEditMode ) {
+      if (editingSerti && editingSerti.id && isEditMode) {
         if (form instanceof FormData) {
           form.append("_method", "PUT"); // Laravel method spoofing
           response = await api.put(`/sp/serti/${editingSerti.id}`, form, config);
@@ -340,7 +346,7 @@ export default function DataSerti() {
         currentSortField={sortField}
         currentSortDirection={sortDirection}
       />
-       <DeleteModal
+      <DeleteModal
         show={showDeleteModal}
         onClose={handleCloseDeleteModal}
         onConfirm={handleConfirmDelete}
