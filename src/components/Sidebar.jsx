@@ -17,7 +17,8 @@ import {
   Users,
   Hammer,
   X,
-  Handshake
+  Handshake,
+  LockKeyhole
 } from 'lucide-react';
 
 const menuItems = [
@@ -101,6 +102,11 @@ const menuItems = [
     title: 'Serah Terima',
     icon: Handshake,
     href: '/serah-terima'
+  },
+  {
+    title: 'Audit Keamanan',
+    icon: LockKeyhole,
+    href: '/audit/keamanan'
   },
   {
     title: 'Settings',
