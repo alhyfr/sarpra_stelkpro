@@ -79,14 +79,19 @@ export default function DataKeamanan() {
         {
             key: "petugas",
             title: "Auditor",
+             sortable: true,
             searchable: true,
             filterable: true,
+            // wrap: true,
+            // minWidth: "400px",
         },
         {
             key: "hasil",
             title: "Hasil",
             searchable: true,
             filterable: true,
+            wrap: true,
+            maxWidth: "300px",
         },
         {
             key: "actions",
