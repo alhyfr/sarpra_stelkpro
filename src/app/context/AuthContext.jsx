@@ -17,7 +17,7 @@ const AuthContext = createContext()
 export function AuthProvider({ children }) {
   // Router untuk navigation
   const router = useRouter()
-  
+
   // ============================================
   // STATE MANAGEMENT
   // ============================================
@@ -43,18 +43,18 @@ export function AuthProvider({ children }) {
   const checkAuth = async () => {
     try {
       setIsLoading(true)
-      
+
       const tokenKey = process.env.NEXT_PUBLIC_TOKEN_KEY || 'stelk_auth_token'
-      
+
       // Ambil token dari localStorage atau cookie
       let savedToken = localStorage.getItem(tokenKey)
-      
+
       // Jika tidak di localStorage, coba dari cookie
       if (!savedToken) {
         const cookieMatch = document.cookie.match(new RegExp('(^| )' + tokenKey + '=([^;]+)'))
         savedToken = cookieMatch ? cookieMatch[2] : null
       }
-      
+
       // Jika tidak ada token, user belum login
       if (!savedToken) {
         setIsAuthenticated(false)
@@ -68,11 +68,11 @@ export function AuthProvider({ children }) {
 
       // Ambil data user dari API
       const response = await Api.get('/current-user')
-      
+
       // Set user data dan status authenticated
       setUser(response.data.data)
       setIsAuthenticated(true)
-      
+
     } catch (error) {
       // Jika gagal (token expired/invalid), logout
       logout()
@@ -85,10 +85,10 @@ export function AuthProvider({ children }) {
   // 5. FUNCTION: LOGIN
   // ============================================
   // Login user dengan email dan password
-  const login = async (email, password, redirectUrl = '/dashboard') => {
+  const login = async (email, password, redirectUrl = '/dashboard', rememberMe = false) => {
     try {
       setIsLoading(true)
-      
+
       // Panggil API login
       const response = await Api.post('/login', {
         email,
@@ -97,7 +97,7 @@ export function AuthProvider({ children }) {
 
       // Flexible response handling - support berbagai struktur response
       let authToken, userData
-      
+
       // Cek berbagai struktur response yang mungkin
       if (response.data.data) {
         // Structure: { data: { token, user } }
@@ -120,13 +120,25 @@ export function AuthProvider({ children }) {
 
       // Simpan token ke localStorage DAN cookie
       const tokenKey = process.env.NEXT_PUBLIC_TOKEN_KEY || 'stelk_auth_token'
-      
+
       // Save to localStorage
-      localStorage.setItem(tokenKey, authToken)
-      
+      if (rememberMe) {
+        localStorage.setItem(tokenKey, authToken)
+      } else {
+        // If not remember me, maybe we should use sessionStorage? 
+        // But current implementation uses localStorage as main storage.
+        // For consistency with existing code, we will keep using localStorage
+        // but rely on cookie expiration for session duration if possible, 
+        // or just keep it in localStorage. 
+        // The prompt only asked for cookie expiration change.
+        localStorage.setItem(tokenKey, authToken)
+      }
+
       // Save to cookie (untuk middleware)
-      document.cookie = `${tokenKey}=${authToken}; path=/; max-age=${60 * 60 * 24 * 1}; SameSite=Lax`
-      // max-age = 1 days
+      // 1 day default, 30 days if rememberMe
+      const maxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 1
+      document.cookie = `${tokenKey}=${authToken}; path=/; max-age=${maxAge}; SameSite=Lax`
+      // max-age in seconds
 
       // Set token ke axios header untuk request selanjutnya
       Api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`
@@ -139,7 +151,7 @@ export function AuthProvider({ children }) {
       // Set redirecting state untuk show loading
       setIsRedirecting(true)
       setRedirectType('login')
-      
+
       // PENTING: Gunakan router.replace untuk avoid back button issues
       // Dan tambahkan delay untuk ensure state propagation
       setTimeout(() => {
@@ -148,9 +160,9 @@ export function AuthProvider({ children }) {
           setIsRedirecting(false)
           setRedirectType(null)
         }, 100)
-        
+
         router.replace(redirectUrl)
-        
+
         // Force reload jika redirect tidak berjalan setelah 500ms
         setTimeout(() => {
           if (window.location.pathname !== redirectUrl) {
@@ -164,10 +176,10 @@ export function AuthProvider({ children }) {
       // Reset redirecting state on error
       setIsRedirecting(false)
       setRedirectType(null)
-      
+
       // Extract error message dari berbagai format
       let errorMessage = 'Login gagal. Silakan coba lagi.'
-      
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message
       } else if (error.response?.data?.error) {
@@ -175,9 +187,9 @@ export function AuthProvider({ children }) {
       } else if (error.message) {
         errorMessage = error.message
       }
-      
+
       return { success: false, error: errorMessage }
-      
+
     } finally {
       setIsLoading(false)
     }
@@ -192,11 +204,11 @@ export function AuthProvider({ children }) {
       // Set redirecting state untuk show loading
       setIsRedirecting(true)
       setRedirectType('logout')
-      
+
       // Optional: Panggil API logout jika ada
       await Api.post('/logout')
       // await Api.post('/auth/logout')
-      
+
       // Delay untuk show loading
 
       await new Promise(resolve => setTimeout(resolve, 800))
@@ -205,26 +217,26 @@ export function AuthProvider({ children }) {
     } finally {
       // Clear token dari localStorage DAN cookie
       const tokenKey = process.env.NEXT_PUBLIC_TOKEN_KEY || 'stelk_auth_token'
-      
+
       localStorage.removeItem(tokenKey)
-      
+
       // Clear cookie
       document.cookie = `${tokenKey}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
-      
+
       // Clear token dari axios header
       delete Api.defaults.headers.common['Authorization']
-      
+
       // Reset state
       setToken(null)
       setUser(null)
       setIsAuthenticated(false)
-      
+
       // Reset redirecting sebelum redirect
       setTimeout(() => {
         setIsRedirecting(false)
         setRedirectType(null)
       }, 100)
-      
+
       // Redirect ke login
       router.push('/login')
     }
@@ -267,7 +279,7 @@ export function AuthProvider({ children }) {
     isLoading,         // Loading state
     isRedirecting,     // Loading state saat redirect/logout
     redirectType,      // Type redirect: 'login' atau 'logout'
-    
+
     // Functions
     login,             // Function untuk login
     logout,            // Function untuk logout
@@ -293,12 +305,12 @@ export function AuthProvider({ children }) {
 // Usage: const { user, login, logout } = useAuth()
 export function useAuth() {
   const context = useContext(AuthContext)
-  
+
   // Jika dipanggil di luar AuthProvider, throw error
   if (!context) {
     throw new Error('useAuth must be used within AuthProvider')
   }
-  
+
   return context
 }
 

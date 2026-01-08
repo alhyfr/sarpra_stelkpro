@@ -59,46 +59,40 @@ export default function TambahAkun({
   const validateForm = () => {
     // Gunakan validator dari file terpisah
     const newErrors = validateAkunForm(formData)
-    
-    console.log('🔍 Validation errors:', newErrors)
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    console.log('📝 Form submit triggered')
-    console.log('🔍 Form data:', formData)
-    
+
     // Set showErrors ke true untuk menampilkan error
     setShowErrors(true)
-    
+
     if (!validateForm()) {
-      console.log('❌ Validation failed:', errors)
       return
     }
 
     setLoading(true)
     setErrors({})
     setShowErrors(false) // Reset setelah validasi sukses
-    
+
     try {
       // Jika ada foto (File object), gunakan FormData untuk multipart upload
       let submitData
-      
-      
-        // Regular JSON data (no file atau foto sudah URL)
-        submitData = {
-            uid: formData.uid,
-            name: formData.name,
-            level: formData.level,
-            position: formData.position,
-            email: formData.email,
-            password: formData.password,
-            status: formData.status,
-        }
-        
-      
+
+
+      // Regular JSON data (no file atau foto sudah URL)
+      submitData = {
+        uid: formData.uid,
+        name: formData.name,
+        level: formData.level,
+        position: formData.position,
+        email: formData.email,
+        password: formData.password,
+        status: formData.status,
+      }
+
+
       // Fix: gunakan postTeam bukan postUser
       if (postUser) {
         await postUser(submitData)
@@ -115,14 +109,14 @@ export default function TambahAkun({
         password: '',
         status: '',
       })
-      
+
       // Reset error state
       setShowErrors(false)
       setErrors({})
-      
+
       if (onSuccess) onSuccess(submitData)
       if (onClose) onClose()
-      
+
     } catch (error) {
       console.error('Error saving team:', error)
       // Show error via alert instead of form error
@@ -159,7 +153,7 @@ export default function TambahAkun({
           error={showErrors ? errors.name : ''}
           required
         />
-        
+
         {/* Row 2: Level & Position */}
         <ASelect
           id="level"
@@ -181,7 +175,7 @@ export default function TambahAkun({
           error={showErrors ? errors.position : ''}
           required
         />
-        
+
         {/* Row 3: Email & Password */}
         <AInput
           id="email"
@@ -205,7 +199,7 @@ export default function TambahAkun({
           error={showErrors ? errors.password : ''}
           required
         />
-        
+
         {/* Row 4: Status - Full width */}
         <div className="md:col-span-2">
           <ARadio
@@ -223,7 +217,7 @@ export default function TambahAkun({
           />
         </div>
       </div>
-      
+
       {/* Submit Button - Full width, with top margin */}
       <div className="mt-6">
         <Button type="submit" loading={loading} className="w-full">

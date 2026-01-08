@@ -17,13 +17,17 @@ function LoginContent() {
 
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
+    rememberMe: false
   });
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      const redirectUrl = searchParams.get('redirect') || '/dashboard';
+      const rawRedirect = searchParams.get('redirect');
+      // Fix Open Redirect: Ensure relative path starting with / but not // (protocol relative)
+      const isValidRedirect = rawRedirect && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//');
+      const redirectUrl = isValidRedirect ? rawRedirect : '/dashboard';
       router.replace(redirectUrl);
     }
   }, [isAuthenticated, isLoading, router, searchParams]);
@@ -31,17 +35,21 @@ function LoginContent() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
-    const redirectUrl = searchParams.get('redirect') || '/dashboard';
-    const result = await login(formData.email, formData.password, redirectUrl);
+    const rawRedirect = searchParams.get('redirect');
+    // Fix Open Redirect
+    const isValidRedirect = rawRedirect && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//');
+    const redirectUrl = isValidRedirect ? rawRedirect : '/dashboard';
+    const result = await login(formData.email, formData.password, redirectUrl, formData.rememberMe);
     if (!result.success) {
       setErrors({ general: result.error || 'Login gagal. Silakan coba lagi.' });
     }
   };
 
   const handleChange = (e) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: value
     });
     if (errors.general) {
       setErrors({});
@@ -99,12 +107,14 @@ function LoginContent() {
             )}
             <div className="flex items-center">
               <input
-                id="remember-me"
-                name="remember-me"
+                id="rememberMe"
+                name="rememberMe"
                 type="checkbox"
+                checked={formData.rememberMe}
+                onChange={handleChange}
                 className="h-4 w-4 text-[#B91C1C] focus:ring-[#B91C1C] border-gray-300 rounded cursor-pointer"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 cursor-pointer">
+              <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700 cursor-pointer">
                 Ingat saya
               </label>
             </div>
