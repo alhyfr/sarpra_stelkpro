@@ -12,7 +12,7 @@ export default function TambahAtkKeluar({
   editingAtkOut = null,
   isEditMode = false,
 }) {
-    const { user } = useAuth();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     atk_id: "",
     vol: "",
@@ -37,7 +37,7 @@ export default function TambahAtkKeluar({
     memberFilter,
     MemberFilter,
   } = useData();
-  
+
   useEffect(() => {
     getOpsi();
     getAtkFilter();
@@ -45,7 +45,7 @@ export default function TambahAtkKeluar({
   }, []);
 
   // Debug: Log memberFilter data structure
-  
+
   useEffect(() => {
     if (isEditMode && editingAtkOut) {
       setFormData({
@@ -57,9 +57,9 @@ export default function TambahAtkKeluar({
         unit: String(editingAtkOut.unit || ""),
         status: String(editingAtkOut.status || "proses"),
         pic: String(editingAtkOut.pic || ""),
-        
+
       });
-      
+
       // Set selected items for edit mode
       if (editingAtkOut.atk_id) {
         setSelectedAtk({ id: editingAtkOut.atk_id, nabar: editingAtkOut.nabar });
@@ -104,11 +104,11 @@ export default function TambahAtkKeluar({
   // Handler untuk searchable select Pengambil
   const handlePengambilSelect = (selectedItem) => {
     setSelectedPengambil(selectedItem);
-    
+
     // Auto-set kategori dan unit berdasarkan data dari API getMemberFilter
     let autoKategori = "gupeg"; // Default ke guru & pegawai
     let autoUnit = "sarpra"; // Default ke sarpra
-    
+
     // Ambil kategori dari data API (field: kategori atau category)
     if (selectedItem.kategori) {
       autoKategori = selectedItem.kategori;
@@ -123,7 +123,7 @@ export default function TambahAtkKeluar({
         autoKategori = "gupeg";
       }
     }
-    
+
     // Ambil unit dari data API (field: unit atau department)
     if (selectedItem.unit) {
       autoUnit = selectedItem.unit;
@@ -146,11 +146,11 @@ export default function TambahAtkKeluar({
         autoUnit = "siswa";
       }
     }
-    
-    console.log('Selected pengambil data:', selectedItem);
-    console.log('Auto-set kategori:', autoKategori);
-    console.log('Auto-set unit:', autoUnit);
-    
+
+
+
+
+
     setFormData((prev) => ({
       ...prev,
       pengambil: selectedItem.id,
@@ -165,7 +165,7 @@ export default function TambahAtkKeluar({
         pengambil: "",
       }));
     }
-    
+
     // Clear kategori dan unit errors
     if (showErrors) {
       setErrors((prev) => ({
@@ -368,11 +368,11 @@ export default function TambahAtkKeluar({
               minSearchLength={2}
               noResultsText="Pengambil tidak ditemukan"
             />
-            
+
           </div>
 
-         
-          
+
+
         </div>
 
         {/* Submit Button */}

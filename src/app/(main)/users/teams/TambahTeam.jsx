@@ -10,13 +10,152 @@ import Button from '@/components/Button'
 import { validateTeamForm } from './validator'
 
 export default function TambahTeam({
-  onClose = null, 
-  onSuccess = null, 
+  onClose = null,
+  onSuccess = null,
   postTeam,           // Fix: nama yang benar
   editingTeam = null, // Fix: nama yang benar
   isEditMode = false
 }) {
-      const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState({
+    nip: '',
+    nik: '',
+    nama: '',
+    nikname: '',
+    status: '',
+    jabatan: '',
+    foto: '',
+  })
+  const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState({})
+  const [showErrors, setShowErrors] = useState(false) // Kontrol kapan error ditampilkan
+
+  // Load data saat edit mode
+  useEffect(() => {
+    if (isEditMode && editingTeam) {
+      setFormData({
+        nip: editingTeam.nip || '',
+        nik: editingTeam.nik || '',
+        nama: editingTeam.nama || '',
+        nikname: editingTeam.nikname || '',
+        status: editingTeam.status || '',
+        jabatan: editingTeam.jabatan || '',
+        foto: editingTeam.foto || '',  // URL foto dari server
+      })
+    }
+  }, [isEditMode, editingTeam])
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+
+    // Clear error when user starts typing (jika showErrors aktif)
+    if (showErrors && errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }))
+    }
+  }
+
+  // Handle file upload
+  const handleFileChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+
+    // Clear error for file field
+    if (showErrors && errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }))
+    }
+  }
+
+  // Handle file remove
+  const handleFileRemove = () => {
+    setFormData(prev => ({
+      ...prev,
+      foto: null
+    }))
+  }
+
+  // ============================================
+  // VALIDASI FORM
+  // ============================================
+  const validateForm = () => {
+    // Gunakan validator dari file terpisah
+    const newErrors = validateTeamForm(formData)
+
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+
+
+    // Set showErrors ke true untuk menampilkan error
+    setShowErrors(true)
+
+    if (!validateForm()) {
+
+      return
+    }
+
+    setLoading(true)
+    setErrors({})
+    setShowErrors(false) // Reset setelah validasi sukses
+
+    try {
+      // Jika ada foto (File object), gunakan FormData untuk multipart upload
+      let submitData
+
+      if (formData.foto instanceof File) {
+        // Create FormData untuk file upload
+        submitData = new FormData()
+        submitData.append('nip', formData.nip)
+        submitData.append('nik', formData.nik || '')
+        submitData.append('nama', formData.nama)
+        submitData.append('nikname', formData.nikname)
+        submitData.append('status', formData.status)
+        submitData.append('jabatan', formData.jabatan)
+        submitData.append('foto', formData.foto)  // File object
+
+
+      } else {
+        // Regular JSON data (no file atau foto sudah URL)
+        submitData = {
+          nip: formData.nip,
+          nik: formData.nik,
+          nama: formData.nama,
+          nikname: formData.nikname,
+          status: formData.status,
+          jabatan: formData.jabatan,
+          foto: formData.foto || null,  // URL string atau null
+        }
+
+
+      }
+
+
+
+      // Fix: gunakan postTeam bukan postUser
+      if (postTeam) {
+        await postTeam(submitData)
+
+      } else {
+        console.error('❌ postTeam function not provided')
+        throw new Error('postTeam function not provided')
+      }
+
+      // Reset form
+      setFormData({
         nip: '',
         nik: '',
         nama: '',
@@ -25,166 +164,26 @@ export default function TambahTeam({
         jabatan: '',
         foto: '',
       })
-      const [loading, setLoading] = useState(false)
-      const [errors, setErrors] = useState({})
-      const [showErrors, setShowErrors] = useState(false) // Kontrol kapan error ditampilkan
-      
-      // Load data saat edit mode
-      useEffect(() => {
-        if (isEditMode && editingTeam) {
-          setFormData({
-            nip: editingTeam.nip || '',
-            nik: editingTeam.nik || '',
-            nama: editingTeam.nama || '',
-            nikname: editingTeam.nikname || '',
-            status: editingTeam.status || '',
-            jabatan: editingTeam.jabatan || '',
-            foto: editingTeam.foto || '',  // URL foto dari server
-          })
-        }
-      }, [isEditMode, editingTeam])
-      const handleInputChange = (e) => {
-        const { name, value } = e.target
-        setFormData(prev => ({
-          ...prev,
-          [name]: value
-        }))
-        
-        // Clear error when user starts typing (jika showErrors aktif)
-        if (showErrors && errors[name]) {
-          setErrors(prev => ({
-            ...prev,
-            [name]: ''
-          }))
-        }
-      }
 
-      // Handle file upload
-      const handleFileChange = (e) => {
-        const { name, value } = e.target
-        setFormData(prev => ({
-          ...prev,
-          [name]: value
-        }))
-        
-        // Clear error for file field
-        if (showErrors && errors[name]) {
-          setErrors(prev => ({
-            ...prev,
-            [name]: ''
-          }))
-        }
-      }
+      // Reset error state
+      setShowErrors(false)
+      setErrors({})
 
-      // Handle file remove
-      const handleFileRemove = () => {
-        setFormData(prev => ({
-          ...prev,
-          foto: null
-        }))
-      }
-      
-      // ============================================
-      // VALIDASI FORM
-      // ============================================
-      const validateForm = () => {
-        // Gunakan validator dari file terpisah
-        const newErrors = validateTeamForm(formData)
-        
-        console.log('🔍 Validation errors:', newErrors)
-        setErrors(newErrors)
-        return Object.keys(newErrors).length === 0
-      }
-      const handleSubmit = async (e) => {
-        e.preventDefault()
-        
-        console.log('📝 Form submit triggered')
-        console.log('🔍 Form data:', formData)
-        
-        // Set showErrors ke true untuk menampilkan error
-        setShowErrors(true)
-        
-        if (!validateForm()) {
-          console.log('❌ Validation failed:', errors)
-          return
-        }
-    
-        setLoading(true)
-        setErrors({})
-        setShowErrors(false) // Reset setelah validasi sukses
-        
-        try {
-          // Jika ada foto (File object), gunakan FormData untuk multipart upload
-          let submitData
-          
-          if (formData.foto instanceof File) {
-            // Create FormData untuk file upload
-            submitData = new FormData()
-            submitData.append('nip', formData.nip)
-            submitData.append('nik', formData.nik || '')
-            submitData.append('nama', formData.nama)
-            submitData.append('nikname', formData.nikname)
-            submitData.append('status', formData.status)
-            submitData.append('jabatan', formData.jabatan)
-            submitData.append('foto', formData.foto)  // File object
-            
-            console.log('📤 Submitting with file upload (FormData)')
-          } else {
-            // Regular JSON data (no file atau foto sudah URL)
-            submitData = {
-              nip: formData.nip,
-              nik: formData.nik,
-              nama: formData.nama,
-              nikname: formData.nikname,
-              status: formData.status,
-              jabatan: formData.jabatan,
-              foto: formData.foto || null,  // URL string atau null
-            }
-            
-            console.log('📤 Submitting data (JSON):', submitData)
-          }
-    
-          console.log('🔧 postTeam function exists:', !!postTeam)
-          
-          // Fix: gunakan postTeam bukan postUser
-          if (postTeam) {
-            await postTeam(submitData)
-            console.log('✅ Data saved successfully')
-          } else {
-            console.error('❌ postTeam function not provided')
-            throw new Error('postTeam function not provided')
-          }
-          
-          // Reset form
-          setFormData({
-            nip: '',
-            nik: '',
-            nama: '',
-            nikname: '',
-            status: '',
-            jabatan: '',
-            foto: '',
-          })
-          
-          // Reset error state
-          setShowErrors(false)
-          setErrors({})
-          
-          if (onSuccess) onSuccess(submitData)
-          if (onClose) onClose()
-          
-        } catch (error) {
-          console.error('Error saving team:', error)
-          // Show error via alert instead of form error
-          const errorMessage = error.response?.data?.message || error.message || 'Terjadi kesalahan saat menyimpan data'
-          alert(errorMessage)
-        } finally {
-          setLoading(false)
-        }
-      }
-    return(
-       <>
-       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      if (onSuccess) onSuccess(submitData)
+      if (onClose) onClose()
+
+    } catch (error) {
+      console.error('Error saving team:', error)
+      // Show error via alert instead of form error
+      const errorMessage = error.response?.data?.message || error.message || 'Terjadi kesalahan saat menyimpan data'
+      alert(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
+  return (
+    <>
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         {/* NIP - REQUIRED */}
         <AInput
           id="nip"
@@ -197,7 +196,7 @@ export default function TambahTeam({
           error={showErrors ? errors.nip : ''}
           required
         />
-        
+
         {/* NIK - OPTIONAL */}
         <AInput
           id="nik"
@@ -208,7 +207,7 @@ export default function TambahTeam({
           onChange={handleInputChange}
           error={showErrors ? errors.nik : ''}
         />
-        
+
         {/* NAMA - REQUIRED */}
         <AInput
           id="nama"
@@ -221,7 +220,7 @@ export default function TambahTeam({
           error={showErrors ? errors.nama : ''}
           required
         />
-        
+
         {/* NICKNAME - REQUIRED */}
         <AInput
           id="nikname"
@@ -233,7 +232,7 @@ export default function TambahTeam({
           error={showErrors ? errors.nikname : ''}
           required
         />
-        
+
         {/* STATUS - REQUIRED (RADIO BUTTON) */}
         <ARadio
           id="status"
@@ -244,19 +243,19 @@ export default function TambahTeam({
           error={showErrors ? errors.status : ''}
           required
           options={[
-            { 
-              value: 'PEGTAP', 
+            {
+              value: 'PEGTAP',
               label: 'PEGAWAI TETAP',
               description: 'Pegawai dengan status tetap'
             },
-            { 
-              value: 'FULL TIME', 
+            {
+              value: 'FULL TIME',
               label: 'FULL TIME',
               description: 'Pegawai full time non-tetap'
             }
           ]}
         />
-        
+
         {/* JABATAN - REQUIRED (SELECT DROPDOWN) */}
         <ASelect
           id="jabatan"
@@ -301,8 +300,8 @@ export default function TambahTeam({
         </div>
 
         {/* Submit Button */}
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           variant="primary"
           size="lg"
           fullWidth
@@ -310,7 +309,7 @@ export default function TambahTeam({
         >
           {isEditMode ? 'Update Data' : 'Simpan Data'}
         </Button>
-       </form>
-       </>
-    )
+      </form>
+    </>
+  )
 }

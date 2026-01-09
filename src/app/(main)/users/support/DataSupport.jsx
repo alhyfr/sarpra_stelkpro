@@ -22,20 +22,20 @@ export default function DataSupport() {
   const [searchTerm, setSearchTerm] = useState('')      // Kata kunci pencarian
   const [sortField, setSortField] = useState('')       // Field yang di-sort
   const [sortDirection, setSortDirection] = useState('asc') // Arah sorting (asc/desc)
-  const [filters, setFilters] = useState({}) 
-  
+  const [filters, setFilters] = useState({})
+
   const [showAddModal, setShowAddModal] = useState(false)     // Modal tambah/edit data
   const [editingSupport, setEditingSupport] = useState(null)        // Data yang sedang diedit
-  const [isEditMode, setIsEditMode] = useState(false) 
+  const [isEditMode, setIsEditMode] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)     // Modal konfirmasi hapus
   const [deletingSupport, setDeletingSupport] = useState(null)           // Data yang akan dihapus
-  const [deleteLoading, setDeleteLoading] = useState(false)        
+  const [deleteLoading, setDeleteLoading] = useState(false)
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false) // Modal konfirmasi hapus multiple
   const [bulkDeleteIds, setBulkDeleteIds] = useState([])               // Array ID yang akan dihapus
-  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false) 
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false)
   const [showExportModal, setShowExportModal] = useState(false)
   const [showImageView, setShowImageView] = useState(false)            // Image viewer modal
-  const [selectedImage, setSelectedImage] = useState(null) 
+  const [selectedImage, setSelectedImage] = useState(null)
 
   const getImageUrl = (filename) => {
     if (!filename) return null
@@ -69,7 +69,7 @@ export default function DataSupport() {
       sortable: false,
       render: (value, item) => {
         const imageUrl = getImageUrl(value)
-        
+
         // Fallback component untuk menampilkan initial
         const FallbackAvatar = () => (
           <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
@@ -78,14 +78,14 @@ export default function DataSupport() {
             </span>
           </div>
         )
-        
+
         if (!imageUrl) {
           return <FallbackAvatar />
         }
-        
+
         // Gunakan img tag biasa dengan error handling yang lebih baik
         return (
-          <div 
+          <div
             className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 cursor-pointer hover:ring-2 hover:ring-red-700 transition-all"
             onClick={() => handleViewImage(item)}
             title="Klik untuk melihat gambar"
@@ -132,23 +132,23 @@ export default function DataSupport() {
       filterable: true,
     },
     {
-        key: 'alamat',
-        title: 'ALAMAT',
-        searchable: true,
-        filterable: true,
+      key: 'alamat',
+      title: 'ALAMAT',
+      searchable: true,
+      filterable: true,
     },
     {
-        key: 'no_hp',
-        title: 'NO HP',
-        searchable: true,
-        filterable: true,
+      key: 'no_hp',
+      title: 'NO HP',
+      searchable: true,
+      filterable: true,
     },
     {
-        key: 'tmt',
-        title: 'TMT',
-        format: 'DD-MM-YYYY',
-        searchable: true,
-        filterable: true,
+      key: 'tmt',
+      title: 'TMT',
+      format: 'DD-MM-YYYY',
+      searchable: true,
+      filterable: true,
     },
     {
       key: 'status',
@@ -175,7 +175,7 @@ export default function DataSupport() {
           />
         )
       }
-      
+
     },
     {
       key: 'actions',
@@ -221,15 +221,15 @@ export default function DataSupport() {
       }
 
       const [response] = await Promise.all([
-        api.get(`/sp/support?${queryParams}`),  
+        api.get(`/sp/support?${queryParams}`),
         minLoadingTime
       ])
-      
+
       if (response.data.status === 'success') {
-        setData(response.data.data)              
-        setTotal(response.data.total)            
-        setCurrentPage(response.data.page)       
-        setItemsPerPage(response.data.per_page)  
+        setData(response.data.data)
+        setTotal(response.data.total)
+        setCurrentPage(response.data.page)
+        setItemsPerPage(response.data.per_page)
         // console.log(response.data.data)
       }
     } catch (error) {
@@ -245,19 +245,19 @@ export default function DataSupport() {
   const postSupport = async (form) => {
     try {
       let response
-    
+
       // Setup config untuk multipart/form-data jika upload file
       const config = form instanceof FormData ? {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
       } : {}
-      
+
       // Check if we have editingTeam to determine if it's update or create
       if (editingSupport && editingSupport.id) {
         // Update existing team
-        console.log('🔄 Updating support ID:', editingSupport.id)
-        
+
+
         // Untuk update dengan file, beberapa API perlu POST dengan _method=PUT
         if (form instanceof FormData) {
           form.append('_method', 'PUT')  // Laravel method spoofing
@@ -308,7 +308,7 @@ export default function DataSupport() {
   }
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false)
-    setDeletingSupport(null)  
+    setDeletingSupport(null)
     setDeleteLoading(false)
   }
   // Bulk delete handlers
@@ -324,38 +324,38 @@ export default function DataSupport() {
       // Delete multiple users
       const deletePromises = bulkDeleteIds.map(id => api.delete(`/sp/support/${id}`))  // 🔧 GANTI: endpoint delete
       await Promise.all(deletePromises)
-      
-      
-      getSupport()  
+
+
+      getSupport()
       setShowBulkDeleteModal(false)
       setBulkDeleteIds([])
     } catch (error) {
-      console.error('Error bulk deleting support :', error)  
+      console.error('Error bulk deleting support :', error)
     } finally {
       setBulkDeleteLoading(false)
     }
   }
 
   const handleAdd = () => {
-    setEditingSupport(null)  
+    setEditingSupport(null)
     setIsEditMode(false)
     setShowAddModal(true)
   }
 
   const handleEdit = (item) => {
-    setEditingSupport(item)  
+    setEditingSupport(item)
     setIsEditMode(true)
     setShowAddModal(true)
   }
   const handleCloseAddModal = () => {
     setShowAddModal(false)
-    setEditingSupport(null)  
+    setEditingSupport(null)
     setIsEditMode(false)
   }
   const handleAddSuccess = (newTeam) => {
-    getSupport()  
+    getSupport()
     setShowAddModal(false)
-    setEditingSupport(null)  
+    setEditingSupport(null)
     setIsEditMode(false)
   }
   const handleExport = () => {
@@ -400,9 +400,9 @@ export default function DataSupport() {
   useEffect(() => {
     getSupport()  // 🔧 GANTI: sesuaikan nama function (contoh: getProducts, getCategories)
   }, [])
-    return (
-        <div>
-        <DataTable
+  return (
+    <div>
+      <DataTable
         data={data}
         total={total}
         loading={loading}
@@ -463,11 +463,11 @@ export default function DataSupport() {
           closeOnOverlayClick={false}
         >
           <TambahSupport
-          onClose={handleCloseAddModal}
-          onSuccess={handleAddSuccess}
-          postSupport={postSupport}
-          editingSupport={editingSupport}
-          isEditMode={isEditMode}
+            onClose={handleCloseAddModal}
+            onSuccess={handleAddSuccess}
+            postSupport={postSupport}
+            editingSupport={editingSupport}
+            isEditMode={isEditMode}
           />
         </Modal>
       )}
@@ -494,6 +494,6 @@ export default function DataSupport() {
         description={selectedImage?.description}
         alt={selectedImage?.title || 'Support Photo'}
       />
-        </div>
-    )
+    </div>
+  )
 }

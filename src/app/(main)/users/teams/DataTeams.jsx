@@ -22,17 +22,17 @@ export default function DataTeams() {
   const [searchTerm, setSearchTerm] = useState('')      // Kata kunci pencarian
   const [sortField, setSortField] = useState('')       // Field yang di-sort
   const [sortDirection, setSortDirection] = useState('asc') // Arah sorting (asc/desc)
-  const [filters, setFilters] = useState({}) 
-  
+  const [filters, setFilters] = useState({})
+
   const [showAddModal, setShowAddModal] = useState(false)     // Modal tambah/edit data
   const [editingTeam, setEditingTeam] = useState(null)        // Data yang sedang diedit
-  const [isEditMode, setIsEditMode] = useState(false) 
+  const [isEditMode, setIsEditMode] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)     // Modal konfirmasi hapus
   const [deletingTeam, setDeletingTeam] = useState(null)           // Data yang akan dihapus
-  const [deleteLoading, setDeleteLoading] = useState(false)        
+  const [deleteLoading, setDeleteLoading] = useState(false)
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false) // Modal konfirmasi hapus multiple
   const [bulkDeleteIds, setBulkDeleteIds] = useState([])               // Array ID yang akan dihapus
-  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false) 
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false)
   const [showExportModal, setShowExportModal] = useState(false)
   const [showImageView, setShowImageView] = useState(false)            // Image viewer modal
   const [selectedImage, setSelectedImage] = useState(null)             // Selected image data 
@@ -40,17 +40,17 @@ export default function DataTeams() {
   // Helper function untuk get full image URL
   const getImageUrl = (filename) => {
     if (!filename) return null
-    
+
     // Jika sudah full URL (http/https), return as is
     if (filename.startsWith('http://') || filename.startsWith('https://')) {
       return filename
     }
-    
+
     // Jika relative path, gabungkan dengan STORAGE_URL
     if (filename.startsWith('/')) {
       return `${STORAGE_URL}${filename}`
     }
-    
+
     // Jika hanya filename, gabungkan dengan STORAGE_URL
     return `${STORAGE_URL}/${filename}`
   }
@@ -75,7 +75,7 @@ export default function DataTeams() {
       sortable: false,
       render: (value, item) => {
         const imageUrl = getImageUrl(value)
-        
+
         // Fallback component untuk menampilkan initial
         const FallbackAvatar = () => (
           <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
@@ -84,14 +84,14 @@ export default function DataTeams() {
             </span>
           </div>
         )
-        
+
         if (!imageUrl) {
           return <FallbackAvatar />
         }
-        
+
         // Gunakan img tag biasa dengan error handling yang lebih baik
         return (
-          <div 
+          <div
             className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 cursor-pointer hover:ring-2 hover:ring-red-700 transition-all"
             onClick={() => handleViewImage(item)}
             title="Klik untuk melihat gambar"
@@ -202,15 +202,15 @@ export default function DataTeams() {
       }
 
       const [response] = await Promise.all([
-        api.get(`/sp/teams?${queryParams}`),  
+        api.get(`/sp/teams?${queryParams}`),
         minLoadingTime
       ])
-      
+
       if (response.data.status === 'success') {
-        setData(response.data.data)              
-        setTotal(response.data.total)            
-        setCurrentPage(response.data.page)       
-        setItemsPerPage(response.data.per_page)  
+        setData(response.data.data)
+        setTotal(response.data.total)
+        setCurrentPage(response.data.page)
+        setItemsPerPage(response.data.per_page)
         // console.log(response.data.data)
       }
     } catch (error) {
@@ -226,19 +226,19 @@ export default function DataTeams() {
   const postTeam = async (form) => {
     try {
       let response
-    
+
       // Setup config untuk multipart/form-data jika upload file
       const config = form instanceof FormData ? {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
       } : {}
-      
+
       // Check if we have editingTeam to determine if it's update or create
       if (editingTeam && editingTeam.id) {
         // Update existing team
-        console.log('🔄 Updating team ID:', editingTeam.id)
-        
+
+
         // Untuk update dengan file, beberapa API perlu POST dengan _method=PUT
         if (form instanceof FormData) {
           form.append('_method', 'PUT')  // Laravel method spoofing
@@ -249,12 +249,12 @@ export default function DataTeams() {
         }
       } else {
         // Create new team
-        console.log('➕ Creating new team')
+
         response = await api.post('/sp/teams', form, config)
       }
-      
-      console.log('✅ API Response:', response.data)
-      
+
+
+
       if (response.data.status === 'success') {
         // Refresh data setelah berhasil
         getTeams()
@@ -279,7 +279,7 @@ export default function DataTeams() {
   const handleDelete = (item) => {
     setDeletingTeam(item)
     setShowDeleteModal(true)
-    console.log('🔄 Deleting team ID:', item.id)
+
   }
   const handleConfirmDelete = async () => {
     if (!deletingTeam) return
@@ -299,7 +299,7 @@ export default function DataTeams() {
   }
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false)
-    setDeletingTeam(null)  
+    setDeletingTeam(null)
     setDeleteLoading(false)
   }
   // Bulk delete handlers
@@ -315,38 +315,38 @@ export default function DataTeams() {
       // Delete multiple users
       const deletePromises = bulkDeleteIds.map(id => api.delete(`/sp/teams/${id}`))  // 🔧 GANTI: endpoint delete
       await Promise.all(deletePromises)
-      
-      
-      getTeams()  
+
+
+      getTeams()
       setShowBulkDeleteModal(false)
       setBulkDeleteIds([])
     } catch (error) {
-      console.error('Error bulk deleting team :', error)  
+      console.error('Error bulk deleting team :', error)
     } finally {
       setBulkDeleteLoading(false)
     }
   }
 
   const handleAdd = () => {
-    setEditingTeam(null)  
+    setEditingTeam(null)
     setIsEditMode(false)
     setShowAddModal(true)
   }
 
   const handleEdit = (item) => {
-    setEditingTeam(item)  
+    setEditingTeam(item)
     setIsEditMode(true)
     setShowAddModal(true)
   }
   const handleCloseAddModal = () => {
     setShowAddModal(false)
-    setEditingTeam(null)  
+    setEditingTeam(null)
     setIsEditMode(false)
   }
   const handleAddSuccess = (newTeam) => {
-    getTeams()  
+    getTeams()
     setShowAddModal(false)
-    setEditingTeam(null)  
+    setEditingTeam(null)
     setIsEditMode(false)
   }
   const handleExport = () => {
@@ -385,41 +385,41 @@ export default function DataTeams() {
     getTeams()  // 🔧 GANTI: sesuaikan nama function (contoh: getProducts, getCategories)
   }, [])
 
-    return(
-      <>
+  return (
+    <>
       <DataTable
         // Data & Loading
         data={data}
         total={total}
         loading={loading}
-        
+
         // Columns Configuration
         columns={columns}
-        
+
         // Search & Filter
         searchable={true}
         filterable={true}
         sortable={true}
-        
+
         // Selection & Actions
         selectable={true}
         onAdd={handleAdd}
         onExport={handleExport}
         onBulkDelete={handleBulkDelete}
-        
+
         // Pagination
         pagination={true}
         itemsPerPageOptions={[5, 10, 25, 50]}
         defaultItemsPerPage={10}
-        
+
         // Title
         title="Data Teams"
         subtitle="Kelola data Teams"
-        
+
         // Server-side Mode (PENTING!)
         serverSide={true}
         onDataChange={handleDataChange}  // ⚡ INI YANG PENTING - menghubungkan search/filter dengan API
-        
+
         // Controlled State (sync dengan parent)
         currentPage={currentPage}
         currentItemsPerPage={itemsPerPage}
@@ -464,11 +464,11 @@ export default function DataTeams() {
           closeOnOverlayClick={false}
         >
           <TambahTeam
-          onClose={handleCloseAddModal}
-          onSuccess={handleAddSuccess}
-          postTeam={postTeam}
-          editingTeam={editingTeam}
-          isEditMode={isEditMode}
+            onClose={handleCloseAddModal}
+            onSuccess={handleAddSuccess}
+            postTeam={postTeam}
+            editingTeam={editingTeam}
+            isEditMode={isEditMode}
           />
         </Modal>
       )}
@@ -495,6 +495,6 @@ export default function DataTeams() {
         description={selectedImage?.description}
         alt={selectedImage?.title || 'Team Photo'}
       />
-      </>
-    )
+    </>
+  )
 }

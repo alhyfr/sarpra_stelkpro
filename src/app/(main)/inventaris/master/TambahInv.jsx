@@ -221,7 +221,7 @@ export default function TambahInv({
 
     // Debug: log errors untuk melihat apakah validasi bekerja
     if (Object.keys(newErrors).length > 0) {
-      console.log('Validation errors:', newErrors);
+
     }
 
     // Set errors ke state
