@@ -10,63 +10,71 @@ const STORAGE_URL = process.env.NEXT_PUBLIC_API_STORAGE || process.env.NEXT_PUBL
 // Helper function untuk mendapatkan full URL dari foto_url
 const getImageUrl = (url) => {
     if (!url) return ''
-    
+
     // Jika sudah full URL (http/https), gunakan langsung
     if (url.startsWith('http://') || url.startsWith('https://')) {
         return url
     }
-    
+
     // Jika tidak ada STORAGE_URL, return url as is
     if (!STORAGE_URL) {
         return url
     }
-    
+
     // Normalisasi STORAGE_URL (hapus trailing slash)
     const baseUrl = STORAGE_URL.replace(/\/+$/, '')
-    
+
     // Jika foto_url dimulai dengan /api/storage/, dan baseUrl sudah berakhir dengan /api/storage
     // Maka gunakan baseUrl + sisa path setelah /api/storage/
     if (url.startsWith('/api/storage/') && baseUrl.endsWith('/api/storage')) {
         const remainingPath = url.substring('/api/storage/'.length)
         return `${baseUrl}/${remainingPath}`
     }
-    
+
     // Jika foto_url dimulai dengan /api/, dan baseUrl berakhir dengan /api
     // Maka gunakan baseUrl + sisa path setelah /api/
     if (url.startsWith('/api/') && baseUrl.endsWith('/api')) {
         const remainingPath = url.substring('/api/'.length)
         return `${baseUrl}/${remainingPath}`
     }
-    
+
     // Jika foto_url dimulai dengan /api/, gabungkan langsung (baseUrl mungkin tidak berakhir dengan /api)
     if (url.startsWith('/api/')) {
         return `${baseUrl}${url}`
     }
-    
+
     // Jika url tidak dimulai dengan /api/, normalisasi dan gabungkan
     const path = url.startsWith('/') ? url.substring(1) : url
     return `${baseUrl}/${path}`
 }
 
-export default function Slider({ 
-    images = [], 
-    autoPlay = false, 
+export default function Slider({
+    images = [],
+    autoPlay = false,
     interval = 3000,
     showDots = true,
     showArrows = true,
     height = 'h-48', // Default height, bisa berupa Tailwind class atau number (px)
     objectFit = 'cover', // 'cover', 'contain', 'fill', 'none', 'scale-down'
-    className = ''
+    className = '',
+    onSlideChange = null // Callback untuk memberitahu parent saat slide berubah
 }) {
     const [currentIndex, setCurrentIndex] = useState(0)
     const [isHovered, setIsHovered] = useState(false)
     const intervalRef = useRef(null)
 
+    // Notify parent when currentIndex changes
+    useEffect(() => {
+        if (onSlideChange && typeof onSlideChange === 'function') {
+            onSlideChange(currentIndex)
+        }
+    }, [currentIndex, onSlideChange])
+
     // Auto-play functionality
     useEffect(() => {
         if (autoPlay && !isHovered && images.length > 1) {
             intervalRef.current = setInterval(() => {
-                setCurrentIndex((prevIndex) => 
+                setCurrentIndex((prevIndex) =>
                     prevIndex === images.length - 1 ? 0 : prevIndex + 1
                 )
             }, interval)
@@ -83,14 +91,14 @@ export default function Slider({
 
     const goToPrevious = () => {
         setDirection(-1)
-        setCurrentIndex((prevIndex) => 
+        setCurrentIndex((prevIndex) =>
             prevIndex === 0 ? images.length - 1 : prevIndex - 1
         )
     }
 
     const goToNext = () => {
         setDirection(1)
-        setCurrentIndex((prevIndex) => 
+        setCurrentIndex((prevIndex) =>
             prevIndex === images.length - 1 ? 0 : prevIndex + 1
         )
     }
@@ -129,13 +137,13 @@ export default function Slider({
 
     // Convert height to className and style
     const heightStyle = typeof height === 'number' ? { height: `${height}px` } : {}
-    const heightClassName = typeof height === 'number' 
-        ? '' 
+    const heightClassName = typeof height === 'number'
+        ? ''
         : (height.startsWith('h-') ? height : `h-${height}`)
 
     if (!images || images.length === 0) {
         return (
-            <div 
+            <div
                 className={`flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg ${heightClassName}`}
                 style={heightStyle}
             >
@@ -145,13 +153,13 @@ export default function Slider({
     }
 
     if (images.length === 1) {
-        const rawUrl = typeof images[0] === 'string' 
+        const rawUrl = typeof images[0] === 'string'
             ? images[0]
             : images[0].url || images[0]
         const imageUrl = getImageUrl(rawUrl)
-        
+
         return (
-            <div 
+            <div
                 className={`relative w-full rounded-lg overflow-hidden ${heightClassName} ${className}`}
                 style={heightStyle}
             >
@@ -167,7 +175,7 @@ export default function Slider({
     }
 
     return (
-        <div 
+        <div
             className={`relative w-full rounded-lg overflow-hidden group ${heightClassName} ${className}`}
             style={heightStyle}
             onMouseEnter={() => setIsHovered(true)}
@@ -188,12 +196,12 @@ export default function Slider({
                     >
                         <Image
                             src={getImageUrl(
-                                typeof images[currentIndex] === 'string' 
+                                typeof images[currentIndex] === 'string'
                                     ? images[currentIndex]
                                     : images[currentIndex]?.url || images[currentIndex]
                             )}
-                            alt={typeof images[currentIndex] === 'string' 
-                                ? `Slide ${currentIndex + 1}` 
+                            alt={typeof images[currentIndex] === 'string'
+                                ? `Slide ${currentIndex + 1}`
                                 : (images[currentIndex]?.alt || `Slide ${currentIndex + 1}`)}
                             fill
                             className={`object-${objectFit}`}
@@ -236,11 +244,10 @@ export default function Slider({
                         <motion.button
                             key={index}
                             onClick={() => goToSlide(index)}
-                            className={`h-2 rounded-full ${
-                                index === currentIndex
+                            className={`h-2 rounded-full ${index === currentIndex
                                     ? 'bg-white'
                                     : 'bg-white/50 hover:bg-white/75'
-                            }`}
+                                }`}
                             initial={false}
                             animate={{
                                 width: index === currentIndex ? 32 : 8,
