@@ -650,4 +650,27 @@ export const validateListForm = createValidator({
   }
 });
 
+export const validateTokenForm = createValidator({
+  app_name: {
+    presence: {
+      allowEmpty: false,
+      message: "^Nama Aplikasi wajib diisi"
+    }
+  },
+  permissions: {
+    presence: {
+      allowEmpty: false,
+      message: "^Permissions wajib diisi"
+    }
+  },
+  is_active: {
+    presence: {
+      allowEmpty: false,
+      message: "^Status wajib diisi"
+    }
+  }
+})
+
+
+
 

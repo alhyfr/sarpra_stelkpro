@@ -58,6 +58,7 @@ const menuItems = [
       { title: 'Team', href: '/users/teams' },
       { title: 'Support', href: '/users/support' },
       { title: 'Member', href: '/users/member' },
+      { title: 'Token', href: '/users/token' },
     ]
   },
   {
@@ -67,7 +68,7 @@ const menuItems = [
       { title: 'Barang Pinjaman', href: '/peminjaman/barang-pinjaman' },
       { title: 'Peminjaman Barang', href: '/peminjaman/barang' },
       { title: 'Peminjaman Ruangan', href: '/peminjaman/ruangan' },
-      { title: 'Peminjaman external', href: '/peminjaman/eksternal' },
+      { title: 'BA Peminjaman Barang', href: '/peminjaman/eksternal' },
     ]
   },
   {
