@@ -69,7 +69,9 @@ Api.interceptors.response.use(
 
       // Clear cookie juga agar konsisten
       const tokenKey = process.env.NEXT_PUBLIC_TOKEN_KEY || 'stelk_auth_token';
-      document.cookie = `${tokenKey}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      const isProduction = process.env.NODE_ENV === 'production';
+      const secureFlag = isProduction ? '; Secure' : '';
+      document.cookie = `${tokenKey}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT${secureFlag}`;
 
       // Redirect ke login (jika tidak sedang di halaman login)
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {

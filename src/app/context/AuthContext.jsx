@@ -137,7 +137,12 @@ export function AuthProvider({ children }) {
       // Save to cookie (untuk middleware)
       // 1 day default, 30 days if rememberMe
       const maxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 1
-      document.cookie = `${tokenKey}=${authToken}; path=/; max-age=${maxAge}; SameSite=Lax`
+      
+      // Determine if we should use Secure flag (only in production with HTTPS)
+      const isProduction = process.env.NODE_ENV === 'production'
+      const secureFlag = isProduction ? '; Secure' : ''
+      
+      document.cookie = `${tokenKey}=${authToken}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`
       // max-age in seconds
 
       // Set token ke axios header untuk request selanjutnya
