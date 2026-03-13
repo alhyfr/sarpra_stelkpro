@@ -78,6 +78,7 @@ const menuItems = [
       { title: 'Daftar Laboratorium', href: '/lab/daftar' },
       { title: 'Invantaris Laboratorium', href: '/lab/inv' },
       { title: 'Bahan Praktikum', href: '/lab/bahan' },
+      { title: 'Bahan Masuk', href: '/lab/bahan-masuk' },
       { title: 'Jadwal Penggunaan', href: '/lab/jadwal' },
     ]
   },

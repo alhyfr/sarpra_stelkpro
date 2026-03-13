@@ -670,6 +670,33 @@ export const validateTokenForm = createValidator({
     }
   }
 })
+export const validateBahanMasukForm = createValidator({
+  id_barang_lab: {
+    presence: {
+      allowEmpty: false,
+      message: "^Bahan wajib dipilih"
+    }
+  },
+  tgl_masuk: {
+    presence: {
+      allowEmpty: false,
+      message: "^Tanggal masuk wajib diisi"
+    }
+  },
+  jml: {
+    presence: {
+      allowEmpty: false,
+      message: "^Jumlah wajib diisi"
+    }
+  },
+  petugas: {
+    presence: {
+      allowEmpty: false,
+      message: "^Petugas wajib diisi"
+    }
+  },
+})
+
 
 
 

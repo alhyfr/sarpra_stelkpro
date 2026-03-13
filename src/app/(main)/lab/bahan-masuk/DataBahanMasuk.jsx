@@ -6,11 +6,12 @@ import DeleteModal from '@/components/Delete'
 import ExportModal from '@/components/ExportModal'
 import { Edit, Trash2 } from 'lucide-react'
 import api from '@/app/utils/Api'
-import TambahBahan from './TambahBahan'
+import TambahBahanMasuk from './TambahBahanMasuk'
 import ImageView from '@/components/ImageView'
 import { useData } from '@/app/context/DataContext'
+import dayjs from 'dayjs';
 const STORAGE_URL = process.env.NEXT_PUBLIC_API_STORAGE || ''
-export default function DataBahan() {
+export default function DataBahanMasuk() {
     const { labs, getOpsi } = useData()
     const [data, setData] = useState([])           // Data yang ditampilkan di table
     const [total, setTotal] = useState(0)         // Total data dari server (untuk pagination)
@@ -22,10 +23,10 @@ export default function DataBahan() {
     const [sortDirection, setSortDirection] = useState('asc') // Arah sorting (asc/desc)
     const [filters, setFilters] = useState({})
     const [showAddModal, setShowAddModal] = useState(false)     // Modal tambah/edit data
-    const [editingBahan, setEditingBahan] = useState(null)        // Data yang sedang diedit
+    const [editingBahanMasuk, setEditingBahanMasuk] = useState(null)        // Data yang sedang diedit
     const [isEditMode, setIsEditMode] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)     // Modal konfirmasi hapus
-    const [deletingBahan, setDeletingBahan] = useState(null)           // Data yang akan dihapus
+    const [deletingBahanMasuk, setDeletingBahanMasuk] = useState(null)           // Data yang akan dihapus
     const [deleteLoading, setDeleteLoading] = useState(false)
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false) // Modal konfirmasi hapus multiple
     const [bulkDeleteIds, setBulkDeleteIds] = useState([])               // Array ID yang akan dihapus
@@ -47,12 +48,12 @@ export default function DataBahan() {
         return `${STORAGE_URL}/${filename}`
     }
     const handleViewImage = (item) => {
-        const imageUrl = getImageUrl(item.gambar)
+        const imageUrl = getImageUrl(item.foto)
         if (imageUrl) {
             setSelectedImage({
                 url: imageUrl,
-                title: item.nama_bahan,
-                description: `${item.nama_lab || ''}`
+                title: item.nama_barang,
+                description: `${item.lokasi || ''}`
             })
             setShowImageView(true)
         }
@@ -71,26 +72,18 @@ export default function DataBahan() {
             searchable: true,
         },
         {
-            key: 'kategori',
-            title: 'Kategori',
+            key: 'tgl_masuk',
+            title: 'Tanggal Masuk',
             sortable: true,
             searchable: true,
+            render: (value) => {
+                return dayjs(value).format('DD MMMM YYYY')
+            }
+
         },
         {
-            key: 'satuan',
-            title: 'Satuan',
-            sortable: true,
-            searchable: true,
-        },
-        {
-            key: 'stok_awal',
-            title: 'Stok Awal',
-            sortable: true,
-            searchable: true,
-        },
-        {
-            key: 'stok_minimum',
-            title: 'Stok Minimum',
+            key: 'jml',
+            title: 'Jumlah',
             sortable: true,
             searchable: true,
         },
@@ -99,58 +92,6 @@ export default function DataBahan() {
             title: 'Lokasi',
             sortable: true,
             searchable: true,
-        },
-        {
-            key: 'kondisi',
-            title: 'Kondisi',
-            sortable: true,
-            searchable: true,
-        },
-        {
-            key: 'ket',
-            title: 'Keterangan',
-            sortable: true,
-            searchable: true,
-        },
-        {
-            key: 'gambar',
-            title: 'Foto',
-            render: (value, item) => {
-                const imageUrl = getImageUrl(value)
-
-                if (!imageUrl) {
-                    return (
-                        <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 flex items-center justify-center rounded-md">
-                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                                {item.nama_barang?.charAt(0).toUpperCase() || '?'}
-                            </span>
-                        </div>
-                    )
-                }
-
-                return (
-                    <div
-                        className="w-10 h-10 rounded-md overflow-hidden bg-gray-200 dark:bg-gray-700 cursor-pointer hover:ring-2 hover:ring-red-500 transition-all"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleViewImage(item);
-                        }}
-                        title="Klik untuk melihat gambar"
-                    >
-                        <img
-                            src={imageUrl}
-                            alt={item.nama_barang || 'Foto Barang'}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                                e.target.style.display = 'none'
-                                const parent = e.target.parentElement
-                                parent.classList.add('flex', 'items-center', 'justify-center', 'dark:bg-gray-700')
-                                parent.innerHTML = `<span class="text-xs text-gray-500 dark:text-gray-400 font-medium">${item.nama_barang?.charAt(0).toUpperCase() || '?'}</span>`
-                            }}
-                        />
-                    </div>
-                )
-            }
         },
         {
             key: 'actions',
@@ -170,7 +111,7 @@ export default function DataBahan() {
             ],
         },
     ]
-    const getDataBahan = async (params = {}, showLoading = true) => {
+    const getDataBahanMasuk = async (params = {}, showLoading = true) => {
         try {
             if (showLoading) {
                 setLoading(true)
@@ -193,7 +134,7 @@ export default function DataBahan() {
             }
 
             const [response] = await Promise.all([
-                api.get(`/sp/bahan-praktikum?${queryParams}`),
+                api.get(`/sp/bahan-masuk?${queryParams}`),
                 minLoadingTime
             ])
 
@@ -204,7 +145,7 @@ export default function DataBahan() {
                 setItemsPerPage(response.data.per_page)
             }
         } catch (error) {
-            console.error('Error fetching bahan praktikum:', error)
+            console.error('Error fetching bahan masuk:', error)
             setData([])
             setTotal(0)
         } finally {
@@ -213,7 +154,7 @@ export default function DataBahan() {
             }
         }
     }
-    const postDataBahan = async (form) => {
+    const postDataBahanMasuk = async (form) => {
         try {
             let response
             const config = form instanceof FormData ? {
@@ -221,20 +162,20 @@ export default function DataBahan() {
                     'Content-Type': 'multipart/form-data',
                 }
             } : {}
-            if (editingBahan && editingBahan.id) {
+            if (editingBahanMasuk && editingBahanMasuk.id) {
                 if (form instanceof FormData) {
                     form.append('_method', 'PUT')
-                    response = await api.put(`/sp/bahan-praktikum/${editingBahan.id}`, form, config)
+                    response = await api.put(`/sp/bahan-masuk/${editingBahanMasuk.id}`, form, config)
                 } else {
-                    response = await api.put(`/sp/bahan-praktikum/${editingBahan.id}`, form, config)
+                    response = await api.put(`/sp/bahan-masuk/${editingBahanMasuk.id}`, form, config)
                 }
             } else {
-                response = await api.post('/sp/bahan-praktikum', form, config)
+                response = await api.post('/sp/bahan-masuk', form, config)
             }
             if (response.data.status === 'success') {
-                getDataBahan()
+                getDataBahanMasuk()
                 setShowAddModal(false)
-                setEditingBahan(null)
+                setEditingBahanMasuk(null)
                 setIsEditMode(false)
                 return response.data
             }
@@ -249,27 +190,27 @@ export default function DataBahan() {
         }
     }
     const handleDelete = (item) => {
-        setDeletingBahan(item)
+        setDeletingBahanMasuk(item)
         setShowDeleteModal(true)
     }
     const handleConfirmDelete = async () => {
-        if (!deletingBahan) return
+        if (!deletingBahanMasuk) return
 
         setDeleteLoading(true)
         try {
-            await api.delete(`/sp/bahan-praktikum/${deletingBahan.id}`)
-            getDataBahan()
+            await api.delete(`/sp/bahan-masuk/${deletingBahanMasuk.id}`)
+            getDataBahanMasuk()
             setShowDeleteModal(false)
-            setDeletingBahan(null)
+            setDeletingBahanMasuk(null)
         } catch (error) {
-            console.error('Error deleting daftar lab:', error)
+            console.error('Error deleting bahan masuk:', error)
         } finally {
             setDeleteLoading(false)
         }
     }
     const handleCloseDeleteModal = () => {
         setShowDeleteModal(false)
-        setDeletingBahan(null)
+        setDeletingBahanMasuk(null)
         setDeleteLoading(false)
     }
     // Bulk delete handlers
@@ -282,37 +223,36 @@ export default function DataBahan() {
 
         setBulkDeleteLoading(true)
         try {
-            // Delete multiple users
-            const deletePromises = bulkDeleteIds.map(id => api.delete(`/sp/bahan-praktikum/${id}`))  // 🔧 GANTI: endpoint delete
+            const deletePromises = bulkDeleteIds.map(id => api.delete(`/sp/bahan-masuk/${id}`))
             await Promise.all(deletePromises)
-            getDataBahan()
+            getDataBahanMasuk()
             setShowBulkDeleteModal(false)
             setBulkDeleteIds([])
         } catch (error) {
-            console.error('Error bulk deleting bahan praktikum :', error)
+            console.error('Error bulk deleting bahan masuk :', error)
         } finally {
             setBulkDeleteLoading(false)
         }
     }
     const handleAdd = () => {
-        setEditingBahan(null)
+        setEditingBahanMasuk(null)
         setIsEditMode(false)
         setShowAddModal(true)
     }
     const handleEdit = (item) => {
-        setEditingBahan(item)
+        setEditingBahanMasuk(item)
         setIsEditMode(true)
         setShowAddModal(true)
     }
     const handleCloseAddModal = () => {
         setShowAddModal(false)
-        setEditingBahan(null)
+        setEditingBahanMasuk(null)
         setIsEditMode(false)
     }
-    const handleAddSuccess = (newTeam) => {
-        getDataBahan()
+    const handleAddSuccess = (newBahanMasuk) => {
+        getDataBahanMasuk()
         setShowAddModal(false)
-        setEditingBahan(null)
+        setEditingBahanMasuk(null)
         setIsEditMode(false)
     }
     const handleExport = () => {
@@ -340,11 +280,10 @@ export default function DataBahan() {
         }
 
         // Fetch data dengan params baru
-        getDataBahan(params)
+        getDataBahanMasuk(params)
     }
     useEffect(() => {
-        getDataBahan()
-        getOpsi()
+        getDataBahanMasuk()
     }, [])
     return (
         <div>
@@ -363,8 +302,8 @@ export default function DataBahan() {
                 pagination={true}
                 itemsPerPageOptions={[5, 10, 25, 50]}
                 defaultItemsPerPage={10}
-                title="Data Bahan Praktikum"
-                subtitle="Kelola data Bahan Praktikum"
+                title="Data Bahan Masuk"
+                subtitle="Kelola data Bahan Masuk"
                 serverSide={true}
                 onDataChange={handleDataChange}
                 currentPage={currentPage}
@@ -378,13 +317,11 @@ export default function DataBahan() {
                 show={showDeleteModal}
                 onClose={handleCloseDeleteModal}
                 onConfirm={handleConfirmDelete}
-                title="Hapus Bahan Praktikum"
-                message={`Apakah Anda yakin ingin menghapus bahan praktikum "${deletingBahan?.nama_bahan}"?`}
+                title="Hapus Bahan Masuk"
+                message={`Apakah Anda yakin ingin menghapus bahan masuk "${deletingBahanMasuk?.nama_barang}"?`}
                 loading={deleteLoading}
                 size="sm"
             />
-
-            {/* Modal Delete Multiple */}
             <DeleteModal
                 show={showBulkDeleteModal}
                 onClose={() => {
@@ -392,8 +329,8 @@ export default function DataBahan() {
                     setBulkDeleteIds([])
                 }}
                 onConfirm={handleConfirmBulkDelete}
-                title="Hapus Multiple Bahan Praktikum"
-                message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} bahan praktikum?`}
+                title="Hapus Multiple Bahan Masuk"
+                message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} bahan masuk?`}
                 loading={bulkDeleteLoading}
                 size="sm"
             />
@@ -401,42 +338,19 @@ export default function DataBahan() {
                 <Modal
                     show={showAddModal}
                     onClose={handleCloseAddModal}
-                    title={isEditMode ? 'Edit Bahan Praktikum' : 'Tambah Bahan Praktikum Baru'}
+                    title={isEditMode ? 'Edit Bahan Masuk' : 'Tambah Bahan Masuk Baru'}
                     size="lg"
                     closeOnOverlayClick={false}
                 >
-                    <TambahBahan
+                    <TambahBahanMasuk
                         onClose={handleCloseAddModal}
                         onSuccess={handleAddSuccess}
-                        postDataBahan={postDataBahan}
-                        editingBahan={editingBahan}
+                        postDataBahanMasuk={postDataBahanMasuk}
+                        editingBahanMasuk={editingBahanMasuk}
                         isEditMode={isEditMode}
-                        labs={labs}
                     />
                 </Modal>
             )}
-            {/* Modal Export */}
-            <ExportModal
-                show={showExportModal}
-                onClose={() => setShowExportModal(false)}
-                data={data}
-                columns={columns}
-                filename="data-bahan-praktikum"
-                title="Export Data Bahan Praktikum"
-            />
-
-            {/* Image Viewer */}
-            <ImageView
-                show={showImageView}
-                onClose={() => {
-                    setShowImageView(false)
-                    setSelectedImage(null)
-                }}
-                images={selectedImage?.url}
-                title={selectedImage?.title}
-                description={selectedImage?.description}
-                alt={selectedImage?.title || 'Bahan Praktikum Photo'}
-            />
         </div>
     )
 }
