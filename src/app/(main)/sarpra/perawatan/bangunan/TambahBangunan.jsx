@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import AInput from "@/components/AInput";
 import ADatePicker from "@/components/ADatePicker";
 import ASelect from "@/components/ASelect";
+import AFile from "@/components/AFile";
 import Button from "@/components/Button";
 import { X, Check } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
@@ -25,6 +26,8 @@ export default function TambahBangunan({
         pic: user?.name || '',
         status: '',
         desc: '',
+        befoto: null,
+        lasfoto: null,
     })
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
@@ -41,6 +44,8 @@ export default function TambahBangunan({
                 pic: editingBangunan.pic,
                 status: editingBangunan.status,
                 desc: editingBangunan.desc,
+                befoto: editingBangunan.befoto || null,
+                lasfoto: editingBangunan.lasfoto || null,
             })
         }
     }, [isEditMode, editingBangunan])
@@ -65,6 +70,28 @@ export default function TambahBangunan({
             }));
         }
     };
+
+    const handleFileChange = (e) => {
+        const { name, value } = e.target;
+        setForm(prev => ({
+            ...prev,
+            [name]: value
+        }));
+
+        if (errors[name]) {
+            setErrors(prev => ({
+                ...prev,
+                [name]: ''
+            }));
+        }
+    }
+
+    const handleFileRemove = (name) => {
+        setForm(prev => ({
+            ...prev,
+            [name]: null
+        }));
+    }
     const validateForm = () => {
         const validationErrors = validateBangunanForm(form);
         if (Object.keys(validationErrors).length > 0) {
@@ -78,7 +105,20 @@ export default function TambahBangunan({
         if (!validateForm()) return;
         setLoading(true);
         try {
-            const response = await postBangunan(form);
+            let submitData;
+            // Jika ada file, gunakan FormData
+            if (form.befoto instanceof File || form.lasfoto instanceof File) {
+                submitData = new FormData();
+                Object.keys(form).forEach(key => {
+                    if (form[key] !== null && form[key] !== undefined) {
+                        submitData.append(key, form[key]);
+                    }
+                });
+            } else {
+                submitData = form;
+            }
+
+            const response = await postBangunan(submitData);
             if (response) {
                 onSuccess(response);
             }
@@ -163,6 +203,22 @@ export default function TambahBangunan({
                         className="md:col-span-2"
                         multiline
                         rows={2}
+                    />
+                    <AFile
+                        label="Gambar Sebelum"
+                        name="befoto"
+                        value={form.befoto}
+                        onChange={handleFileChange}
+                        onRemove={() => handleFileRemove('befoto')}
+                        error={errors.befoto}
+                    />
+                    <AFile
+                        label="Gambar Setelah"
+                        name="lasfoto"
+                        value={form.lasfoto}
+                        onChange={handleFileChange}
+                        onRemove={() => handleFileRemove('lasfoto')}
+                        error={errors.lasfoto}
                     />
                 </div>
                 <div className="flex justify-end gap-2 mt-6">

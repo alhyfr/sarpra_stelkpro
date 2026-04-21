@@ -32,13 +32,12 @@ export default function DataBangunan() {
     const [selectedImage, setSelectedImage] = useState(null);
     const [showImageView, setShowImageView] = useState(false);
     const getImageUrl = (filename) => {
-        if (!filename) return null;
+        if (!filename || filename === null) return null;
         if (filename.startsWith("http://") || filename.startsWith("https://")) {
             return filename;
         }
-        const baseURL =
-            process.env.NEXT_PUBLIC_API_STORAGE ||
-            "http://localhost:3002/api/storage/";
+
+        const baseURL = process.env.NEXT_PUBLIC_API_STORAGE_BANGUNAN || process.env.NEXT_PUBLIC_API_STORAGE || "";
 
         if (filename.startsWith("/")) {
             return `${baseURL}${filename}`;

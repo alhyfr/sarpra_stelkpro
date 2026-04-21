@@ -8,7 +8,7 @@ import { Edit, Trash2 } from 'lucide-react'
 import api from '@/app/utils/Api'
 import TambahGedung from './TambahGedung'
 import ImageView from '@/components/ImageView'
-const STORAGE_URL = process.env.NEXT_PUBLIC_API_STORAGE || ''
+const STORAGE_URL = process.env.NEXT_PUBLIC_API_STORAGE_BANGUNAN || ''
 export default function DataGedung() {
     const [data, setData] = useState([])           // Data yang ditampilkan di table
     const [total, setTotal] = useState(0)         // Total data dari server (untuk pagination)
@@ -164,6 +164,7 @@ export default function DataGedung() {
                 api.get(`/sp/gedung?${queryParams}`),
                 minLoadingTime
             ])
+            console.log(response.data.data)
 
             if (response.data.status === 'success') {
                 setData(response.data.data)
