@@ -75,6 +75,13 @@ export default function DataJadwal() {
           </div>
         );
       },
+      exportValue: (value, item) => {
+        const tanggal = item.tgl ? dayjs(item.tgl).locale("id").format("dddd, DD-MM-YYYY") : "-";
+        const jamMulai = item.jam_mulai || "-";
+        const jamSelesai = item.jam_selesai || "-";
+        const jam = jamMulai !== "-" && jamSelesai !== "-" ? `${jamMulai} - ${jamSelesai}` : "-";
+        return `${tanggal} (${jam})`;
+      },
     },
     {
       key: "mapel",
@@ -99,6 +106,11 @@ export default function DataJadwal() {
             )}
           </div>
         );
+      },
+      exportValue: (value, item) => {
+        const mapel = item.mapel || "-";
+        const kelas = item.kelas || "-";
+        return kelas !== "-" ? `${mapel} (Kelas: ${kelas})` : mapel;
       },
     },
     {
@@ -145,6 +157,9 @@ export default function DataJadwal() {
             {label}
           </span>
         );
+      },
+      exportValue: (value) => {
+        return value === 0 || value === "0" ? "Terjadwal" : "Terlaksana";
       },
     },
     {

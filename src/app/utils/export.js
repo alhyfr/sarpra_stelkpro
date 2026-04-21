@@ -140,8 +140,18 @@ export const prepareExportData = (data, columns, selectedColumns) => {
         let value = item[colKey]
         let handled = false
 
-        // Try to use render function first if available and returns primitive
-        if (column.render) {
+        // Try to use exportValue function first if available
+        if (column.exportValue) {
+          try {
+            value = column.exportValue(item[colKey], item);
+            handled = true;
+          } catch (e) {
+            // ignore error, fallback
+          }
+        }
+
+        // Try to use render function if not handled yet and it returns primitive
+        if (!handled && column.render) {
           try {
             const rendered = column.render(value, item)
             // Check if rendered is primitive (string, number, boolean)
