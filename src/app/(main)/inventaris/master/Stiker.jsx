@@ -10,10 +10,10 @@ import html2pdf from 'html2pdf.js'
 import ReactDOM from 'react-dom/client'
 import dayjs from 'dayjs'
 
-export default function Stiker({ 
-  selectedItems = [], 
-  data = [], 
-  onClose = null 
+export default function Stiker({
+  selectedItems = [],
+  data = [],
+  onClose = null
 }) {
   const [filteredData, setFilteredData] = useState([])
   const [previewMode, setPreviewMode] = useState(false)
@@ -25,7 +25,7 @@ export default function Stiker({
       const filtered = data
         .filter(item => selectedItems.includes(item.id))
         .map(item => ({ ...item })) // ← SHALLOW COPY setiap item
-      
+
       setFilteredData(filtered)
     }
   }, [selectedItems, data])
@@ -45,10 +45,10 @@ export default function Stiker({
   const pdfJsx = () => {
     const stickersPerPage = 21
     const pages = []
-    
+
     // Buat copy data untuk manipulasi
     const dataToProcess = [...filteredData]
-    
+
     for (let i = 0; i < dataToProcess.length; i += stickersPerPage) {
       pages.push(dataToProcess.slice(i, i + stickersPerPage))
     }
@@ -65,12 +65,12 @@ export default function Stiker({
               <div className="grid grid-cols-3 gap-3">
                 {pageData.map((item, index) => {
                   // Safely extract properties dengan nullish coalescing
-                  const gedungText = (typeof item.gedung === 'object' && item.gedung !== null) ? 
-                    (item.gedung?.gedung ?? '') : 
+                  const gedungText = (typeof item.gedung === 'object' && item.gedung !== null) ?
+                    (item.gedung?.gedung ?? '') :
                     (item.gedung ?? '')
 
-                  const sumberText = (typeof item.sumber_dana === 'object' && item.sumber_dana !== null) ? 
-                    (item.sumber_dana?.sumber ?? '') : 
+                  const sumberText = (typeof item.sumber_dana === 'object' && item.sumber_dana !== null) ?
+                    (item.sumber_dana?.sumber ?? '') :
                     (item.sumber ?? '')
 
                   const imageSrc = sumberText === "BOS" ? kemdikbudSrc : ts2Src
@@ -100,7 +100,7 @@ export default function Stiker({
                           {/* Barcode Section */}
                           <div className="border-t border-black p-1 flex justify-center">
                             <Barcode
-                              value={`${item.kode ?? ''}`}
+                              value={`${item.kode_ypt ?? ''}`}
                               width={1}
                               fontSize={8}
                               height={25}
@@ -245,12 +245,12 @@ export default function Stiker({
           <div className="p-4">
             <div className="grid grid-cols-3 gap-3">
               {filteredData.map((item, index) => {
-                const gedungText = (typeof item.gedung === 'object' && item.gedung !== null) ? 
-                  (item.gedung?.gedung ?? '') : 
+                const gedungText = (typeof item.gedung === 'object' && item.gedung !== null) ?
+                  (item.gedung?.gedung ?? '') :
                   (item.gedung ?? '')
 
-                const sumberText = (typeof item.sumber_dana === 'object' && item.sumber_dana !== null) ? 
-                  (item.sumber_dana?.sumber ?? '') : 
+                const sumberText = (typeof item.sumber_dana === 'object' && item.sumber_dana !== null) ?
+                  (item.sumber_dana?.sumber ?? '') :
                   (item.sumber ?? '')
 
                 const imageSrc = sumberText === "BOS" ? getImageSrc(Kemdikbud) : getImageSrc(Ts2)
@@ -277,7 +277,7 @@ export default function Stiker({
                         </div>
                         <div className="border-t border-black p-1 flex justify-center">
                           <Barcode
-                            value={`${item.kode ?? ''}`}
+                            value={`${item.kode_ypt ?? ''}`}
                             width={1}
                             fontSize={8}
                             height={25}
@@ -303,7 +303,7 @@ export default function Stiker({
         </div>
       )}
 
-      
+
     </div>
   )
 }

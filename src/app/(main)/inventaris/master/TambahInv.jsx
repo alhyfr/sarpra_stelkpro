@@ -63,6 +63,7 @@ export default function TambahInv({
     kode_sim: "",
     ket: "",
     kategori: "",
+    pj: ""
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -137,6 +138,7 @@ export default function TambahInv({
         kode_sim: editingInv.kode_sim || "",
         ket: editingInv.ket || "",
         kategori: editingInv.kategori || "",
+        pj: editingInv.pj || "",
       });
     }
   }, [isEditMode, isCopyMode, editingInv]);
@@ -312,6 +314,7 @@ export default function TambahInv({
           kode_sim: formData.kode_sim,
           ket: formData.ket,
           kategori: formData.kategori,
+          pj: formData.pj,
         };
       }
 
@@ -348,6 +351,7 @@ export default function TambahInv({
         kode_sim: "",
         ket: "",
         kategori: "",
+        pj: "",
       });
 
       // Reset available ruangan
@@ -656,6 +660,17 @@ export default function TambahInv({
               error={showErrors ? errors.pic : ""}
               readOnly
               className="bg-gray-100 dark:bg-gray-700"
+            />
+            <AInput
+              id="pj"
+              icon={User}
+              name="pj"
+              label="PJ (Penanggung Jawab Pemakaian)"
+              placeholder="Nama Pemakai"
+              value={formData.pj}
+              onChange={handleInputChange}
+              error={showErrors ? errors.pj : ""}
+              required
             />
             <ASelect
               id="kategori"

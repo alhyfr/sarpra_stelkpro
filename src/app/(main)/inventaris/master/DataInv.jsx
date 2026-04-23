@@ -216,6 +216,13 @@ export default function DataInv() {
       })),
     },
     {
+      key: "pj",
+      title: "PJ",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+    },
+    {
       key: "gambar",
       title: "FOTO",
       sortable: true,
