@@ -2,14 +2,16 @@
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import api from '@/app/utils/Api'
-import { Package, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
+import { Package, TrendingUp, TrendingDown, BarChart3, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
 
 export default function InfoAtk() {
     const [data, setData] = useState(null)
+    const [itemData, setItemData] = useState(null)
     const [loading, setLoading] = useState(true)
     const [isDark, setIsDark] = useState(false)
+    const [activeTab, setActiveTab] = useState('semua') // 'semua' | 'masuk' | 'keluar'
 
     useEffect(() => {
         const checkDarkMode = () => {
@@ -36,13 +38,20 @@ export default function InfoAtk() {
     const fetchData = async () => {
         try {
             setLoading(true)
-            const response = await api.get('/sp/stat-atk-triwulan')
+            const [triwulanRes, itemRes] = await Promise.all([
+                api.get('/sp/stat-atk-triwulan'),
+                api.get('/sp/stat-atk'),
+            ])
 
-            if (response.data && response.data.status === 'success' && response.data.data) {
-                setData(response.data.data)
+            if (triwulanRes.data && triwulanRes.data.status === 'success' && triwulanRes.data.data) {
+                setData(triwulanRes.data.data)
+            }
+
+            if (itemRes.data && itemRes.data.status === 'success' && itemRes.data.data) {
+                setItemData(itemRes.data.data)
             }
         } catch (error) {
-            console.error('Error fetching ATK triwulan data:', error)
+            console.error('Error fetching ATK data:', error)
         } finally {
             setLoading(false)
         }
@@ -186,6 +195,31 @@ export default function InfoAtk() {
         ]
         : []
 
+    // Build per-item table from stat-atk data
+    const buildItemTable = () => {
+        if (!itemData?.categories || !itemData?.series) return []
+
+        const categories = itemData.categories
+        const masukSeries = itemData.series.find(s => s.name === 'Stok Masuk') || itemData.series[0]
+        const keluarSeries = itemData.series.find(s => s.name === 'Stok Keluar') || itemData.series[1]
+
+        return categories.map((name, i) => ({
+            nama: name,
+            masuk: masukSeries?.data?.[i] || 0,
+            keluar: keluarSeries?.data?.[i] || 0,
+        }))
+    }
+
+    const allItems = buildItemTable()
+
+    // Filter berdasarkan tab
+    const filteredItems = allItems.filter(item => {
+        if (activeTab === 'semua') return true
+        if (activeTab === 'masuk') return item.masuk > 0
+        if (activeTab === 'keluar') return item.keluar > 0
+        return true
+    })
+
     return (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             {/* Header */}
@@ -239,6 +273,94 @@ export default function InfoAtk() {
                             />
                         </div>
                     </div>
+
+                    {/* Tabel Detail ATK per Item */}
+                    {allItems.length > 0 && (
+                        <div className="mt-6">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Detail ATK per Item</h4>
+                                <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 self-start sm:self-auto">
+                                    {[
+                                        { key: 'semua', label: 'Semua' },
+                                        { key: 'masuk', label: 'Masuk' },
+                                        { key: 'keluar', label: 'Keluar' },
+                                    ].map((tab) => (
+                                        <button
+                                            key={tab.key}
+                                            onClick={() => setActiveTab(tab.key)}
+                                            className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeTab === tab.key
+                                                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                                }`}
+                                        >
+                                            {tab.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {filteredItems.length === 0 ? (
+                                <div className="flex items-center justify-center h-[80px] text-sm text-gray-400 dark:text-gray-500">
+                                    Tidak ada data ATK
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-gray-700">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="bg-gray-50 dark:bg-gray-700/50">
+                                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">No</th>
+                                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nama ATK</th>
+                                                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                    <span className="inline-flex items-center gap-1">
+                                                        <ArrowUpCircle className="w-3 h-3 text-emerald-500" />
+                                                        Masuk
+                                                    </span>
+                                                </th>
+                                                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                    <span className="inline-flex items-center gap-1">
+                                                        <ArrowDownCircle className="w-3 h-3 text-rose-500" />
+                                                        Keluar
+                                                    </span>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                                            {filteredItems.slice(0, 15).map((item, index) => (
+                                                <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                                    <td className="px-4 py-3 text-gray-400 dark:text-gray-500 text-xs">{index + 1}</td>
+                                                    <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium">{item.nama}</td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        {item.masuk > 0 ? (
+                                                            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                                                                +{item.masuk}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-gray-300 dark:text-gray-600">0</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        {item.keluar > 0 ? (
+                                                            <span className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400 font-semibold">
+                                                                -{item.keluar}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-gray-300 dark:text-gray-600">0</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+
+                            {filteredItems.length > 15 && (
+                                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
+                                    Menampilkan 15 dari {filteredItems.length} item
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </>
             )}
         </div>

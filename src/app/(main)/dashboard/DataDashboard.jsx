@@ -74,7 +74,7 @@ export default function DataDashboard() {
             {/* Infografis Section */}
             <div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Infografis</h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6">
                     <InfoAtk />
                     <InfoPerawatan />
                 </div>
