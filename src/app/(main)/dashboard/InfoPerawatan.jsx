@@ -10,7 +10,9 @@ import {
     Loader2,
     Settings2,
     Building2,
-    Monitor
+    Monitor,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react'
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
@@ -20,6 +22,8 @@ export default function InfoPerawatan() {
     const [loading, setLoading] = useState(true)
     const [isDark, setIsDark] = useState(false)
     const [activeTab, setActiveTab] = useState('semua') // 'semua' | 'aset' | 'gedung'
+    const [currentPage, setCurrentPage] = useState(1)
+    const perPage = 5
 
     useEffect(() => {
         const checkDarkMode = () => {
@@ -303,7 +307,7 @@ export default function InfoPerawatan() {
                                 ].map((tab) => (
                                     <button
                                         key={tab.key}
-                                        onClick={() => setActiveTab(tab.key)}
+                                        onClick={() => { setActiveTab(tab.key); setCurrentPage(1) }}
                                         className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeTab === tab.key
                                             ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
                                             : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -334,7 +338,7 @@ export default function InfoPerawatan() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                        {filteredTimeline.slice(0, 15).map((item, index) => (
+                                        {filteredTimeline.slice((currentPage - 1) * perPage, currentPage * perPage).map((item, index) => (
                                             <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                                 <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium max-w-[180px] truncate">
                                                     {item.nama_item || '-'}
@@ -364,9 +368,31 @@ export default function InfoPerawatan() {
                             </div>
                         )}
 
-                        {filteredTimeline.length > 15 && (
-                            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
-                                Menampilkan 15 dari {filteredTimeline.length} data terbaru
+                        {/* Pagination */}
+                        {filteredTimeline.length > perPage && (
+                            <div className="mt-3 flex items-center justify-between">
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {(currentPage - 1) * perPage + 1}–{Math.min(currentPage * perPage, filteredTimeline.length)} dari {filteredTimeline.length} data
+                                </span>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                        disabled={currentPage === 1}
+                                        className="p-1.5 rounded-md border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <ChevronLeft className="w-4 h-4" />
+                                    </button>
+                                    <span className="px-3 py-1 text-xs font-medium text-gray-700 dark:text-gray-300">
+                                        {currentPage} / {Math.ceil(filteredTimeline.length / perPage)}
+                                    </span>
+                                    <button
+                                        onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredTimeline.length / perPage), p + 1))}
+                                        disabled={currentPage >= Math.ceil(filteredTimeline.length / perPage)}
+                                        className="p-1.5 rounded-md border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <ChevronRight className="w-4 h-4" />
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>

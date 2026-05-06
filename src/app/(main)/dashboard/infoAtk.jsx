@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import api from '@/app/utils/Api'
-import { Package, TrendingUp, TrendingDown, BarChart3, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
+import { Package, TrendingUp, TrendingDown, BarChart3, ArrowUpCircle, ArrowDownCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
 
@@ -12,6 +12,8 @@ export default function InfoAtk() {
     const [loading, setLoading] = useState(true)
     const [isDark, setIsDark] = useState(false)
     const [activeTab, setActiveTab] = useState('semua') // 'semua' | 'masuk' | 'keluar'
+    const [currentPage, setCurrentPage] = useState(1)
+    const perPage = 5
 
     useEffect(() => {
         const checkDarkMode = () => {
@@ -202,11 +204,15 @@ export default function InfoAtk() {
         const categories = itemData.categories
         const masukSeries = itemData.series.find(s => s.name === 'Stok Masuk') || itemData.series[0]
         const keluarSeries = itemData.series.find(s => s.name === 'Stok Keluar') || itemData.series[1]
+        const stokAwalSeries = itemData.series.find(s => s.name === 'Stok Awal')
+        const stokTersediaSeries = itemData.series.find(s => s.name === 'Stok Tersedia')
 
         return categories.map((name, i) => ({
             nama: name,
             masuk: masukSeries?.data?.[i] || 0,
             keluar: keluarSeries?.data?.[i] || 0,
+            stokAwal: stokAwalSeries?.data?.[i] ?? '-',
+            stokTersedia: stokTersediaSeries?.data?.[i] ?? '-',
         }))
     }
 
@@ -287,7 +293,7 @@ export default function InfoAtk() {
                                     ].map((tab) => (
                                         <button
                                             key={tab.key}
-                                            onClick={() => setActiveTab(tab.key)}
+                                            onClick={() => { setActiveTab(tab.key); setCurrentPage(1) }}
                                             className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeTab === tab.key
                                                 ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
                                                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -322,12 +328,14 @@ export default function InfoAtk() {
                                                         Keluar
                                                     </span>
                                                 </th>
+                                                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Stok Awal</th>
+                                                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tersedia</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                            {filteredItems.slice(0, 15).map((item, index) => (
+                                            {filteredItems.slice((currentPage - 1) * perPage, currentPage * perPage).map((item, index) => (
                                                 <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                                                    <td className="px-4 py-3 text-gray-400 dark:text-gray-500 text-xs">{index + 1}</td>
+                                                    <td className="px-4 py-3 text-gray-400 dark:text-gray-500 text-xs">{(currentPage - 1) * perPage + index + 1}</td>
                                                     <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium">{item.nama}</td>
                                                     <td className="px-4 py-3 text-center">
                                                         {item.masuk > 0 ? (
@@ -347,6 +355,19 @@ export default function InfoAtk() {
                                                             <span className="text-gray-300 dark:text-gray-600">0</span>
                                                         )}
                                                     </td>
+                                                    <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400 font-medium">
+                                                        {item.stokAwal !== '-' ? item.stokAwal.toLocaleString('id-ID') : '-'}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        <span className={`font-semibold ${
+                                                            item.stokTersedia === '-' ? 'text-gray-400' :
+                                                            item.stokTersedia > 0 ? 'text-blue-600 dark:text-blue-400' :
+                                                            item.stokTersedia === 0 ? 'text-gray-500 dark:text-gray-400' :
+                                                            'text-red-600 dark:text-red-400'
+                                                        }`}>
+                                                            {item.stokTersedia !== '-' ? item.stokTersedia.toLocaleString('id-ID') : '-'}
+                                                        </span>
+                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -354,9 +375,31 @@ export default function InfoAtk() {
                                 </div>
                             )}
 
-                            {filteredItems.length > 15 && (
-                                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
-                                    Menampilkan 15 dari {filteredItems.length} item
+                            {/* Pagination */}
+                            {filteredItems.length > perPage && (
+                                <div className="mt-3 flex items-center justify-between">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                        {(currentPage - 1) * perPage + 1}–{Math.min(currentPage * perPage, filteredItems.length)} dari {filteredItems.length} item
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                            disabled={currentPage === 1}
+                                            className="p-1.5 rounded-md border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                        </button>
+                                        <span className="px-3 py-1 text-xs font-medium text-gray-700 dark:text-gray-300">
+                                            {currentPage} / {Math.ceil(filteredItems.length / perPage)}
+                                        </span>
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredItems.length / perPage), p + 1))}
+                                            disabled={currentPage >= Math.ceil(filteredItems.length / perPage)}
+                                            className="p-1.5 rounded-md border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            <ChevronRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </div>
