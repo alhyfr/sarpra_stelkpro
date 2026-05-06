@@ -22,6 +22,8 @@ import StatInv from './StatInv'
 import TrenAlat from './TrenAlat'
 import StatPerbaikanAset from './StatPerbaikanAset'
 import StatAtk from './StatAtk'
+import InfoAtk from './infoAtk'
+import InfoPerawatan from './InfoPerawatan'
 
 // Dynamically import Chart to avoid SSR issues
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
@@ -66,6 +68,15 @@ export default function DataDashboard() {
                         <TrenAlat />
                         <StatAtk />
                     </div>
+                </div>
+            </div>
+
+            {/* Infografis Section */}
+            <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Infografis</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <InfoAtk />
+                    <InfoPerawatan />
                 </div>
             </div>
         </div>

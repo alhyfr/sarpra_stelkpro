@@ -95,16 +95,55 @@ export default function DataBahan() {
             searchable: true,
         },
         {
+            key: 'masuk',
+            title: 'Masuk',
+            sortable: true,
+            searchable: true,
+            render: (value, item) => (
+                <div className="flex items-center gap-2">
+                    <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full`}
+                    >
+                        0
+                    </span>
+                </div>
+            ),
+        },
+        {
             key: 'nama_lab',
             title: 'Lokasi',
             sortable: true,
             searchable: true,
         },
         {
-            key: 'kondisi',
-            title: 'Kondisi',
+            key: 'Baik',
+            title: 'Baik',
             sortable: true,
             searchable: true,
+            render: (value, item) => (
+                <div className="flex items-center gap-2">
+                    <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full`}
+                    >
+                        0
+                    </span>
+                </div>
+            ),
+        },
+        {
+            key: 'Rusak',
+            title: 'Rusak',
+            sortable: true,
+            searchable: true,
+            render: (value, item) => (
+                <div className="flex items-center gap-2">
+                    <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full`}
+                    >
+                        0
+                    </span>
+                </div>
+            ),
         },
         {
             key: 'ket',
