@@ -47,9 +47,22 @@ export function AuthProvider({ children }) {
       setIsAuthenticated(true)
 
     } catch (error) {
-      // Token tidak valid / tidak ada → belum login
-      setUser(null)
-      setIsAuthenticated(false)
+      if (error.response?.status === 401) {
+        // 401 = memang belum login / token expired → reset auth
+        setUser(null)
+        setIsAuthenticated(false)
+      } else {
+        // Network error, 5xx, CORS, dll.
+        // Jangan reset isAuthenticated agar tidak trigger redirect loop.
+        // Biarkan user tetap di halaman yang sekarang.
+        // isAuthenticated tetap false (initial state) dan isLoading selesai,
+        // sehingga ProtectedRoute akan tetap redirect ke login jika memang belum login.
+        setUser(null)
+        setIsAuthenticated(false)
+        if (process.env.NEXT_PUBLIC_DEBUG === 'true') {
+          console.error('checkAuth: non-401 error', error.message)
+        }
+      }
     } finally {
       setIsLoading(false)
     }

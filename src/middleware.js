@@ -39,107 +39,37 @@ const authRoutes = [
 // Check apakah path match dengan route patterns
 function isPathMatch(pathname, routes) {
   return routes.some(route => {
-    // Exact match
     if (pathname === route) return true;
-    // Prefix match (untuk nested routes)
     if (pathname.startsWith(route + '/')) return true;
     return false;
   });
 }
 
-// Get token dari cookies atau headers
-function getToken(request) {
-  const tokenKey = process.env.NEXT_PUBLIC_TOKEN_KEY || 'stelk_auth_token';
-  
-  // Coba ambil dari cookie
-  const cookieToken = request.cookies.get(tokenKey);
-  
-  // Atau dari Authorization header
-  const authHeader = request.headers.get('authorization');
-  
-  const token = cookieToken?.value || authHeader?.replace('Bearer ', '') || null;
-  
-  // Debug log
-  if (process.env.NEXT_PUBLIC_DEBUG === 'true' && token) {
-    console.log('🔑 Middleware: Token found in', cookieToken ? 'cookie' : 'header');
-  }
-  
-  return token;
-}
-
 // ============================================
 // MAIN MIDDLEWARE FUNCTION
 // ============================================
+// CATATAN: Route protection (auth check) dilakukan sepenuhnya di client-side
+// melalui ProtectedRoute component dan AuthContext.
+//
+// Alasan: HttpOnly cookie di-set oleh backend API (domain berbeda).
+// Cookie tersebut TIDAK dikirim ke Next.js server saat navigasi halaman,
+// hanya dikirim ke domain API saat fetch/axios request.
+// Sehingga middleware tidak bisa membaca token → jika diaktifkan akan
+// menyebabkan redirect loop antara /login dan /dashboard.
 export function middleware(request) {
   const { pathname } = request.nextUrl;
-  const token = getToken(request);
-  const isAuthenticated = !!token;
 
-  // Debug log (hanya di development)
-  if (process.env.NEXT_PUBLIC_DEBUG === 'true') {
-    console.log('🛡️ Middleware check:', {
-      path: pathname,
-      authenticated: isAuthenticated,
-      hasToken: !!token,
-      action: 'checking...'
-    });
-  }
-
-  // ============================================
-  // 1. ALLOW PUBLIC ROUTES (/_next, /api, /static files)
-  // ============================================
+  // Lewatkan semua static files dan internal Next.js paths
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/static') ||
-    pathname.includes('.') // file extensions (images, fonts, etc)
+    pathname.includes('.')
   ) {
     return NextResponse.next();
   }
 
-  // ============================================
-  // 2. REDIRECT ROOT PATH
-  // ============================================
-  // Root path "/" akan di-handle oleh page.js (client-side redirect)
-  if (pathname === '/') {
-    return NextResponse.next();
-  }
-
-  // ============================================
-  // 3. PROTECT PRIVATE ROUTES
-  // ============================================
-  // Jika user belum login dan akses protected route → redirect ke login
-  if (isPathMatch(pathname, protectedRoutes) && !isAuthenticated) {
-    if (process.env.NEXT_PUBLIC_DEBUG === 'true') {
-      console.log('🚫 Middleware: Blocking access to protected route, redirecting to login');
-    }
-    
-    const loginUrl = new URL('/login', request.url);
-    // Simpan redirect URL untuk kembali setelah login
-    loginUrl.searchParams.set('redirect', pathname);
-    
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // ============================================
-  // 4. REDIRECT AUTHENTICATED USER FROM AUTH PAGES
-  // ============================================
-  // Jika user sudah login dan akses login/register → redirect ke dashboard
-  if (isPathMatch(pathname, authRoutes) && isAuthenticated) {
-    if (process.env.NEXT_PUBLIC_DEBUG === 'true') {
-      console.log('✅ Middleware: User authenticated, redirecting from auth page to dashboard');
-    }
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-  
-  // Debug: Log allowed access
-  if (process.env.NEXT_PUBLIC_DEBUG === 'true') {
-    console.log('✅ Middleware: Allowing access to', pathname);
-  }
-
-  // ============================================
-  // 5. ALLOW REQUEST TO CONTINUE
-  // ============================================
+  // Semua route lain: izinkan, biarkan client-side ProtectedRoute yang menjaga
   return NextResponse.next();
 }
 
