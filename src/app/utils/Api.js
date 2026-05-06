@@ -13,32 +13,20 @@ const Api = axios.create({
     'Accept': 'application/json',
   },
 
-  // Kirim cookies dengan request (untuk CORS)
-  // withCredentials: true,
+  // Kirim HttpOnly cookie secara otomatis di setiap request (CORS credentials)
+  withCredentials: true,
 });
 
 // ============================================
 // REQUEST INTERCEPTOR
 // ============================================
-// Dijalankan sebelum request dikirim
 Api.interceptors.request.use(
   (config) => {
-    // Ambil token dari localStorage
-    const token = localStorage.getItem(
-      process.env.NEXT_PUBLIC_TOKEN_KEY || 'stelk_auth_token'
-    );
-
-    // Jika ada token, tambahkan ke header
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-
-
+    // Token kini dikelola via HttpOnly cookie oleh browser secara otomatis.
+    // Tidak perlu menyuntikkan Authorization header dari localStorage.
     return config;
   },
   (error) => {
-    // Handle error sebelum request dikirim
     console.error('Request Error:', error);
     return Promise.reject(error);
   }
@@ -47,39 +35,25 @@ Api.interceptors.request.use(
 // ============================================
 // RESPONSE INTERCEPTOR
 // ============================================
-// Dijalankan setelah response diterima
 Api.interceptors.response.use(
   (response) => {
     return response;
   },
   (error) => {
-    // Handle error response
-
     // Log error di development mode
     if (process.env.NEXT_PUBLIC_DEBUG === 'true') {
       console.error('Response Error:', error.response?.status, error.message);
     }
 
-    // Jika 401 (Unauthorized), redirect ke login
+    // Jika 401 (Unauthorized) → redirect ke login
+    // Cookie akan dihapus oleh backend saat logout, tidak perlu clear manual di sini
     if (error.response?.status === 401) {
-      // Clear token
-      localStorage.removeItem(
-        process.env.NEXT_PUBLIC_TOKEN_KEY || 'stelk_auth_token'
-      );
-
-      // Clear cookie juga agar konsisten
-      const tokenKey = process.env.NEXT_PUBLIC_TOKEN_KEY || 'stelk_auth_token';
-      const isProduction = process.env.NODE_ENV === 'production';
-      const secureFlag = isProduction ? '; Secure' : '';
-      document.cookie = `${tokenKey}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT${secureFlag}`;
-
-      // Redirect ke login (jika tidak sedang di halaman login)
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }
     }
 
-    // Jika 403 (Forbidden), bisa redirect ke halaman access denied
+    // Jika 403 (Forbidden)
     if (error.response?.status === 403) {
       console.error('Access Denied');
     }
