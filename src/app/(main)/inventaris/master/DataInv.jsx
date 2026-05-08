@@ -6,10 +6,11 @@ import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import DeleteModal from "@/components/Delete";
 // import ExportModal from "@/components/ExportModal";
-import { Edit, Trash2, CopyPlus } from "lucide-react";
+import { Edit, Trash2, CopyPlus, Warehouse } from "lucide-react";
 import api from "@/app/utils/Api";
 import dayjs from "dayjs";
 import TambahInv from "./TambahInv";
+import DialogPenghapusan from "./dialogPenghapusan";
 import { useData } from "@/app/context/DataContext";
 
 // Dynamic imports untuk komponen yang menggunakan browser APIs
@@ -57,6 +58,8 @@ export default function DataInv() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showStikerModal, setShowStikerModal] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
+  const [showPenghapusanDialog, setShowPenghapusanDialog] = useState(false);
+  const [penghapusanItem, setPenghapusanItem] = useState(null);
   const {
     satuan,
     getOpsi,
@@ -251,6 +254,13 @@ export default function DataInv() {
       },
     },
     {
+      key: 'status_lelang',
+      title: 'STATUS PENGHAPUSAN',
+      sortable: true,
+      searchable: true,
+      filterable: true,
+    },
+    {
       key: "actions",
       title: "ACTIONS",
       sortable: true,
@@ -272,6 +282,11 @@ export default function DataInv() {
           icon: CopyPlus,
           title: "Copy",
           onClick: (item) => handleCopy(item),
+        },
+        {
+          icon: Warehouse,
+          title: "Status Penghapusan",
+          onClick: (item) => handleStatusPenghapusan(item),
         }
       ],
     },
@@ -497,6 +512,20 @@ export default function DataInv() {
     getInv();
     getOpsi();
   }, []);
+  const handleStatusPenghapusan = (item) => {
+    setPenghapusanItem(item);
+    setShowPenghapusanDialog(true);
+  };
+
+  const handleClosePenghapusanDialog = () => {
+    setShowPenghapusanDialog(false);
+    setPenghapusanItem(null);
+  };
+
+  const handleSubmitPenghapusan = async (item, payload) => {
+    await api.put(`/sp/aset-lelang/${item.id}`, payload);
+    getInv();
+  };
   return (
     <>
       <DataTable
@@ -603,6 +632,14 @@ export default function DataInv() {
           />
         </Modal>
       )}
+
+      {/* Dialog Status Penghapusan */}
+      <DialogPenghapusan
+        show={showPenghapusanDialog}
+        onClose={handleClosePenghapusanDialog}
+        onSuccess={handleSubmitPenghapusan}
+        item={penghapusanItem}
+      />
     </>
   );
 }

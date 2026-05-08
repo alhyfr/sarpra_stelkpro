@@ -34,7 +34,9 @@ const menuItems = [
       { title: 'Aset Tetap', href: '/inventaris/master' },
       { title: 'ATK', href: '/inventaris/atk' },
       { title: 'Barang Non ATK', href: '/inventaris/habis-pakai' },
-      { title: 'Aset Pending', href: '/inventaris/pending' }
+      { title: 'Aset Pending', href: '/inventaris/pending' },
+      { title: 'Daftar Penghapusan', href: '/inventaris/penghapusan' },
+
     ]
   },
   {
