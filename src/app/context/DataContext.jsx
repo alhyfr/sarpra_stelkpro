@@ -19,6 +19,7 @@ export const DataProvider = ({ children }) => {
   const [pibarFilter, setPibarFilter] = useState([]);
   const [ruanganFilter, setRuanganFilter] = useState([]);
   const [inventarisFilter, setInventarisFilter] = useState([]);
+  const [materialKeluarFilter, setMaterialKeluarFilter] = useState([]);
   const [waka, setWaka] = useState("");
   const [teams, setTeams] = useState([]);
   const [labs, setLabs] = useState([]);
@@ -109,6 +110,19 @@ export const DataProvider = ({ children }) => {
       return response.data.inventaris || [];
     } catch (error) {
       console.error('Error fetching Inventaris filter:', error);
+      return [];
+    }
+  }, []);
+  const getMaterialKeluarFilter = useCallback(async (search = "") => {
+    const response = await Api.get("/sp/opsi/material-filter?search=" + search);
+    setMaterialKeluarFilter(response.data.material || []);
+  }, []);
+  const MaterialKeluarFilter = useCallback(async (search = "") => {
+    try {
+      const response = await Api.get("/sp/opsi/material-filter?search=" + search);
+      return response.data.material || [];
+    } catch (error) {
+      console.error('Error fetching Material Keluar filter:', error);
       return [];
     }
   }, []);
@@ -220,6 +234,9 @@ export const DataProvider = ({ children }) => {
         inventarisFilter,
         getInventarisFilter,
         InventarisFilter,
+        materialKeluarFilter,
+        getMaterialKeluarFilter,
+        MaterialKeluarFilter,
         labs,
         teams,
       }}

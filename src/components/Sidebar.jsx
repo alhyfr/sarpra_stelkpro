@@ -18,7 +18,8 @@ import {
   Hammer,
   X,
   Handshake,
-  LockKeyhole
+  LockKeyhole,
+  BrickWall
 } from 'lucide-react';
 
 const menuItems = [
@@ -103,6 +104,15 @@ const menuItems = [
       { title: 'Tahunan', href: '/coe/tahunan' },
       { title: 'Eksternal', href: '/coe/eksternal' },
     ]
+  },
+  {
+    title: 'Material',
+    icon: BrickWall,
+    submenu: [
+      { title: 'material masuk', href: '/material/masuk' },
+      { title: 'material keluar', href: '/material/keluar' },
+    ]
+
   },
   {
     title: 'Serah Terima',
