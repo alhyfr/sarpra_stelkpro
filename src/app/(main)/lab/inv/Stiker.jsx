@@ -3,77 +3,28 @@
 import { useState, useEffect } from 'react'
 import { Printer, Download, Eye } from 'lucide-react'
 import Button from '@/components/Button'
-import { Kemdikbud, Ts2 } from "@/assets/index"
-import QRCode from 'react-qr-code'
 import Barcode from 'react-barcode'
+import QRCode from 'react-qr-code'
 import html2pdf from 'html2pdf.js'
 import ReactDOM from 'react-dom/client'
-import dayjs from 'dayjs'
 
 const STICKERS_PER_PAGE = 21
-const BARCODE_HEIGHT = 25
-
-const getImageSrc = (imageImport) => {
-  if (typeof imageImport === 'string') return imageImport
-  if (imageImport?.src) return imageImport.src
-  if (imageImport?.default) return imageImport.default
-  return imageImport
-}
 
 const getBarcodeValue = (item) => {
-  const value = String(item?.kode_ypt ?? '').trim()
+  const value = String(item?.kode ?? item?.kode_ypt ?? item?.id ?? '').trim()
   return value.length > 0 ? value : null
 }
 
-const getGedungText = (item) => {
-  if (typeof item.gedung === 'object' && item.gedung !== null) {
-    return item.gedung?.gedung ?? ''
-  }
-  return item.gedung ?? ''
+const getQrValue = (item) => {
+  const kode = String(item?.kode ?? '').trim()
+  if (kode) return `https://inventaris.sistelk.id/${kode}`
+  const id = String(item?.id ?? '').trim()
+  return id ? `lab-inv-${id}` : 'lab-inv-unknown'
 }
 
-const getSumberText = (item) => {
-  if (typeof item.sumber_dana === 'object' && item.sumber_dana !== null) {
-    return item.sumber_dana?.sumber ?? ''
-  }
-  return item.sumber ?? ''
-}
-
-function BarcodeSection({ item }) {
+function StickerCard({ item, index, prefix = 'stiker' }) {
   const barcodeValue = getBarcodeValue(item)
-
-  return (
-    <div
-      className="border-t border-black p-1 flex justify-center items-center"
-      style={{ minHeight: BARCODE_HEIGHT + 8 }}
-    >
-      {barcodeValue ? (
-        <Barcode
-          value={barcodeValue}
-          width={1}
-          fontSize={8}
-          height={BARCODE_HEIGHT}
-          margin={0}
-        />
-      ) : (
-        <span
-          className="text-[10px] font-medium"
-          style={{ color: '#000000', lineHeight: `${BARCODE_HEIGHT}px` }}
-        >
-          -
-        </span>
-      )}
-    </div>
-  )
-}
-
-function StickerCard({ item, index, prefix = 'stiker', kemdikbudSrc, ts2Src }) {
-  const gedungText = getGedungText(item)
-  const sumberText = getSumberText(item)
-  const imageSrc = sumberText === 'BOS' ? kemdikbudSrc : ts2Src
-  const qrValue = item.kode
-    ? `https://inventaris.sistelk.id/${item.kode}`
-    : `aset-${item.id ?? index}`
+  const qrValue = getQrValue(item)
 
   return (
     <div
@@ -81,32 +32,42 @@ function StickerCard({ item, index, prefix = 'stiker', kemdikbudSrc, ts2Src }) {
       className="border border-black rounded overflow-hidden"
       style={{ breakInside: 'avoid' }}
     >
-      <div className="flex">
-        <div className="flex flex-col w-[70%]">
-          <div className="flex p-1 items-center">
-            <div className="w-[30%]">
-              <img
-                src={imageSrc}
-                alt={sumberText || 'Logo'}
-                className="w-[40px] h-[40px] object-contain"
-                crossOrigin="anonymous"
-              />
-            </div>
-            <div className="w-[70%]">
-              <p className="text-[9px] font-medium" style={{ color: '#000000' }}>
-                NS: {item.kode_sim || '-'}
-              </p>
-              <p className="text-[9px]" style={{ color: '#000000' }}>
-                Tgl: {item.tgl ? dayjs(item.tgl).format('DD-MM-YYYY') : '-'}
-              </p>
-              <p className="text-[9px] uppercase font-semibold" style={{ color: '#000000' }}>
-                {gedungText} {item.ruang || ''}
-              </p>
-            </div>
-          </div>
-          <BarcodeSection item={item} />
+      <div className="flex flex-col">
+        <div className="p-2 space-y-0.5">
+          <p className="text-[9px] font-semibold uppercase truncate" style={{ color: '#000000' }}>
+            {item.inventaris_desc || item.desc || '-'}
+          </p>
+          <p className="text-[9px]" style={{ color: '#000000' }}>
+            Lab: {item.nama_lab || '-'}
+          </p>
+          <p className="text-[9px] uppercase" style={{ color: '#000000' }}>
+            Ruang: {item.ruang || '-'}
+          </p>
+          <p className="text-[9px]" style={{ color: '#000000' }}>
+            Kondisi: {item.kondisi || '-'}
+          </p>
         </div>
-        <div className="w-[30%] border-l border-black p-1 flex items-center justify-center bg-white">
+
+        <div className="border-t border-black p-1 flex justify-center items-center" style={{ minHeight: 33 }}>
+          {barcodeValue ? (
+            <Barcode
+              value={barcodeValue}
+              width={1}
+              fontSize={8}
+              height={25}
+              margin={0}
+            />
+          ) : (
+            <span
+              className="text-[10px] font-medium"
+              style={{ color: '#000000', lineHeight: '25px' }}
+            >
+              -
+            </span>
+          )}
+        </div>
+
+        <div className="border-t border-black p-1 flex items-center justify-center bg-white">
           <QRCode
             size={256}
             style={{ height: 'auto', maxWidth: '100%', width: '100%' }}
@@ -123,7 +84,7 @@ function StickerCard({ item, index, prefix = 'stiker', kemdikbudSrc, ts2Src }) {
 export default function Stiker({
   selectedItems = [],
   data = [],
-  onClose = null
+  onClose = null,
 }) {
   const [filteredData, setFilteredData] = useState([])
   const [previewMode, setPreviewMode] = useState(false)
@@ -131,17 +92,14 @@ export default function Stiker({
   useEffect(() => {
     if (selectedItems?.length > 0 && data?.length > 0) {
       const filtered = data
-        .filter(item => selectedItems.includes(item.id))
-        .map(item => ({ ...item }))
+        .filter((item) => selectedItems.includes(item.id))
+        .map((item) => ({ ...item }))
 
       setFilteredData(filtered)
     } else {
       setFilteredData([])
     }
   }, [selectedItems, data])
-
-  const kemdikbudSrc = getImageSrc(Kemdikbud)
-  const ts2Src = getImageSrc(Ts2)
 
   const pdfJsx = () => {
     const pages = []
@@ -166,8 +124,6 @@ export default function Stiker({
                     item={item}
                     index={index}
                     prefix={`pdf-${pageIndex}`}
-                    kemdikbudSrc={kemdikbudSrc}
-                    ts2Src={ts2Src}
                   />
                 ))}
               </div>
@@ -179,20 +135,20 @@ export default function Stiker({
   }
 
   const options = {
-    filename: "stiker-aset.pdf",
+    filename: 'stiker-inventaris-lab.pdf',
     margin: [0.1, 0.1, 0.1, 0.1],
-    image: { type: "jpeg", quality: 0.98 },
+    image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
       scale: 2,
       useCORS: true,
       allowTaint: true,
       letterRendering: true,
-      logging: false
+      logging: false,
     },
     jsPDF: {
-      unit: "in",
-      format: "A4",
-      orientation: "portrait",
+      unit: 'in',
+      format: 'A4',
+      orientation: 'portrait',
     },
   }
 
@@ -203,7 +159,7 @@ export default function Stiker({
     }
 
     try {
-      const printContainer = document.createElement("div")
+      const printContainer = document.createElement('div')
       const root = ReactDOM.createRoot(printContainer)
       root.render(pdfJsx())
 
@@ -218,8 +174,8 @@ export default function Stiker({
             root.unmount()
             document.body.removeChild(printContainer)
           })
-          .catch(error => {
-            console.error("Error saat mencetak:", error)
+          .catch((error) => {
+            console.error('Error saat mencetak:', error)
             if (document.body.contains(printContainer)) {
               root.unmount()
               document.body.removeChild(printContainer)
@@ -228,7 +184,7 @@ export default function Stiker({
           })
       }, 500)
     } catch (error) {
-      console.error("Error saat memproses data:", error)
+      console.error('Error saat memproses data:', error)
       alert('Terjadi kesalahan saat memproses data stiker')
     }
   }
@@ -238,7 +194,7 @@ export default function Stiker({
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-blue-900">Cetak Stiker Aset</h3>
+            <h3 className="text-lg font-semibold text-blue-900">Cetak Stiker Inventaris Lab</h3>
             <p className="text-sm text-blue-700">
               {filteredData.length} item dipilih untuk dicetak
             </p>
@@ -279,8 +235,6 @@ export default function Stiker({
                   item={item}
                   index={index}
                   prefix="preview"
-                  kemdikbudSrc={kemdikbudSrc}
-                  ts2Src={ts2Src}
                 />
               ))}
             </div>

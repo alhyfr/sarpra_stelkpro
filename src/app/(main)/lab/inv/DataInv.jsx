@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import DataTable from '@/components/DataTable';
 import Modal from '@/components/Modal'
 import DeleteModal from '@/components/Delete'
@@ -9,6 +10,9 @@ import api from '@/app/utils/Api'
 import TambahInv from './TambahInv'
 import ImageView from '@/components/ImageView'
 import { useData } from '@/app/context/DataContext'
+
+const Stiker = dynamic(() => import('./Stiker'), { ssr: false })
+
 const STORAGE_URL = process.env.NEXT_PUBLIC_API_STORAGE || ''
 export default function DataInv() {
     const { labs,getOpsi } = useData()
@@ -31,6 +35,8 @@ export default function DataInv() {
     const [bulkDeleteIds, setBulkDeleteIds] = useState([])               // Array ID yang akan dihapus
     const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false)
     const [showExportModal, setShowExportModal] = useState(false)
+    const [showStikerModal, setShowStikerModal] = useState(false)
+    const [selectedItems, setSelectedItems] = useState([])
     const [showImageView, setShowImageView] = useState(false)            // Image viewer modal
     const [selectedImage, setSelectedImage] = useState(null)
     const getImageUrl = (filename) => {
@@ -310,6 +316,17 @@ export default function DataInv() {
     const handleExport = () => {
         setShowExportModal(true)
     }
+
+    const handleStiker = (selectedIds) => {
+        setSelectedItems(selectedIds)
+        setShowStikerModal(true)
+    }
+
+    const handleCloseStikerModal = () => {
+        setShowStikerModal(false)
+        setSelectedItems([])
+    }
+
     const handleDataChange = (params) => {
         // Update state berdasarkan perubahan dari DataTable
         if (params.page !== undefined) {
@@ -352,6 +369,7 @@ export default function DataInv() {
                 onAdd={handleAdd}
                 onExport={handleExport}
                 onBulkDelete={handleBulkDelete}
+                onStiker={handleStiker}
                 pagination={true}
                 itemsPerPageOptions={[5, 10, 25, 50]}
                 defaultItemsPerPage={10}
@@ -416,6 +434,22 @@ export default function DataInv() {
                 filename="data-daftar-lab"
                 title="Export Data Daftar Lab"
             />
+
+            {/* Modal Stiker */}
+            {showStikerModal && (
+                <Modal
+                    show={showStikerModal}
+                    onClose={handleCloseStikerModal}
+                    title="Cetak Stiker"
+                    size="lg"
+                >
+                    <Stiker
+                        selectedItems={selectedItems}
+                        data={data}
+                        onClose={handleCloseStikerModal}
+                    />
+                </Modal>
+            )}
 
             {/* Image Viewer */}
             <ImageView
