@@ -1,11 +1,17 @@
 import axios from "axios";
 
+// NEXT_PUBLIC_* di-bake saat Next start/build.
+// Minimal 120 detik agar upload inventaris (gambar+bukti) tidak timeout.
+const parsedTimeout = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT, 10)
+const API_TIMEOUT = Number.isFinite(parsedTimeout) && parsedTimeout > 0
+  ? Math.max(parsedTimeout, 120000)
+  : 120000
+
 const Api = axios.create({
   // Base URL dari environment variable
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api',
 
-  // Timeout untuk request (30 detik)
-  timeout: process.env.NEXT_PUBLIC_API_TIMEOUT || 30000,
+  timeout: API_TIMEOUT,
 
   // Default headers
   headers: {
@@ -24,6 +30,10 @@ Api.interceptors.request.use(
   (config) => {
     // Token kini dikelola via HttpOnly cookie oleh browser secara otomatis.
     // Tidak perlu menyuntikkan Authorization header dari localStorage.
+    // Upload inventaris: pastikan timeout panjang per-request juga
+    if (config.data instanceof FormData) {
+      config.timeout = Math.max(config.timeout || 0, API_TIMEOUT)
+    }
     return config;
   },
   (error) => {
