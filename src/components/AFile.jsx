@@ -1,13 +1,15 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Upload, X, FileIcon, ImageIcon, AlertCircle, FileText } from 'lucide-react'
+import { Upload, X, FileIcon, ImageIcon, AlertCircle, FileText, Loader2 } from 'lucide-react'
 import Image from 'next/image'
+import { compressImage, formatFileSize } from '@/app/utils/compressImage'
 
 // ============================================
 // REUSABLE FILE UPLOAD COMPONENT
 // ============================================
-// Component untuk upload file dengan preview, drag & drop, validasi
+// Component untuk upload file dengan preview, drag & drop, validasi,
+// dan kompresi otomatis untuk gambar.
 
 export default function AFile({
   id,
@@ -23,11 +25,13 @@ export default function AFile({
   error,
   helperText,
   preview = true,  // Show image preview
+  compress = true, // Kompres otomatis untuk gambar
   className = '',
   ...props
 }) {
   const [isDragging, setIsDragging] = useState(false)
   const [previewUrl, setPreviewUrl] = useState(null)
+  const [isCompressing, setIsCompressing] = useState(false)
   const fileInputRef = useRef(null)
 
   // Cleanup URL object on unmount
@@ -110,7 +114,7 @@ export default function AFile({
   }
 
   // Handle file selection
-  const handleFileSelect = (file) => {
+  const handleFileSelect = async (file) => {
     if (!file) return
 
     // Validate file type
@@ -132,17 +136,42 @@ export default function AFile({
       }
     }
 
-    // Validate file size
+    // Validate file size (sebelum kompresi)
     const fileSizeMB = file.size / (1024 * 1024)
     if (fileSizeMB > maxSize) {
       alert(`Ukuran file terlalu besar. Maksimal ${maxSize}MB`)
       return
     }
 
-    // Create preview for images and PDFs
-    if (file.type.startsWith('image/') || file.type === 'application/pdf') {
+    let finalFile = file
+
+    // Kompres otomatis jika gambar
+    if (compress && file.type?.startsWith('image/')) {
       try {
-        const url = URL.createObjectURL(file)
+        setIsCompressing(true)
+        finalFile = await compressImage(file)
+      } catch (error) {
+        console.warn('Kompresi gagal, memakai file asli:', error)
+        finalFile = file
+      } finally {
+        setIsCompressing(false)
+      }
+    }
+
+    // Validasi ulang setelah kompresi (harusnya lebih kecil)
+    const finalSizeMB = finalFile.size / (1024 * 1024)
+    if (finalSizeMB > maxSize) {
+      alert(`Ukuran file terlalu besar setelah kompresi. Maksimal ${maxSize}MB`)
+      return
+    }
+
+    // Create preview for images and PDFs
+    if (finalFile.type.startsWith('image/') || finalFile.type === 'application/pdf') {
+      try {
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl)
+        }
+        const url = URL.createObjectURL(finalFile)
         setPreviewUrl(url)
       } catch (error) {
         console.error('Error creating preview URL:', error)
@@ -151,7 +180,7 @@ export default function AFile({
 
     // Call onChange handler
     if (onChange) {
-      onChange({ target: { name, value: file } })
+      onChange({ target: { name, value: finalFile } })
     }
   }
 
@@ -210,7 +239,7 @@ export default function AFile({
 
   // Click handler
   const handleClick = () => {
-    if (!disabled) {
+    if (!disabled && !isCompressing) {
       fileInputRef.current?.click()
     }
   }
@@ -245,7 +274,7 @@ export default function AFile({
         className={`
           relative border-2 border-dashed rounded-lg p-4
           transition-all duration-200 cursor-pointer
-          ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-[#B91C1C]'}
+          ${disabled || isCompressing ? 'opacity-50 cursor-not-allowed' : 'hover:border-[#B91C1C]'}
           ${isDragging ? 'border-[#B91C1C] bg-red-50 dark:bg-red-900/10' : ''}
           ${error 
             ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10' 
@@ -261,13 +290,25 @@ export default function AFile({
           name={name}
           accept={accept}
           onChange={handleChange}
-          disabled={disabled}
+          disabled={disabled || isCompressing}
           className="hidden"
           {...props}
         />
 
-        {/* Preview or Upload Prompt */}
-        {hasFile && preview && currentPreview ? (
+        {/* Compressing State */}
+        {isCompressing ? (
+          <div className="text-center py-6">
+            <div className="mx-auto w-12 h-12 mb-3 flex items-center justify-center rounded-full bg-red-50 dark:bg-red-900/20">
+              <Loader2 className="w-6 h-6 text-[#B91C1C] animate-spin" />
+            </div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
+              Mengompres gambar...
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Mohon tunggu sebentar
+            </p>
+          </div>
+        ) : hasFile && preview && currentPreview ? (
           <div className="space-y-3">
             {/* File Preview */}
             <div className="relative w-full h-48 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
@@ -312,7 +353,7 @@ export default function AFile({
                 </span>
                 {value?.size && (
                   <span className="text-xs">
-                    ({(value.size / 1024).toFixed(1)} KB)
+                    ({formatFileSize(value.size)})
                   </span>
                 )}
               </div>
@@ -343,6 +384,9 @@ export default function AFile({
                 {accept === 'image/*' ? 'PNG, JPG, JPEG' : 
                  accept === 'application/pdf' ? 'PDF' :
                  accept === '*/*' ? 'Semua file' : accept} (Max {maxSize}MB)
+                {compress && (accept === 'image/*' || accept === '*/*' || String(accept).includes('image'))
+                  ? ' · dikompres otomatis'
+                  : ''}
               </p>
             </div>
           </div>
