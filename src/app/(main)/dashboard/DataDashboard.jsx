@@ -31,41 +31,40 @@ const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
 
 export default function DataDashboard() {
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
             {/* Stats Grid */}
             <StatGrid />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* Main Chart Area */}
-                <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 overflow-hidden">
                     <DashboardChart />
                 </div>
 
                 {/* Recent Activity */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Aktivitas Terbaru</h3>
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">Aktivitas Terbaru</h3>
                     <AktifitasTerbru />
                 </div>
             </div>
 
-            {/* Additional Info Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Additional Info Grid — 1 kolom di phone, 2 di iPad mini, 3 di desktop */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 <Team />
                 <JadLabMendatang />
-                <StokAtk />
+                <div className="md:col-span-2 xl:col-span-1">
+                    <StokAtk />
+                </div>
             </div>
 
             {/* Statistics Charts Section */}
             <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Laporan & Statistik</h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Column 1: Trends & Status */}
-                    <div className="grid grid-cols-1 gap-6">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Laporan & Statistik</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 gap-4 sm:gap-6">
                         <StatInv />
                         <StatPerbaikanAset />
                     </div>
-
-                    {/* Column 2: Tools & ATK */}
-                    <div className="grid grid-cols-1 gap-6">
+                    <div className="grid grid-cols-1 gap-4 sm:gap-6">
                         <TrenAlat />
                         <StatAtk />
                     </div>
@@ -74,8 +73,8 @@ export default function DataDashboard() {
 
             {/* Infografis Section */}
             <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Infografis</h2>
-                <div className="grid grid-cols-1 gap-6">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Infografis</h2>
+                <div className="grid grid-cols-1 gap-4 sm:gap-6">
                     <StokMaterial />
                     <InfoAtk />
                     <InfoPerawatan />

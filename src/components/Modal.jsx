@@ -99,7 +99,7 @@ export default function Modal({
   if (!isVisible) return null
 
   const modalContent = (
-    <div className={`fixed inset-0 z-[9999] flex justify-center p-4 transition-all duration-300 ease-out ${
+    <div className={`fixed inset-0 z-[9999] flex justify-center p-3 sm:p-4 transition-all duration-300 ease-out ${
       isAnimating ? 'opacity-100' : 'opacity-0'
     } ${positionClasses[position]}`}>
       {/* Backdrop with blur */}
@@ -123,14 +123,15 @@ export default function Modal({
         onClick={(e) => e.stopPropagation()}
       >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <div className="flex items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 sm:py-4 sticky top-0 bg-white dark:bg-gray-800 z-10">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
               {title}
             </h3>
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors shrink-0 p-1"
+                aria-label="Tutup"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -138,7 +139,7 @@ export default function Modal({
           </div>
 
         {/* Content */}
-        <div className="px-6 py-4">
+        <div className="px-4 sm:px-6 py-4">
           {children}
         </div>
       </div>

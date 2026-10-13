@@ -211,7 +211,7 @@ export default function StokMaterial() {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
                 {summaryCards.map((card, index) => (
                     <div key={index} className={`${card.bg} rounded-lg p-4`}>
                         <div className="flex items-center gap-2 mb-2">

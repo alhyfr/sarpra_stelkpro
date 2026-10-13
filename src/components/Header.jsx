@@ -2,22 +2,15 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
-import Loading from '@/components/Loading';
 import {
   Menu,
-  Search,
   Bell,
-  Mail,
-  Globe,
   ChevronDown,
   User,
-  Settings,
   LogOut,
-  Inbox
 } from 'lucide-react';
 import api from '@/app/utils/Api';
 import { useRouter } from 'next/navigation';
-import { Combo } from 'next/font/google';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import "dayjs/locale/id";
@@ -25,14 +18,12 @@ import "dayjs/locale/id";
 dayjs.extend(relativeTime);
 dayjs.locale('id');
 export default function Header({ onMenuClick }) {
-  const { user, logout, isRedirecting } = useAuth();
+  const { user, logout } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showLanguage, setShowLanguage] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [notifikasi, setNotifikasi] = useState([]);
 
   const notificationsRef = useRef(null);
-  const languageRef = useRef(null);
   const profileRef = useRef(null);
 
   const toNotifikasi = useRouter();
@@ -60,9 +51,6 @@ export default function Header({ onMenuClick }) {
       if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
         setShowNotifications(false);
       }
-      if (languageRef.current && !languageRef.current.contains(event.target)) {
-        setShowLanguage(false);
-      }
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setShowProfile(false);
       }
@@ -76,103 +64,60 @@ export default function Header({ onMenuClick }) {
 
 
 
-  const languages = [
-    { name: 'English', flag: '🇬🇧' },
-    { name: 'Japan', flag: '🇯🇵' },
-    { name: 'France', flag: '🇫🇷' },
-    { name: 'Germany', flag: '🇩🇪' },
-    { name: 'South Korea', flag: '🇰🇷' },
-    { name: 'Bangladesh', flag: '🇧🇩' },
-    { name: 'India', flag: '🇮🇳' },
-    { name: 'Canada', flag: '🇨🇦' },
-  ];
   const router = useRouter();
   const handleAkun = () => {
     router.push('/profile/akun');
+    setShowProfile(false);
   }
 
+  const userInitials = (user?.name || 'U')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('') || 'U';
+
   return (
-    <header className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30">
-      <div className="h-full flex items-center justify-between px-4 lg:px-6">
+    <header className="h-14 sm:h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30">
+      <div className="h-full flex items-center justify-between px-3 sm:px-4 lg:px-6">
         {/* Left Section */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
           {/* Menu Button - Visible on all screens */}
           <button
             onClick={onMenuClick}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors shrink-0"
             title="Toggle Sidebar"
+            aria-label="Toggle menu"
           >
             <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
           </button>
 
-          {/* Search Bar */}
-          <div className="hidden md:flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-2 w-64 lg:w-96">
-            <Search className="w-5 h-5 text-gray-400 mr-2" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="bg-transparent border-none outline-none text-sm w-full text-gray-700 dark:text-gray-300"
-            />
+          {/* Brand hint on tablet when sidebar closed */}
+          <div className="lg:hidden min-w-0">
+            <p className="text-sm font-semibold text-red-800 dark:text-white truncate">Stelk Property</p>
           </div>
         </div>
 
         {/* Right Section */}
-        <div className="flex items-center gap-2">
-          {/* Search Button for Mobile */}
-          <button className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
-            <Search className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-          </button>
-
-          {/* Language Selector */}
-          <div className="relative" ref={languageRef}>
-            <button
-              onClick={() => {
-                setShowLanguage(!showLanguage);
-                setShowNotifications(false);
-                setShowProfile(false);
-              }}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
-            >
-              <Globe className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-            </button>
-
-            {showLanguage && (
-              <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2">
-                <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                  <h3 className="font-semibold text-sm">Choose Your Language</h3>
-                </div>
-                <div className="max-h-64 overflow-y-auto">
-                  {languages.map((lang, index) => (
-                    <button
-                      key={index}
-                      className="w-full px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-left flex items-center gap-2"
-                    >
-                      <span className="text-xl">{lang.flag}</span>
-                      <span className="text-sm">{lang.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {/* Notifications */}
           <div className="relative" ref={notificationsRef}>
             <button
               onClick={() => {
                 setShowNotifications(!showNotifications);
-                setShowLanguage(false);
                 setShowProfile(false);
               }}
               className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+              aria-label="Notifikasi"
             >
               <Bell className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              {Array.isArray(notifikasi) && notifikasi.length > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              )}
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+              <div className="absolute right-0 mt-2 w-[min(20rem,calc(100vw-1.5rem))] bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
                 <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                   <h3 className="font-semibold">Notifications</h3>
                   <span className="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 text-xs px-2 py-1 rounded-full">
@@ -208,7 +153,7 @@ export default function Header({ onMenuClick }) {
                 </div>
                 <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-center">
                   <button onClick={handleNotifikasi} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                    See All Notification
+                    Lihat Semua Notifikasi
                   </button>
                 </div>
               </div>
@@ -221,37 +166,28 @@ export default function Header({ onMenuClick }) {
               onClick={() => {
                 setShowProfile(!showProfile);
                 setShowNotifications(false);
-                setShowLanguage(false);
               }}
-              className="flex items-center gap-2 p-1.5 pr-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+              className="flex items-center gap-2 p-1.5 sm:pr-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                SI
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0">
+                {userInitials}
               </div>
-              <div className="hidden lg:block text-left">
-                <div className="text-sm font-medium">{user?.name || 'User'}</div>
-                <div className="text-xs text-gray-500">{user?.level === 1 ? 'Admin' : 'User'}</div>
+              <div className="hidden md:block text-left max-w-[9rem] lg:max-w-[12rem]">
+                <div className="text-sm font-medium truncate">{user?.name || 'User'}</div>
+                <div className="text-xs text-gray-500 truncate">{user?.level === 1 ? 'Admin' : 'User'}</div>
               </div>
-              <ChevronDown className="w-4 h-4 hidden lg:block" />
+              <ChevronDown className="w-4 h-4 hidden md:block shrink-0" />
             </button>
 
             {showProfile && (
-              <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2">
+              <div className="absolute right-0 mt-2 w-[min(14rem,calc(100vw-1.5rem))] bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
                 <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                  <div className="font-semibold">{user?.name || 'User'}</div>
-                  <div className="text-sm text-gray-500">{user?.email}</div>
+                  <div className="font-semibold truncate">{user?.name || 'User'}</div>
+                  <div className="text-sm text-gray-500 truncate">{user?.email}</div>
                 </div>
                 <button onClick={handleAkun} className="w-full cursor-pointer px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-left flex items-center gap-2">
                   <User className="w-4 h-4" />
-                  <span className="text-sm">My Profile</span>
-                </button>
-                <button className="w-full px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-left flex items-center gap-2">
-                  <Inbox className="w-4 h-4" />
-                  <span className="text-sm">Inbox</span>
-                </button>
-                <button className="w-full px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-left flex items-center gap-2">
-                  <Settings className="w-4 h-4" />
-                  <span className="text-sm">Setting</span>
+                  <span className="text-sm">Profil Saya</span>
                 </button>
                 <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
                   <button
@@ -259,7 +195,7 @@ export default function Header({ onMenuClick }) {
                     className="w-full cursor-pointer px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-left flex items-center gap-2 text-red-600 dark:text-red-400"
                   >
                     <LogOut className="w-4 h-4" />
-                    <span className="text-sm">Log Out</span>
+                    <span className="text-sm">Keluar</span>
                   </button>
                 </div>
               </div>

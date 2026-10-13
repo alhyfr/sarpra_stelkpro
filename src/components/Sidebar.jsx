@@ -161,6 +161,13 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
     }));
   };
 
+  // Tutup drawer hanya di mobile/tablet (< lg). Desktop sidebar tetap terbuka.
+  const handleNavClick = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      onClose?.();
+    }
+  };
+
   // Check if current path matches
   const isActiveLink = (href) => {
     return pathname === href || pathname.startsWith(href + '/');
@@ -174,16 +181,21 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
   const sidebarContent = (
     <div className="h-full flex flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
       {/* Logo */}
-      <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-gray-800">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <Image src={Logo} alt="Logo" width={30} height={30} />
-          <span className="font-bold text-2xl text-red-800 dark:text-white">Stelk</span>
-          <span className="font-bold text-2xl text-gray-400 dark:text-white">Property</span>
+      <div className="h-16 flex items-center justify-between px-4 gap-2 border-b border-gray-200 dark:border-gray-800">
+        <Link
+          href="/dashboard"
+          onClick={handleNavClick}
+          className="flex items-center gap-1.5 min-w-0"
+        >
+          <Image src={Logo} alt="Logo" width={28} height={28} className="shrink-0" />
+          <span className="font-bold text-lg sm:text-xl text-red-800 dark:text-white truncate">Stelk</span>
+          <span className="font-bold text-lg sm:text-xl text-gray-400 dark:text-gray-300 truncate hidden xs:inline sm:inline">Property</span>
         </Link>
-        {/* Close button for mobile */}
+        {/* Close button for mobile / tablet */}
         <button
           onClick={onClose}
-          className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+          className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg shrink-0"
+          aria-label="Tutup menu"
         >
           <X className="w-5 h-5" />
         </button>
@@ -224,7 +236,8 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
                         <Link
                           key={subIndex}
                           href={subItem.href}
-                          className={`block px-3 py-2 text-sm rounded-lg transition-all duration-200 ${isActive
+                          onClick={handleNavClick}
+                          className={`block px-3 py-2 text-sm rounded-lg transition-all duration-200 capitalize ${isActive
                             ? 'bg-red-800 text-white font-medium shadow-sm'
                             : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 transform hover:translate-x-1'
                             }`}
@@ -239,13 +252,14 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
             ) : (
               <Link
                 href={item.href}
+                onClick={handleNavClick}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${isActiveLink(item.href)
                   ? 'bg-red-800 text-white shadow-md'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
               >
-                <item.icon className="w-5 h-5" />
-                <span className="font-medium">{item.title}</span>
+                <item.icon className="w-5 h-5 shrink-0" />
+                <span className="font-medium truncate">{item.title}</span>
               </Link>
             )}
           </div>
@@ -255,7 +269,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
       {/* Footer */}
       <div className="p-4 border-t border-gray-200 dark:border-gray-800">
         <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-          © 2024 WowDash. All Rights Reserved.
+          © {new Date().getFullYear()} Stelk Property
         </div>
       </div>
     </div>
@@ -281,8 +295,8 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
               onClick={onClose}
             />
 
-            {/* Drawer */}
-            <aside className="fixed left-0 top-0 w-64 h-screen z-50 transform transition-transform duration-300">
+            {/* Drawer — lebar aman untuk iPad mini */}
+            <aside className="fixed left-0 top-0 w-[min(16rem,85vw)] h-screen z-50 transform transition-transform duration-300 shadow-xl">
               {sidebarContent}
             </aside>
           </>

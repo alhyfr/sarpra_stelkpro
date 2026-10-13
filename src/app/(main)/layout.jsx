@@ -19,7 +19,7 @@ export default function MainLayout({ children }) {
     // Simulate loading delay
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1000); // 800ms loading
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [pathname]);
@@ -38,8 +38,8 @@ export default function MainLayout({ children }) {
         {/* Header */}
         <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6 relative">
+        {/* Page Content — padding responsif: phone / iPad mini / desktop */}
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 relative">
           {/* Loading Overlay */}
           {isLoading && (
             <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center">
