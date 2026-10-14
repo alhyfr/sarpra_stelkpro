@@ -1,7 +1,7 @@
 "use client";
 import dynamic from 'next/dynamic';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import DeleteModal from "@/components/Delete";
@@ -69,6 +69,10 @@ export default function DataInv() {
     ruangan,
     kategoriAset,
   } = useData();
+
+  // Guard request agar search/update cepat tidak race / stacking loading
+  const fetchIdRef = useRef(0);
+  const abortControllerRef = useRef(null);
 
   const columns = [
     {
@@ -292,11 +296,19 @@ export default function DataInv() {
     },
   ];
   const getInv = async (params = {}, showLoading = true) => {
+    // Batalkan request sebelumnya agar search beruntun tidak menumpuk
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const fetchId = ++fetchIdRef.current;
+
     try {
       if (showLoading) {
         setLoading(true);
       }
-      const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 800));
+
       const queryParams = new URLSearchParams({
         page: params.page || currentPage,
         per_page: params.per_page || itemsPerPage,
@@ -314,10 +326,12 @@ export default function DataInv() {
         });
       }
 
-      const [response] = await Promise.all([
-        api.get(`/sp/aset?${queryParams}`),
-        minLoadingTime,
-      ]);
+      const response = await api.get(`/sp/aset?${queryParams}`, {
+        signal: controller.signal,
+      });
+
+      // Abaikan respons usang jika sudah ada request lebih baru
+      if (fetchId !== fetchIdRef.current) return;
 
       if (response.data.status === "success") {
         setData(response.data.data);
@@ -326,11 +340,16 @@ export default function DataInv() {
         setItemsPerPage(response.data.per_page);
       }
     } catch (error) {
-      console.error("Error fetching users:", error);
-      setData([]);
-      setTotal(0);
+      if (error?.name === "CanceledError" || error?.code === "ERR_CANCELED") {
+        return;
+      }
+      console.error("Error fetching inventaris:", error);
+      if (fetchId === fetchIdRef.current) {
+        setData([]);
+        setTotal(0);
+      }
     } finally {
-      if (showLoading) {
+      if (showLoading && fetchId === fetchIdRef.current) {
         setLoading(false);
       }
     }
@@ -368,8 +387,8 @@ export default function DataInv() {
       }
 
       if (response.data.status === "success") {
-        // Refresh data setelah berhasil
-        getInv();
+        // Jangan panggil getInv di sini — refresh cukup sekali di handleAddSuccess
+        // agar tidak double-fetch + double loading setelah update
         setShowAddModal(false);
         setEditingInv(null);
         setIsEditMode(false);

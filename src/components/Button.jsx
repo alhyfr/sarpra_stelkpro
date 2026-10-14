@@ -97,7 +97,7 @@ export default function Button({
   `.trim().replace(/\s+/g, ' ')
 
   // ============================================
-  // RENDER ICON
+  // RENDER ICON — hanya 1 spinner saat loading
   // ============================================
   const renderIcon = () => {
     if (loading) {
@@ -108,6 +108,8 @@ export default function Button({
     }
     return null
   }
+
+  const iconNode = renderIcon()
 
   // ============================================
   // HANDLE CLICK
@@ -135,26 +137,17 @@ export default function Button({
       className={buttonClasses}
       {...props}
     >
-      {/* Icon Left */}
-      {iconPosition === 'left' && renderIcon() && (
-        <span className={children ? 'mr-2' : ''}>{renderIcon()}</span>
+      {/* Icon / spinner kiri — sekali saja */}
+      {iconPosition === 'left' && iconNode && (
+        <span className={children ? 'mr-2' : ''}>{iconNode}</span>
       )}
 
-      {/* Button Text */}
-      {loading && !Icon ? (
-        <span className="flex items-center gap-2">
-          <Loader2 className={`${iconSizes[size]} animate-spin`} />
-          {children}
-        </span>
-      ) : (
-        children
-      )}
+      {children}
 
-      {/* Icon Right */}
-      {iconPosition === 'right' && renderIcon() && (
-        <span className={children ? 'ml-2' : ''}>{renderIcon()}</span>
+      {/* Icon / spinner kanan */}
+      {iconPosition === 'right' && iconNode && (
+        <span className={children ? 'ml-2' : ''}>{iconNode}</span>
       )}
     </button>
   )
 }
-

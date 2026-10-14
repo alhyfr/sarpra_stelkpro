@@ -50,26 +50,42 @@ Api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Log error di development mode
-    if (process.env.NEXT_PUBLIC_DEBUG === 'true') {
-      console.error('Response Error:', error.response?.status, error.message);
+    // Request dibatalkan (abort / race search) — bukan error nyata
+    if (
+      axios.isCancel?.(error) ||
+      error?.code === 'ERR_CANCELED' ||
+      error?.name === 'CanceledError' ||
+      error?.name === 'AbortError'
+    ) {
+      return Promise.reject(error);
     }
 
-    // Jika 401 (Unauthorized) → redirect ke login
-    // Cookie akan dihapus oleh backend saat logout, tidak perlu clear manual di sini
-    if (error.response?.status === 401) {
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+    const status = error.response?.status;
+    const onLoginPage =
+      typeof window !== 'undefined' &&
+      window.location.pathname.includes('/login');
+
+    // 401 = belum login / session habis — expected, jangan console.error
+    // (Next.js overlay terpicu oleh console.error)
+    if (status === 401) {
+      if (typeof window !== 'undefined' && !onLoginPage) {
         window.location.href = '/login';
       }
+      return Promise.reject(error);
+    }
+
+    // Log error lain di development mode (skip 401)
+    if (process.env.NEXT_PUBLIC_DEBUG === 'true') {
+      console.error('Response Error:', status, error.message);
     }
 
     // Jika 403 (Forbidden)
-    if (error.response?.status === 403) {
+    if (status === 403) {
       console.error('Access Denied');
     }
 
     // Jika 500 (Server Error)
-    if (error.response?.status === 500) {
+    if (status === 500) {
       console.error('Server Error:', error.response.data);
     }
 
