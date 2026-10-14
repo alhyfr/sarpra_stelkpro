@@ -8,7 +8,7 @@ import { Edit, Trash2 } from 'lucide-react'
 import api from '@/app/utils/Api'
 import TambahGedung from './TambahGedung'
 import ImageView from '@/components/ImageView'
-const STORAGE_URL = process.env.NEXT_PUBLIC_API_STORAGE_BANGUNAN || ''
+import { getStorageUrl } from '@/helper/storageUrl'
 export default function DataGedung() {
     const [data, setData] = useState([])           // Data yang ditampilkan di table
     const [total, setTotal] = useState(0)         // Total data dari server (untuk pagination)
@@ -32,22 +32,7 @@ export default function DataGedung() {
     const [showImageView, setShowImageView] = useState(false)            // Image viewer modal
     const [selectedImage, setSelectedImage] = useState(null)
 
-    const getImageUrl = (filename) => {
-        if (!filename) return null
-
-        // Jika sudah full URL (http/https), return as is
-        if (filename.startsWith('http://') || filename.startsWith('https://')) {
-            return filename
-        }
-
-        // Jika relative path, gabungkan dengan STORAGE_URL
-        if (filename.startsWith('/')) {
-            return `${STORAGE_URL}${filename}`
-        }
-
-        // Jika hanya filename, gabungkan dengan STORAGE_URL
-        return `${STORAGE_URL}/${filename}`
-    }
+    const getImageUrl = (filename) => getStorageUrl(filename, { kind: 'bangunan' })
     const handleViewImage = (item) => {
         const imageUrl = getImageUrl(item.foto)
         if (imageUrl) {

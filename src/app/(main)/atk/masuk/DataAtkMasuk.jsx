@@ -11,6 +11,7 @@ import TambahAtkMasuk from "./TambahAtkMasuk";
 import { useData } from "@/app/context/DataContext";
 import ImageView from "@/components/ImageView";
 import dayjs from "dayjs";
+import { getStorageUrl } from '@/helper/storageUrl'
 
 export default function DataAtkMasuk() {
   const [data, setData] = useState([]);

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Upload, X, FileIcon, ImageIcon, AlertCircle, FileText, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import { compressImage, formatFileSize } from '@/app/utils/compressImage'
+import { getStorageUrl } from '@/helper/storageUrl'
 
 // ============================================
 // REUSABLE FILE UPLOAD COMPONENT
@@ -94,10 +95,9 @@ export default function AFile({
         return value
       }
       
-      // If it's a relative path or filename, construct full URL
+      // Relative path / filename → URL storage yang benar (tanpa duplikasi /api/storage)
       if (value.startsWith('/') || value.includes('.')) {
-        const baseURL = process.env.NEXT_PUBLIC_API_STORAGE || 'http://localhost:8000/api'
-        return value.startsWith('/') ? `${baseURL}${value}` : `${baseURL}/${value}`
+        return getStorageUrl(value)
       }
       
       // Try to create URL object to validate

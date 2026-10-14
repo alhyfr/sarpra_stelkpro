@@ -9,7 +9,7 @@ import ImageView from '@/components/ImageView'
 import Aswitch from '@/components/Aswitch';
 import { useData } from '@/app/context/DataContext';
 import dayjs from 'dayjs';
-const STORAGE_URL = process.env.NEXT_PUBLIC_API_STORAGE || ''
+import { getStorageUrl } from '@/helper/storageUrl'
 export default function DataMon() {
     const { getOpsi, gedung } = useData()
     const [data, setData] = useState([])           // Data yang ditampilkan di table
@@ -31,16 +31,7 @@ export default function DataMon() {
     const [showExportModal, setShowExportModal] = useState(false)
     const [showImageView, setShowImageView] = useState(false)            // Image viewer modal
     const [selectedImage, setSelectedImage] = useState(null)
-    const getImageUrl = (filename) => {
-        if (!filename) return null
-        if (filename.startsWith('http://') || filename.startsWith('https://')) {
-            return filename
-        }
-        if (filename.startsWith('/')) {
-            return `${STORAGE_URL}${filename}`
-        }
-        return `${STORAGE_URL}/${filename}`
-    }
+    const getImageUrl = (filename) => getStorageUrl(filename)
     const handleViewImage = (item) => {
         const imageUrl = getImageUrl(item.gambar)
         if (imageUrl) {

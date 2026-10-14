@@ -3,50 +3,9 @@ import { useState, useEffect, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getStorageUrl } from '@/helper/storageUrl'
 
-// Base URL untuk menggabungkan relative path dari foto_url
-const STORAGE_URL = process.env.NEXT_PUBLIC_API_STORAGE || process.env.NEXT_PUBLIC_API_URL || ''
-
-// Helper function untuk mendapatkan full URL dari foto_url
-const getImageUrl = (url) => {
-    if (!url) return ''
-
-    // Jika sudah full URL (http/https), gunakan langsung
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-        return url
-    }
-
-    // Jika tidak ada STORAGE_URL, return url as is
-    if (!STORAGE_URL) {
-        return url
-    }
-
-    // Normalisasi STORAGE_URL (hapus trailing slash)
-    const baseUrl = STORAGE_URL.replace(/\/+$/, '')
-
-    // Jika foto_url dimulai dengan /api/storage/, dan baseUrl sudah berakhir dengan /api/storage
-    // Maka gunakan baseUrl + sisa path setelah /api/storage/
-    if (url.startsWith('/api/storage/') && baseUrl.endsWith('/api/storage')) {
-        const remainingPath = url.substring('/api/storage/'.length)
-        return `${baseUrl}/${remainingPath}`
-    }
-
-    // Jika foto_url dimulai dengan /api/, dan baseUrl berakhir dengan /api
-    // Maka gunakan baseUrl + sisa path setelah /api/
-    if (url.startsWith('/api/') && baseUrl.endsWith('/api')) {
-        const remainingPath = url.substring('/api/'.length)
-        return `${baseUrl}/${remainingPath}`
-    }
-
-    // Jika foto_url dimulai dengan /api/, gabungkan langsung (baseUrl mungkin tidak berakhir dengan /api)
-    if (url.startsWith('/api/')) {
-        return `${baseUrl}${url}`
-    }
-
-    // Jika url tidak dimulai dengan /api/, normalisasi dan gabungkan
-    const path = url.startsWith('/') ? url.substring(1) : url
-    return `${baseUrl}/${path}`
-}
+const getImageUrl = (url) => getStorageUrl(url) || ''
 
 export default function Slider({
     images = [],

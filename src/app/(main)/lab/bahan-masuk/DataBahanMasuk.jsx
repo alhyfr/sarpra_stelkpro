@@ -10,7 +10,7 @@ import TambahBahanMasuk from './TambahBahanMasuk'
 import ImageView from '@/components/ImageView'
 import { useData } from '@/app/context/DataContext'
 import dayjs from 'dayjs';
-const STORAGE_URL = process.env.NEXT_PUBLIC_API_STORAGE || ''
+import { getStorageUrl } from '@/helper/storageUrl'
 export default function DataBahanMasuk() {
     const { labs, getOpsi } = useData()
     const [data, setData] = useState([])           // Data yang ditampilkan di table
@@ -34,19 +34,7 @@ export default function DataBahanMasuk() {
     const [showExportModal, setShowExportModal] = useState(false)
     const [showImageView, setShowImageView] = useState(false)            // Image viewer modal
     const [selectedImage, setSelectedImage] = useState(null)
-    const getImageUrl = (filename) => {
-        if (!filename) return null
-        // Jika sudah full URL (http/https), return as is
-        if (filename.startsWith('http://') || filename.startsWith('https://')) {
-            return filename
-        }
-        // Jika relative path, gabungkan dengan STORAGE_URL
-        if (filename.startsWith('/')) {
-            return `${STORAGE_URL}${filename}`
-        }
-        // Jika hanya filename, gabungkan dengan STORAGE_URL
-        return `${STORAGE_URL}/${filename}`
-    }
+    const getImageUrl = (filename) => getStorageUrl(filename)
     const handleViewImage = (item) => {
         const imageUrl = getImageUrl(item.foto)
         if (imageUrl) {

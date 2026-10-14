@@ -9,6 +9,7 @@ import api from '@/app/utils/Api'
 import TambahAtk from './TambahAtk'
 import ImageView from '@/components/ImageView'
 import { useData } from '@/app/context/DataContext'
+import { getStorageUrl } from '@/helper/storageUrl'
 
 export default function DataAtk() {
   const [data, setData] = useState([])           // Data yang ditampilkan di table
@@ -38,21 +39,7 @@ export default function DataAtk() {
     satuan,
     getOpsi,
   } = useData();
-  const getImageUrl = (filename) => {
-    if (!filename) return null
-
-    if (filename.startsWith('http://') || filename.startsWith('https://')) {
-      return filename
-    }
-
-    const baseURL = process.env.NEXT_PUBLIC_API_STORAGE || 'http://localhost:8000/api'
-
-    if (filename.startsWith('/')) {
-      return `${baseURL}${filename}`
-    }
-
-    return `${baseURL}/${filename}`
-  }
+  const getImageUrl = (filename) => getStorageUrl(filename)
   // Handler untuk view image
   const handleViewImage = (item) => {
     const imageUrl = getImageUrl(item.ket)

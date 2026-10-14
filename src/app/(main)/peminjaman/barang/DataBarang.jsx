@@ -11,6 +11,7 @@ import ImageView from '@/components/ImageView'
 import dayjs from "dayjs";
 import Aswitch from "@/components/Aswitch";
 import { useData } from "@/app/context/DataContext";
+import { getStorageUrl } from '@/helper/storageUrl'
 
 export default function DataBarang() {
   const { subscribeWebSocket } = useData();
@@ -35,29 +36,7 @@ export default function DataBarang() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [showImageView, setShowImageView] = useState(false);
-  const getImageUrl = (filename) => {
-    if (!filename) return null    
-    if (filename.startsWith('http://') || filename.startsWith('https://')) {
-      return filename
-    }    
-    const baseURL = process.env.NEXT_PUBLIC_API_STORAGE || 'http://localhost:3002/api/storage/'
-    
-    if (filename.startsWith('/')) {
-      return `${baseURL}${filename}`
-    }    
-    return `${baseURL}/${filename}`
-  } 
-  // Handler untuk view image
-  const handleViewImage = (item) => {
-    const imageUrl = getImageUrl(item.foto)
-    if (imageUrl) {
-      setSelectedImage({
-        url: imageUrl,
-        title: item.nabar || 'Foto Peminjaman Barang',
-      })
-      setShowImageView(true)
-    }
-  }
+  const getImageUrl = (filename) => getStorageUrl(filename)
 
   const columns = [
     {

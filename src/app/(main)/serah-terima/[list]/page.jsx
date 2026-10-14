@@ -11,8 +11,7 @@ import DeleteModal from '@/components/Delete';
 import DataPdf from './DataPdf';
 import TambahList from './TambahList';
 import ImageView from '@/components/ImageView'
-const STORAGE_URL = process.env.NEXT_PUBLIC_API_STORAGE || ''
-
+import { getStorageUrl } from '@/helper/storageUrl'
 export default function List() {
   const params = useParams();
   const id = params?.list;
@@ -28,16 +27,7 @@ export default function List() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showImageView, setShowImageView] = useState(false);
 
-  const getImageUrl = (filename) => {
-    if (!filename) return null
-    if (filename.startsWith('http://') || filename.startsWith('https://')) {
-        return filename
-    }
-    if (filename.startsWith('/')) {
-        return `${STORAGE_URL}${filename}`
-    }
-    return `${STORAGE_URL}/${filename}`
-  }
+  const getImageUrl = (filename) => getStorageUrl(filename)
 
   const handleViewImage = (item) => {
     const imageUrl = getImageUrl(item.foto)
