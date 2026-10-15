@@ -17,6 +17,7 @@ export default function useServerListFetch({
   const fetchIdRef = useRef(0)
   const abortControllerRef = useRef(null)
   const lastQueryKeyRef = useRef('')
+  const inFlightKeyRef = useRef(null)
   const cacheRef = useRef(new Map())
 
   const clearListCache = useCallback(() => {
@@ -36,6 +37,7 @@ export default function useServerListFetch({
       onSuccess,
       onError,
       extraParams = {},
+      force = false,
     }) => {
       const queryParams = new URLSearchParams({
         page: String(page),
@@ -63,15 +65,23 @@ export default function useServerListFetch({
 
       const queryKey = `${endpoint}?${queryParams.toString()}`
 
-      if (queryKey === lastQueryKeyRef.current && showLoading) {
+      // Query yang sama sedang di-fetch — jangan dobel; loading dikelola request aktif
+      if (!force && inFlightKeyRef.current === queryKey) {
+        return null
+      }
+
+      // Skip request identik yang baru saja selesai (anti double-fire DataTable)
+      // Pastikan loading dimatikan agar tidak nyangkut
+      if (!force && queryKey === lastQueryKeyRef.current && showLoading) {
+        if (setLoading) setLoading(false)
         return null
       }
 
       const cached = cacheRef.current.get(queryKey)
-      if (cached && Date.now() - cached.ts < ttlMs) {
+      if (!force && cached && Date.now() - cached.ts < ttlMs) {
         lastQueryKeyRef.current = queryKey
         onSuccess?.(cached)
-        if (showLoading && setLoading) setLoading(false)
+        if (setLoading) setLoading(false)
         return cached
       }
 
@@ -82,6 +92,7 @@ export default function useServerListFetch({
       abortControllerRef.current = controller
       const fetchId = ++fetchIdRef.current
       lastQueryKeyRef.current = queryKey
+      inFlightKeyRef.current = queryKey
 
       try {
         if (showLoading && setLoading) setLoading(true)
@@ -131,8 +142,10 @@ export default function useServerListFetch({
         }
         return null
       } finally {
-        if (showLoading && setLoading && fetchId === fetchIdRef.current) {
-          setLoading(false)
+        if (fetchId === fetchIdRef.current) {
+          inFlightKeyRef.current = null
+          // Selalu matikan loading untuk request terbaru (hindari spinner macet)
+          if (setLoading) setLoading(false)
         }
       }
     },

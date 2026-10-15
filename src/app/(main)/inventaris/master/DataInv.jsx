@@ -312,7 +312,7 @@ export default function DataInv() {
       ],
     },
   ];
-  const getInv = async (params = {}, showLoading = true) => {
+  const getInv = async (params = {}, showLoading = true, force = false) => {
     await fetchList({
       endpoint: "/sp/aset",
       page: params.page || currentPage,
@@ -320,6 +320,7 @@ export default function DataInv() {
       search: params.search !== undefined ? params.search : searchTerm,
       filters: params.filters || filters,
       showLoading,
+      force,
       setLoading,
       onSuccess: (payload) => {
         setData(payload.data);
@@ -465,9 +466,11 @@ export default function DataInv() {
     setIsEditMode(false);
     setIsCopyMode(false);
   };
-  const handleAddSuccess = (newTeam) => {
+  const handleAddSuccess = () => {
+    // Setelah create/update: refresh diam-diam (tanpa overlay loading)
+    // agar tidak terasa hang saat search + data besar; force bypass skip/cache
     clearListCache();
-    getInv();
+    getInv({}, false, true);
     setShowAddModal(false);
     setEditingInv(null);
     setIsEditMode(false);
