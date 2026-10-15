@@ -45,7 +45,10 @@ export default function DataTable({
   currentSearch: propCurrentSearch = '',
   currentFilters: propCurrentFilters = {},
   currentSortField: propCurrentSortField = '',
-  currentSortDirection: propCurrentSortDirection = 'asc'
+  currentSortDirection: propCurrentSortDirection = 'asc',
+  // Search UX — dataset besar (inventaris) butuh debounce lebih lama
+  searchDebounceMs = 500,
+  minSearchLength = 0,
 }) {
   // State management
   const [searchTerm, setSearchTerm] = useState(serverSide ? propCurrentSearch : '')
@@ -155,6 +158,9 @@ export default function DataTable({
           search: '', // Explicitly send empty string
           filters: filters
         })
+      } else if (minSearchLength > 0 && value.trim().length < minSearchLength) {
+        // Jangan hit API sampai panjang minimal tercapai (hindari scan DB tiap ketikan)
+        setIsTyping(true)
       } else {
         // Set new timeout for non-empty search
         window.searchTimeout = setTimeout(() => {
@@ -165,7 +171,7 @@ export default function DataTable({
             search: value,
             filters: filters
           })
-        }, 500) // 500ms debounce
+        }, searchDebounceMs)
       }
     }
   }

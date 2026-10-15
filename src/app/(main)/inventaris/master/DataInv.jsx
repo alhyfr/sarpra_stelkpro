@@ -573,6 +573,8 @@ export default function DataInv() {
         currentFilters={filters}
         currentSortField={sortField}
         currentSortDirection={sortDirection}
+        searchDebounceMs={700}
+        minSearchLength={2}
       />
 
       {/* Modal Delete Single */}
