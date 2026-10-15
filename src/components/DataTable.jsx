@@ -46,10 +46,14 @@ export default function DataTable({
   currentFilters: propCurrentFilters = {},
   currentSortField: propCurrentSortField = '',
   currentSortDirection: propCurrentSortDirection = 'asc',
-  // Search UX — dataset besar (inventaris) butuh debounce lebih lama
-  searchDebounceMs = 500,
-  minSearchLength = 0,
+  // Search UX — default lebih aman untuk serverSide (dataset besar)
+  searchDebounceMs,
+  minSearchLength,
 }) {
+  const effectiveDebounceMs =
+    searchDebounceMs ?? (serverSide ? 900 : 300)
+  const effectiveMinSearchLength =
+    minSearchLength ?? (serverSide ? 2 : 0)
   // State management
   const [searchTerm, setSearchTerm] = useState(serverSide ? propCurrentSearch : '')
   const [sortField, setSortField] = useState(serverSide ? propCurrentSortField : '')
@@ -59,6 +63,9 @@ export default function DataTable({
   const [selectedItems, setSelectedItems] = useState([])
   const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState(serverSide ? propCurrentFilters : {})
+  // Mode UI dateRange (preset/custom) — terpisah dari nilai filter API
+  const [dateRangeModes, setDateRangeModes] = useState({})
+  const [dateRangeBounds, setDateRangeBounds] = useState({})
   const [isTyping, setIsTyping] = useState(false)
 
   // Get searchable columns
@@ -119,6 +126,19 @@ export default function DataTable({
   const endIndex = serverSide ? Math.min(currentPage * itemsPerPage, total) : Math.min(currentPage * itemsPerPage, filteredData.length)
   const currentData = serverSide ? data : filteredData.slice(startIndex, endIndex)
 
+  // Kirim hanya filter yang valid ke API (tanpa key UI date range)
+  const sanitizeFiltersForApi = (rawFilters = {}) => {
+    const cleaned = {}
+    Object.entries(rawFilters).forEach(([k, v]) => {
+      if (v === undefined || v === null || v === '') return
+      if (k.endsWith('_from') || k.endsWith('_to') || k.endsWith('_mode')) return
+      // Jangan kirim placeholder UI seperti "custom"
+      if (v === 'custom') return
+      cleaned[k] = v
+    })
+    return cleaned
+  }
+
   // Handlers
   const handleSort = (field) => {
     if (!sortable) return
@@ -156,9 +176,9 @@ export default function DataTable({
           page: 1,
           per_page: itemsPerPage,
           search: '', // Explicitly send empty string
-          filters: filters
+          filters: sanitizeFiltersForApi(filters)
         })
-      } else if (minSearchLength > 0 && value.trim().length < minSearchLength) {
+      } else if (effectiveMinSearchLength > 0 && value.trim().length < effectiveMinSearchLength) {
         // Jangan hit API sampai panjang minimal tercapai (hindari scan DB tiap ketikan)
         setIsTyping(true)
       } else {
@@ -169,37 +189,85 @@ export default function DataTable({
             page: 1,
             per_page: itemsPerPage,
             search: value,
-            filters: filters
+            filters: sanitizeFiltersForApi(filters)
           })
-        }, searchDebounceMs)
+        }, effectiveDebounceMs)
       }
     }
   }
 
-  const handleFilterChange = (key, value, column) => {
-    let filterValue = value
-
-    // Handle dateRange with getValue function
-    if (column?.type === 'dateRange' && value && value !== '') {
-      const option = column.filterOptions?.find(opt => opt.value === value)
-      if (option?.getValue && typeof option.getValue === 'function') {
-        filterValue = option.getValue()
-      }
-    }
-
-    const newFilters = { ...filters, [key]: filterValue }
-    setFilters(newFilters)
-    setCurrentPage(1) // Reset to first page on filter
-
-    // Trigger server-side data change with filters
+  const emitFilterChange = (nextFilters) => {
+    setFilters(nextFilters)
+    setCurrentPage(1)
     if (serverSide && onDataChange) {
       onDataChange({
         page: 1,
         per_page: itemsPerPage,
         search: searchTerm,
-        filters: newFilters
-        // No sort parameters - sorting is client-side
+        filters: sanitizeFiltersForApi(nextFilters),
       })
+    }
+  }
+
+  const handleFilterChange = (key, value, column) => {
+    // Date range: value dari <select> adalah mode UI (last3Months / custom / '')
+    if (column?.type === 'dateRange') {
+      const mode = value || ''
+      setDateRangeModes((prev) => ({ ...prev, [key]: mode }))
+
+      if (!mode) {
+        // Reset: hapus filter tanggal + batas custom
+        const nextFilters = { ...filters }
+        delete nextFilters[key]
+        delete nextFilters[`${key}_from`]
+        delete nextFilters[`${key}_to`]
+        setDateRangeBounds((prev) => {
+          const copy = { ...prev }
+          delete copy[key]
+          return copy
+        })
+        emitFilterChange(nextFilters)
+        return
+      }
+
+      if (mode === 'custom') {
+        // Tunggu input from/to — jangan kirim tgl=custom ke API
+        const nextFilters = { ...filters }
+        delete nextFilters[key]
+        emitFilterChange(nextFilters)
+        return
+      }
+
+      const option = column.filterOptions?.find((opt) => opt.value === mode)
+      const rangeValue =
+        option?.getValue && typeof option.getValue === 'function'
+          ? option.getValue()
+          : mode
+
+      emitFilterChange({ ...filters, [key]: rangeValue })
+      return
+    }
+
+    const newFilters = { ...filters, [key]: value }
+    emitFilterChange(newFilters)
+  }
+
+  const handleDateBoundChange = (key, bound, dateValue) => {
+    const prevBounds = dateRangeBounds[key] || {}
+    const nextBounds = {
+      ...prevBounds,
+      [bound]: dateValue,
+    }
+    setDateRangeBounds((prev) => ({ ...prev, [key]: nextBounds }))
+
+    const fromDate = bound === 'from' ? dateValue : nextBounds.from || ''
+    const toDate = bound === 'to' ? dateValue : nextBounds.to || ''
+
+    if (fromDate && toDate) {
+      // Pastikan from <= to
+      const [start, end] =
+        fromDate <= toDate ? [fromDate, toDate] : [toDate, fromDate]
+      emitFilterChange({ ...filters, [key]: `${start},${end}` })
     }
   }
 
@@ -212,8 +280,7 @@ export default function DataTable({
         page: page,
         per_page: itemsPerPage,
         search: searchTerm,
-        filters: filters
-        // No sort parameters - sorting is client-side
+        filters: sanitizeFiltersForApi(filters)
       })
     }
   }
@@ -228,8 +295,7 @@ export default function DataTable({
         page: 1,
         per_page: newItemsPerPage,
         search: searchTerm,
-        filters: filters
-        // No sort parameters - sorting is client-side
+        filters: sanitizeFiltersForApi(filters)
       })
     }
   }
@@ -415,7 +481,7 @@ export default function DataTable({
                     {column.type === 'dateRange' ? (
                       <div className="space-y-2">
                         <select
-                          value={filters[column.key] || ''}
+                          value={dateRangeModes[column.key] || ''}
                           onChange={(e) => handleFilterChange(column.key, e.target.value, column)}
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                         >
@@ -427,44 +493,23 @@ export default function DataTable({
                           ))}
                         </select>
 
-                        {/* Custom Date Range Input */}
-                        {filters[column.key] === 'custom' && (
+                        {/* Custom Date Range Input — mode UI terpisah agar tidak hilang setelah pilih tanggal */}
+                        {dateRangeModes[column.key] === 'custom' && (
                           <div className="flex gap-2">
                             <input
                               type="date"
                               placeholder="Dari Tanggal"
-                              value={filters[`${column.key}_from`] || ''}
+                              value={dateRangeBounds[column.key]?.from || ''}
                               className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                              onChange={(e) => {
-                                const fromDate = e.target.value
-                                // Store from date in a separate filter key
-                                const newFilters = { ...filters, [`${column.key}_from`]: fromDate }
-                                setFilters(newFilters)
-
-                                // If we have both dates, trigger the filter
-                                const toDate = filters[`${column.key}_to`] || ''
-                                if (fromDate && toDate) {
-                                  handleFilterChange(column.key, `${fromDate},${toDate}`, column)
-                                }
-                              }}
+                              onChange={(e) => handleDateBoundChange(column.key, 'from', e.target.value)}
                             />
                             <input
                               type="date"
                               placeholder="Sampai Tanggal"
-                              value={filters[`${column.key}_to`] || ''}
+                              value={dateRangeBounds[column.key]?.to || ''}
+                              min={dateRangeBounds[column.key]?.from || undefined}
                               className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                              onChange={(e) => {
-                                const toDate = e.target.value
-                                // Store to date in a separate filter key
-                                const newFilters = { ...filters, [`${column.key}_to`]: toDate }
-                                setFilters(newFilters)
-
-                                // If we have both dates, trigger the filter
-                                const fromDate = filters[`${column.key}_from`] || ''
-                                if (fromDate && toDate) {
-                                  handleFilterChange(column.key, `${fromDate},${toDate}`, column)
-                                }
-                              }}
+                              onChange={(e) => handleDateBoundChange(column.key, 'to', e.target.value)}
                             />
                           </div>
                         )}

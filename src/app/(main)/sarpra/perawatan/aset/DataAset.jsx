@@ -12,7 +12,9 @@ import Aswitch from "@/components/Aswitch";
 import { useData } from "@/app/context/DataContext";
 import AddPaset from "./AddPaset";
 import { getStorageUrl } from '@/helper/storageUrl'
+import useServerListFetch from '@/hooks/useServerListFetch'
 export default function DataAset() {
+  const { fetchList, clearListCache } = useServerListFetch()
   const { subscribeWebSocket } = useData();
   const [data, setData] = useState([]); // Data yang ditampilkan di table
   const [total, setTotal] = useState(0); // Total data dari server (untuk pagination)
@@ -36,6 +38,171 @@ export default function DataAset() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showImageView, setShowImageView] = useState(false);
   const getImageUrl = (filename) => getStorageUrl(filename)
+
+  const handleViewImage = (item) => {
+    const imageUrl = getImageUrl(item.gambar);
+    if (imageUrl) {
+      setSelectedImage({
+        url: imageUrl,
+        title: item.nabar || "Foto Aset",
+      });
+      setShowImageView(true);
+    }
+  };
+  const columns = [
+    {
+      key: "kode",
+      title: "Kode Barang",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+    },
+    {
+      key: "desc",
+      title: "Nama Barang",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+    },
+    {
+      key: "ruang",
+      title: "Lokasi",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+    },
+    {
+      key: "jenis_kerusakan",
+      title: "Jenis Kerusakan",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+    },
+    {
+      key: "tgl_masuk",
+      title: "Tanggal Masuk",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      type: "dateRange",
+      format: "DD-MM-YYYY",
+      render: (value) => dayjs(value).format("DD-MM-YYYY"),
+      filterOptions: [
+        { value: "last3Months", label: "3 Bulan Terakhir" },
+        { value: "custom", label: "Custom Range" },
+      ],
+    },
+    {
+      key: "tindakan",
+      title: "Tindakan",
+      sortable: true,
+      searchable: true,
+      wrap: true,
+      minWidth: "200px",
+    },
+    {
+      key: "tgl_selesai",
+      title: "Tanggal Selesai",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      format: "DD-MM-YYYY",
+      render: (value) => value ? dayjs(value).format("DD-MM-YYYY") : "Dalam Proses",
+    },
+
+    {
+      key: "status",
+      title: "Status",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      filterOptions: [
+        { value: "proses", label: "Proses" },
+        { value: "selesai", label: "Selesai" },
+        { value: "terjadwal", label: "Terjadwal" },
+      ],
+    },
+    {
+      key: "gambar",
+      title: "Gambar",
+      render: (value, item) => {
+        const imageUrl = getImageUrl(value)
+
+        if (!imageUrl) {
+          return (
+            <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 flex items-center justify-center rounded-md">
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                {item.desc?.charAt(0).toUpperCase() || '?'}
+              </span>
+            </div>
+          )
+        }
+
+        return (
+          <div
+            className="w-10 h-10 rounded-md overflow-hidden bg-gray-200 dark:bg-gray-700 cursor-pointer hover:ring-2 hover:ring-red-500 transition-all"
+            onClick={() => handleViewImage(item)}
+            title="Klik untuk melihat gambar"
+          >
+            <img
+              src={imageUrl}
+              alt={item.desc || 'Foto Peminjaman Barang'}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.style.display = 'none'
+                const parent = e.target.parentElement
+                parent.classList.add('flex', 'items-center', 'justify-center', 'dark:bg-gray-700')
+                parent.innerHTML = `<span class="text-xs text-gray-500 dark:text-gray-400 font-medium">${item.nabar?.charAt(0).toUpperCase() || '?'}</span>`
+              }}
+            />
+          </div>
+        )
+      }
+    },
+    {
+      key: "actions",
+      title: "Actions",
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      type: "actions",
+      actions: [
+        {
+          icon: Edit,
+          title: "Edit",
+          onClick: (item) => handleEdit(item),
+        },
+        {
+          icon: Trash2,
+          title: "Delete",
+          onClick: (item) => handleDelete(item),
+        },
+      ],
+    },
+  ];
+  const getPaset = async (params = {}, showLoading = true) => {
+    await fetchList({
+      endpoint: "/sp/perbaikan-aset",
+      page: params.page || currentPage,
+      per_page: params.per_page || itemsPerPage,
+      search: params.search !== undefined ? params.search : searchTerm,
+      filters: params.filters || filters,
+      showLoading,
+      setLoading,
+      onSuccess: (payload) => {
+        setData(payload.data)
+        setTotal(payload.total)
+        setCurrentPage(payload.page)
+        setItemsPerPage(payload.per_page)
+      },
+      onError: (error) => {
+        console.error("Error fetching list:", error)
+        setData([])
+        setTotal(0)
+      },
+    })
+  }
+
   const postPaset = async (form) => {
     try {
       let response

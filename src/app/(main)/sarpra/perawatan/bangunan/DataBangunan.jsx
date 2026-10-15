@@ -10,7 +10,9 @@ import ImageView from "@/components/ImageView";
 import dayjs from "dayjs";
 import TambahBangunan from "./TambahBangunan";
 import { getStorageUrl } from '@/helper/storageUrl'
+import useServerListFetch from '@/hooks/useServerListFetch'
 export default function DataBangunan() {
+  const { fetchList, clearListCache } = useServerListFetch()
     const [data, setData] = useState([]); // Data yang ditampilkan di table
     const [total, setTotal] = useState(0); // Total data dari server (untuk pagination)
     const [loading, setLoading] = useState(false); // Loading state saat fetch data
@@ -33,7 +35,204 @@ export default function DataBangunan() {
     const [selectedImage, setSelectedImage] = useState(null);
     const [showImageView, setShowImageView] = useState(false);
     const getImageUrl = (filename) => getStorageUrl(filename, { kind: 'bangunan' })
-    const postBangunan = async (form) => {
+    const handleViewImageBefoto = (item) => {
+        const imageUrl = getImageUrl(item.befoto);
+        if (imageUrl) {
+            setSelectedImage({
+                url: imageUrl,
+                title: item.nabar || "Foto Sebelum",
+            });
+            setShowImageView(true);
+        }
+    };
+    const handleViewImageLastfoto = (item) => {
+        const imageUrl = getImageUrl(item.lastfoto);
+        if (imageUrl) {
+            setSelectedImage({
+                url: imageUrl,
+                title: item.nabar || "Foto Setelah",
+            });
+            setShowImageView(true);
+        }
+    };
+    const columns = [
+        {
+            key: "id",
+            title: "ID",
+            sortable: true,
+            searchable: true,
+            filterable: true,
+        },
+        {
+            key: "nama_bagian",
+            title: "Bagian",
+            sortable: true,
+            searchable: true,
+            filterable: true,
+        },
+        {
+            key: "jenis_kerusakan",
+            title: "Jenis Kerusakan",
+            sortable: true,
+            searchable: true,
+            filterable: true,
+            wrap: true,
+            minWidth: "300px",
+        },
+        {
+            key: "tindakan",
+            title: "Tindakan",
+            sortable: true,
+            searchable: true,
+            filterable: true,
+            wrap: true,
+            minWidth: "400px",
+        },
+        {
+            key: "tgl_masuk",
+            title: "Tanggal Masuk",
+            sortable: true,
+            searchable: true,
+            filterable: true,
+            format: "DD-MM-YYYY",
+            render: (value) => dayjs(value).format("DD-MM-YYYY"),
+        },
+        {
+            key: "ket",
+            title: "Keterangan",
+            sortable: true,
+            searchable: true,
+            filterable: true,
+            wrap: true,
+            minWidth: "300px",
+        },
+        {
+            key: "befoto",
+            title: "Gambar Sebelum",
+            render: (value, item) => {
+                const imageUrl = getImageUrl(value)
+
+                if (!imageUrl) {
+                    return (
+                        <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 flex items-center justify-center rounded-md">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                {item.desc?.charAt(0).toUpperCase() || '?'}
+                            </span>
+                        </div>
+                    )
+                }
+
+                return (
+                    <div
+                        className="w-10 h-10 rounded-md overflow-hidden bg-gray-200 dark:bg-gray-700 cursor-pointer hover:ring-2 hover:ring-red-500 transition-all"
+                        onClick={() => handleViewImageBefoto(item)}
+                        title="Klik untuk melihat gambar"
+                    >
+                        <img
+                            src={imageUrl}
+                            alt={item.desc || 'Foto Sebelum'}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                                e.target.style.display = 'none'
+                                const parent = e.target.parentElement
+                                parent.classList.add('flex', 'items-center', 'justify-center', 'dark:bg-gray-700')
+                                parent.innerHTML = `<span class="text-xs text-gray-500 dark:text-gray-400 font-medium">${item.nabar?.charAt(0).toUpperCase() || '?'}</span>`
+                            }}
+                        />
+                    </div>
+                )
+            }
+        },
+        {
+            key: "lastfoto",
+            title: "Gambar Setelah",
+            render: (value, item) => {
+                const imageUrl = getImageUrl(value)
+
+                if (!imageUrl) {
+                    return (
+                        <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 flex items-center justify-center rounded-md">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                {item.desc?.charAt(0).toUpperCase() || '?'}
+                            </span>
+                        </div>
+                    )
+                }
+
+                return (
+                    <div
+                        className="w-10 h-10 rounded-md overflow-hidden bg-gray-200 dark:bg-gray-700 cursor-pointer hover:ring-2 hover:ring-red-500 transition-all"
+                        onClick={() => handleViewImageLastfoto(item)}
+                        title="Klik untuk melihat gambar"
+                    >
+                        <img
+                            src={imageUrl}
+                            alt={item.desc || 'Foto Setelah'}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                                e.target.style.display = 'none'
+                                const parent = e.target.parentElement
+                                parent.classList.add('flex', 'items-center', 'justify-center', 'dark:bg-gray-700')
+                                parent.innerHTML = `<span class="text-xs text-gray-500 dark:text-gray-400 font-medium">${item.nabar?.charAt(0).toUpperCase() || '?'}</span>`
+                            }}
+                        />
+                    </div>
+                )
+            }
+        },
+        {
+            key: "pic",
+            title: "PJ",
+            sortable: true,
+            searchable: true,
+            wrap: true,
+            minWidth: "200px",
+        },
+        {
+            key: "actions",
+            title: "Actions",
+            sortable: true,
+            searchable: true,
+            filterable: true,
+            type: "actions",
+            actions: [
+                {
+                    icon: Edit,
+                    title: "Edit",
+                    onClick: (item) => handleEdit(item),
+                },
+                {
+                    icon: Trash2,
+                    title: "Delete",
+                    onClick: (item) => handleDelete(item),
+                },
+            ],
+        },
+    ]
+    const getBangunan = async (params = {}, showLoading = true) => {
+    await fetchList({
+      endpoint: "/sp/perbaikan-barang",
+      page: params.page || currentPage,
+      per_page: params.per_page || itemsPerPage,
+      search: params.search !== undefined ? params.search : searchTerm,
+      filters: params.filters || filters,
+      showLoading,
+      setLoading,
+      onSuccess: (payload) => {
+        setData(payload.data)
+        setTotal(payload.total)
+        setCurrentPage(payload.page)
+        setItemsPerPage(payload.per_page)
+      },
+      onError: (error) => {
+        console.error("Error fetching list:", error)
+        setData([])
+        setTotal(0)
+      },
+    })
+  }
+
+  const postBangunan = async (form) => {
         try {
             let response
 

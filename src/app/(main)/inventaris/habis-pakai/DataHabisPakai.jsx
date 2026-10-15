@@ -11,10 +11,11 @@ import { useData } from "@/app/context/DataContext";
 import ImageView from "@/components/ImageView";
 import dayjs from "dayjs";
 import { getStorageUrl } from '@/helper/storageUrl'
+import useServerListFetch from '@/hooks/useServerListFetch'
 
 // Storage URL dari environment variable
-const STORAGE_URL = process.env.NEXT_PUBLIC_API_STORAGE || "";
 export default function DataHabisPakai() {
+  const { fetchList, clearListCache } = useServerListFetch()
   const [data, setData] = useState([]); // Data yang ditampilkan di table
   const [total, setTotal] = useState(0); // Total data dari server (untuk pagination)
   const [loading, setLoading] = useState(false); // Loading state saat fetch data
@@ -40,6 +41,189 @@ export default function DataHabisPakai() {
 
   // Helper function untuk get full image URL
   const getImageUrl = (filename) => getStorageUrl(filename)
+
+  const handleViewImage = (item) => {
+    const imageUrl = getImageUrl(item.foto);
+    if (imageUrl) {
+      setSelectedImage({
+        url: imageUrl,
+        title: item.nabar,
+      });
+      setShowImageView(true);
+    }
+  };
+  const columns = [
+    {
+        key: 'kode',
+        title: 'KODE',
+        searchable: true,
+        filterable: true,
+    },
+    {
+        key: 'nabar',
+        title: 'NAMA BARANG',
+        searchable: true,
+        filterable: true,
+    },
+    {
+        key: 'deskripsi',
+        title: 'DESKRIPSI',
+        searchable: true,
+        filterable: true,
+    },
+    {
+        key:'tgl',
+        title: 'TANGGAL MASUK',
+        searchable: true,
+        filterable: true,
+        type: 'dateRange',
+        format: 'DD-MM-YYYY',
+        render: (value) => dayjs(value).format('DD-MM-YYYY'),
+        filterOptions: [
+          { 
+            value: "last3Months", 
+            label: "3 Bulan Terakhir",
+            getValue: () => {
+              const threeMonthsAgo = dayjs().subtract(3, 'month').startOf('month').format("YYYY-MM-DD");
+              const today = dayjs().format("YYYY-MM-DD");
+              return `${threeMonthsAgo},${today}`;
+            }
+          },
+          { 
+            value: "custom", 
+            label: "Custom Range",
+            isCustomRange: true
+          }
+        ],
+    },
+    {
+        key: 'stok',
+        title: 'STOK',
+        searchable: true,
+        filterable: true,
+    },
+    {
+        key: 'lokasi_penyimpanan',
+        title: 'LOKASI PENYIMPANAN',
+        searchable: true,
+        filterable: true,
+    },
+    {
+        key: 'harga',
+        title: 'HARGA',
+        searchable: true,
+        filterable: true,
+    },
+    {
+        key: 'satuan',
+        title: 'SATUAN',
+        searchable: true,
+        filterable: true,
+        filter: (value) => value.satuan,
+        filterOptions: satuan.map((item) => ({
+            value: item.satuan,
+            label: item.satuan,
+        })),
+    },
+    {
+        key: 'kategori',
+        title: 'KATEGORI',
+        searchable: true,
+        filterable: true,
+        filter: (value) => value.kategori,
+        filterOptions: kategoriAset.map((item) => ({
+            value: item.kategori,
+            label: item.kategori,
+        })),
+    },
+    {
+        key: 'foto',
+        title: 'FOTO',
+        searchable: true,
+        filterable: true,
+        render: (value, item) => {
+          const imageUrl = getImageUrl(value)
+          
+          // Fallback component untuk menampilkan initial
+          const FallbackAvatar = () => (
+            <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+              <span className="text-xs text-gray-500 font-medium">
+                {item.nabar?.charAt(0).toUpperCase() || '?'}
+              </span>
+            </div>
+          )
+          
+          if (!imageUrl) {
+            return <FallbackAvatar />
+          }
+          
+          // Gunakan img tag biasa dengan error handling yang lebih baik
+          return (
+            <div 
+              className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 cursor-pointer hover:ring-2 hover:ring-red-700 transition-all"
+              onClick={() => handleViewImage(item)}
+              title="Klik untuk melihat gambar"
+            >
+              <img
+                src={imageUrl}
+                alt={item.nabar || 'Foto'}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Hide image dan tampilkan fallback
+                  e.target.style.display = 'none'
+                  const parent = e.target.parentElement
+                  parent.classList.add('flex', 'items-center', 'justify-center', 'dark:bg-gray-700')
+                  parent.innerHTML = `<span class="text-xs text-gray-500 font-medium">${item.nama?.charAt(0).toUpperCase() || '?'}</span>`
+                }}
+              />
+            </div>
+          )
+        }
+    },
+    {
+        key: 'actions',
+        title: 'ACTIONS',
+        searchable: true,
+        filterable: true,
+        type: 'actions',
+        actions: [
+            {
+                icon: Edit,
+                title: 'Edit',
+                onClick: (item) => handleEdit(item),
+            },
+            {
+                icon: Trash2,
+                title: 'Delete',
+                onClick: (item) => handleDelete(item),
+            },
+        ],
+    }
+  ]
+
+  const getHabisPakai = async (params = {}, showLoading = true) => {
+    await fetchList({
+      endpoint: "/sp/habis-pakai",
+      page: params.page || currentPage,
+      per_page: params.per_page || itemsPerPage,
+      search: params.search !== undefined ? params.search : searchTerm,
+      filters: params.filters || filters,
+      showLoading,
+      setLoading,
+      onSuccess: (payload) => {
+        setData(payload.data)
+        setTotal(payload.total)
+        setCurrentPage(payload.page)
+        setItemsPerPage(payload.per_page)
+      },
+      onError: (error) => {
+        console.error("Error fetching habis pakai:", error)
+        setData([])
+        setTotal(0)
+      },
+    })
+  }
+
   const postHabisPakai = async (form) => {
     try {
       let response

@@ -12,6 +12,7 @@
     "apexcharts": "^5.3.6",
     "axios": "^1.12.2",
     "dayjs": "^1.11.18",
+    "exceljs": "^4.4.0",
     "html2pdf.js": "^0.12.1",
     "lucide-react": "^0.545.0",
     "motion": "^12.23.26",

@@ -9,6 +9,7 @@ import { useData } from "@/app/context/DataContext";
 import Vgambar from "../master/Vgambar";
 import Vbukti from "../master/Vbukti";
 import KembalikanModal from "./KembalikanModal";
+import useServerListFetch from "@/hooks/useServerListFetch";
 
 const rupiah = (value) => {
   return new Intl.NumberFormat("id-ID", {
@@ -18,6 +19,7 @@ const rupiah = (value) => {
 };
 
 export default function DataPenghapusan() {
+  const { fetchList, clearListCache } = useServerListFetch();
   const [data, setData] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -252,45 +254,26 @@ export default function DataPenghapusan() {
 
   // ─── Fetch data lelang ────────────────────────────────────────────────────
   const getInv = async (params = {}, showLoading = true) => {
-    try {
-      if (showLoading) setLoading(true);
-      const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 800));
-
-      const queryParams = new URLSearchParams({
-        page: params.page || currentPage,
-        per_page: params.per_page || itemsPerPage,
-      });
-
-      const searchValue =
-        params.search !== undefined ? params.search : searchTerm;
-      if (searchValue && searchValue.trim() !== "") {
-        queryParams.append("search", searchValue);
-      }
-
-      if (params.filters) {
-        Object.entries(params.filters).forEach(([key, value]) => {
-          if (value) queryParams.append(key, value);
-        });
-      }
-
-      const [response] = await Promise.all([
-        api.get(`/sp/aset-lelang?${queryParams}`),
-        minLoadingTime,
-      ]);
-
-      if (response.data.status === "success") {
-        setData(response.data.data);
-        setTotal(response.data.total);
-        setCurrentPage(response.data.page);
-        setItemsPerPage(response.data.per_page);
-      }
-    } catch (error) {
-      console.error("Error fetching data penghapusan:", error);
-      setData([]);
-      setTotal(0);
-    } finally {
-      if (showLoading) setLoading(false);
-    }
+    await fetchList({
+      endpoint: "/sp/aset-lelang",
+      page: params.page || currentPage,
+      per_page: params.per_page || itemsPerPage,
+      search: params.search !== undefined ? params.search : searchTerm,
+      filters: params.filters || filters,
+      showLoading,
+      setLoading,
+      onSuccess: (payload) => {
+        setData(payload.data);
+        setTotal(payload.total);
+        setCurrentPage(payload.page);
+        setItemsPerPage(payload.per_page);
+      },
+      onError: (error) => {
+        console.error("Error fetching data penghapusan:", error);
+        setData([]);
+        setTotal(0);
+      },
+    });
   };
 
   // ─── Kembalikan status (status_lelang = 'tidak', deskripsi = '') ──────────

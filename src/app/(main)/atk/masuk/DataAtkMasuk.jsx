@@ -12,8 +12,10 @@ import { useData } from "@/app/context/DataContext";
 import ImageView from "@/components/ImageView";
 import dayjs from "dayjs";
 import { getStorageUrl } from '@/helper/storageUrl'
+import useServerListFetch from '@/hooks/useServerListFetch'
 
 export default function DataAtkMasuk() {
+  const { fetchList, clearListCache } = useServerListFetch()
   const [data, setData] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -185,52 +187,26 @@ export default function DataAtkMasuk() {
   ];
 
   const getAtkMasuk = async (params = {}, showLoading = true) => {
-    try {
-      if (showLoading) {
-        setLoading(true);
-      }
-      const minLoadingTime = new Promise(resolve => setTimeout(resolve, 800));
-
-      const queryParams = new URLSearchParams({
-        page: params.page || currentPage,
-        per_page: params.per_page || itemsPerPage
-      });
-
-      const searchValue = params.search !== undefined ? params.search : searchTerm;
-      if (searchValue && searchValue.trim() !== '') {
-        queryParams.append('search', searchValue);
-      }
-
-      if (params.filters) {
-        Object.entries(params.filters).forEach(([key, value]) => {
-          if (value) {
-            queryParams.append(key, value);
-          }
-        });
-      }
-
-      const [response] = await Promise.all([
-        api.get(`/sp/atk-in?${queryParams}`),
-        minLoadingTime
-      ]);
-
-       if (response.data.message === 'success') {
-         const rawData = response.data.data;
-         
-        setData(rawData);
-        setTotal(response.data.pagination?.total || rawData.length);
-        setCurrentPage(response.data.pagination?.current_page || 1);
-        setItemsPerPage(response.data.pagination?.per_page || 10);
-       }
-    } catch (error) {
-      console.error('Error fetching ATK Masuk:', error);
-      setData([]);
-      setTotal(0);
-    } finally {
-      if (showLoading) {
-        setLoading(false);
-      }
-    }
+    await fetchList({
+      endpoint: "/sp/atk-in",
+      page: params.page || currentPage,
+      per_page: params.per_page || itemsPerPage,
+      search: params.search !== undefined ? params.search : searchTerm,
+      filters: params.filters || filters,
+      showLoading,
+      setLoading,
+      onSuccess: (payload) => {
+        setData(payload.data)
+        setTotal(payload.total)
+        setCurrentPage(payload.page)
+        setItemsPerPage(payload.per_page)
+      },
+      onError: (error) => {
+        console.error("Error fetching list:", error)
+        setData([])
+        setTotal(0)
+      },
+    })
   };
 
   const postAtkMasuk = async (form) => {

@@ -5,8 +5,10 @@ import DataTable from '@/components/DataTable'
 import api from '@/app/utils/Api'
 import dayjs from 'dayjs'
 import Aswitch from '@/components/Aswitch'
+import useServerListFetch from '@/hooks/useServerListFetch'
 
 export default function DataAc() {
+  const { fetchList, clearListCache } = useServerListFetch()
     const [data, setData] = useState([])
     const [total, setTotal] = useState(0)
     const [loading, setLoading] = useState(false)
@@ -161,57 +163,27 @@ export default function DataAc() {
     ]
 
     const getPerawatanAc = async (params = {}, showLoading = true) => {
-        try {
-            if (showLoading) setLoading(true)
-
-            const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 800))
-            const queryParams = new URLSearchParams({
-                page: params.page || currentPage,
-                per_page: params.per_page || itemsPerPage,
-            })
-
-            const searchValue = params.search !== undefined ? params.search : searchTerm
-            if (searchValue && searchValue.trim() !== '') {
-                queryParams.append('search', searchValue)
-            }
-
-            if (params.filters) {
-                Object.entries(params.filters).forEach(([key, value]) => {
-                    if (value) queryParams.append(key, value)
-                })
-            }
-
-            const [response] = await Promise.all([
-                api.get(`/sp/perawatan-ac?${queryParams}`),
-                minLoadingTime,
-            ])
-
-            if (response.data?.message === 'success') {
-                const result = response.data.data
-
-                if (Array.isArray(result)) {
-                    setData(result)
-                    setTotal(response.data.pagination?.total || response.data.total || result.length)
-                    setCurrentPage(response.data.pagination?.current_page || response.data.page || 1)
-                    setItemsPerPage(response.data.pagination?.per_page || response.data.per_page || 10)
-                } else if (result?.data) {
-                    setData(result.data)
-                    setTotal(result.pagination?.total || response.data.total || result.data.length)
-                    setCurrentPage(result.pagination?.current_page || response.data.page || 1)
-                    setItemsPerPage(result.pagination?.per_page || response.data.per_page || 10)
-                } else {
-                    setData([])
-                    setTotal(0)
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching perawatan AC:', error)
-            setData([])
-            setTotal(0)
-        } finally {
-            if (showLoading) setLoading(false)
-        }
-    }
+    await fetchList({
+      endpoint: "/sp/perawatan-ac",
+      page: params.page || currentPage,
+      per_page: params.per_page || itemsPerPage,
+      search: params.search !== undefined ? params.search : searchTerm,
+      filters: params.filters || filters,
+      showLoading,
+      setLoading,
+      onSuccess: (payload) => {
+        setData(payload.data)
+        setTotal(payload.total)
+        setCurrentPage(payload.page)
+        setItemsPerPage(payload.per_page)
+      },
+      onError: (error) => {
+        console.error("Error fetching list:", error)
+        setData([])
+        setTotal(0)
+      },
+    })
+  }
 
     const handleDataChange = (params) => {
         if (params.page !== undefined) setCurrentPage(params.page)

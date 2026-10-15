@@ -1,7 +1,7 @@
 "use client";
 import dynamic from 'next/dynamic';
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import DeleteModal from "@/components/Delete";
@@ -12,6 +12,7 @@ import dayjs from "dayjs";
 import TambahInv from "./TambahInv";
 import DialogPenghapusan from "./dialogPenghapusan";
 import { useData } from "@/app/context/DataContext";
+import useServerListFetch from "@/hooks/useServerListFetch";
 
 // Dynamic imports untuk komponen yang menggunakan browser APIs
 const ExportModal = dynamic(() => import('@/components/ExportModal'), { ssr: false });
@@ -70,14 +71,7 @@ export default function DataInv() {
     kategoriAset,
   } = useData();
 
-  // Guard request agar search/update cepat tidak race / stacking loading
-  const fetchIdRef = useRef(0);
-  const abortControllerRef = useRef(null);
-  const lastQueryKeyRef = useRef("");
-  // Cache hasil search singkat agar pencarian berulang langsung tampil
-  const searchCacheRef = useRef(new Map());
-  const SEARCH_CACHE_TTL_MS = 60_000;
-  const SEARCH_CACHE_MAX = 30;
+  const { fetchList, clearListCache } = useServerListFetch();
 
   const columns = [
     {
@@ -91,19 +85,37 @@ export default function DataInv() {
       render: (value) => dayjs(value).format("DD-MM-YYYY"),
       filterOptions: [
         {
+          value: "thisMonth",
+          label: "Bulan Ini",
+          getValue: () => {
+            const start = dayjs().startOf("month").format("YYYY-MM-DD");
+            const end = dayjs().endOf("month").format("YYYY-MM-DD");
+            return `${start},${end}`;
+          },
+        },
+        {
           value: "last3Months",
           label: "3 Bulan Terakhir",
           getValue: () => {
-            const threeMonthsAgo = dayjs().subtract(3, 'month').startOf('month').format("YYYY-MM-DD");
-            const today = dayjs().format("YYYY-MM-DD");
-            return `${threeMonthsAgo},${today}`;
-          }
+            const start = dayjs().subtract(2, "month").startOf("month").format("YYYY-MM-DD");
+            const end = dayjs().format("YYYY-MM-DD");
+            return `${start},${end}`;
+          },
+        },
+        {
+          value: "thisYear",
+          label: "Tahun Ini",
+          getValue: () => {
+            const start = dayjs().startOf("year").format("YYYY-MM-DD");
+            const end = dayjs().format("YYYY-MM-DD");
+            return `${start},${end}`;
+          },
         },
         {
           value: "custom",
           label: "Custom Range",
-          isCustomRange: true
-        }
+          isCustomRange: true,
+        },
       ],
     },
     {
@@ -301,98 +313,26 @@ export default function DataInv() {
     },
   ];
   const getInv = async (params = {}, showLoading = true) => {
-    const page = params.page || currentPage;
-    const perPage = params.per_page || itemsPerPage;
-    const searchValue =
-      params.search !== undefined ? params.search : searchTerm;
-    const activeFilters = params.filters || filters;
-
-    const queryParams = new URLSearchParams({
-      page: String(page),
-      per_page: String(perPage),
-    });
-    if (searchValue && searchValue.trim() !== "") {
-      queryParams.append("search", searchValue.trim());
-    }
-    if (activeFilters) {
-      Object.entries(activeFilters).forEach(([key, value]) => {
-        if (value) queryParams.append(key, value);
-      });
-    }
-
-    const queryKey = queryParams.toString();
-
-    // Skip request identik yang masih jalan / baru saja sama
-    if (queryKey === lastQueryKeyRef.current && showLoading) {
-      return;
-    }
-
-    // Cache hit → tampilkan langsung tanpa loading lama
-    const cached = searchCacheRef.current.get(queryKey);
-    if (cached && Date.now() - cached.ts < SEARCH_CACHE_TTL_MS) {
-      lastQueryKeyRef.current = queryKey;
-      setData(cached.data);
-      setTotal(cached.total);
-      setCurrentPage(cached.page);
-      setItemsPerPage(cached.per_page);
-      setLoading(false);
-      return;
-    }
-
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-    const fetchId = ++fetchIdRef.current;
-    lastQueryKeyRef.current = queryKey;
-
-    try {
-      if (showLoading) {
-        setLoading(true);
-      }
-
-      const response = await api.get(`/sp/aset?${queryKey}`, {
-        signal: controller.signal,
-      });
-
-      if (fetchId !== fetchIdRef.current) return;
-
-      if (response.data.status === "success") {
-        const payload = {
-          data: response.data.data,
-          total: response.data.total,
-          page: response.data.page,
-          per_page: response.data.per_page,
-          ts: Date.now(),
-        };
+    await fetchList({
+      endpoint: "/sp/aset",
+      page: params.page || currentPage,
+      per_page: params.per_page || itemsPerPage,
+      search: params.search !== undefined ? params.search : searchTerm,
+      filters: params.filters || filters,
+      showLoading,
+      setLoading,
+      onSuccess: (payload) => {
         setData(payload.data);
         setTotal(payload.total);
         setCurrentPage(payload.page);
         setItemsPerPage(payload.per_page);
-
-        // Simpan cache (batas entri agar tidak membengkak)
-        searchCacheRef.current.set(queryKey, payload);
-        if (searchCacheRef.current.size > SEARCH_CACHE_MAX) {
-          const oldestKey = searchCacheRef.current.keys().next().value;
-          searchCacheRef.current.delete(oldestKey);
-        }
-      }
-    } catch (error) {
-      if (error?.name === "CanceledError" || error?.code === "ERR_CANCELED") {
-        return;
-      }
-      console.error("Error fetching inventaris:", error);
-      if (fetchId === fetchIdRef.current) {
+      },
+      onError: (error) => {
+        console.error("Error fetching inventaris:", error);
         setData([]);
         setTotal(0);
-        lastQueryKeyRef.current = "";
-      }
-    } finally {
-      if (showLoading && fetchId === fetchIdRef.current) {
-        setLoading(false);
-      }
-    }
+      },
+    });
   };
 
   const postInv = async (form) => {
@@ -462,8 +402,7 @@ export default function DataInv() {
     setDeleteLoading(true);
     try {
       await api.delete(`/sp/aset/${deletingInv.id}`); // Fix: gunakan id dari object
-      searchCacheRef.current.clear();
-      lastQueryKeyRef.current = "";
+      clearListCache();
       getInv();
       setShowDeleteModal(false);
       setDeletingInv(null); // Fix: nama variable yang benar
@@ -492,8 +431,7 @@ export default function DataInv() {
         api.delete(`/sp/aset/${id}`)
       ); // 🔧 GANTI: endpoint delete
       await Promise.all(deletePromises);
-      searchCacheRef.current.clear();
-      lastQueryKeyRef.current = "";
+      clearListCache();
       getInv();
       setShowBulkDeleteModal(false);
       setBulkDeleteIds([]);
@@ -528,9 +466,7 @@ export default function DataInv() {
     setIsCopyMode(false);
   };
   const handleAddSuccess = (newTeam) => {
-    // Data berubah → kosongkan cache search agar list tidak stale
-    searchCacheRef.current.clear();
-    lastQueryKeyRef.current = "";
+    clearListCache();
     getInv();
     setShowAddModal(false);
     setEditingInv(null);
@@ -539,6 +475,40 @@ export default function DataInv() {
   };
   const handleExport = () => {
     setShowExportModal(true);
+  };
+
+  // Ambil semua halaman sesuai filter/search aktif untuk export ISO
+  const fetchAllInventarisForExport = async () => {
+    const all = [];
+    let page = 1;
+    const perPage = 500;
+    let totalPages = 1;
+
+    do {
+      const queryParams = new URLSearchParams({
+        page: String(page),
+        per_page: String(perPage),
+      });
+      if (searchTerm?.trim()) queryParams.append("search", searchTerm.trim());
+      Object.entries(filters || {}).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "" && value !== "custom") {
+          queryParams.append(key, value);
+        }
+      });
+
+      const response = await api.get(`/sp/aset?${queryParams}`);
+      if (response.data?.status !== "success") {
+        throw new Error(response.data?.message || "Gagal mengambil data export");
+      }
+      const chunk = response.data.data || [];
+      all.push(...chunk);
+      totalPages = Number(response.data.total_pages) || 1;
+      // approx_total search: lanjut jika masih penuh
+      if (chunk.length < perPage) break;
+      page += 1;
+    } while (page <= totalPages && page <= 100);
+
+    return all;
   };
 
   const handleStiker = (selectedIds) => {
@@ -607,7 +577,7 @@ export default function DataInv() {
         onBulkDelete={handleBulkDelete}
         onStiker={handleStiker}
         pagination={true}
-        itemsPerPageOptions={[5, 10, 25, 50]}
+        itemsPerPageOptions={[5, 10, 25, 50, 100, 500]}
         defaultItemsPerPage={10}
         title="Data Aset"
         subtitle="Kelola data Aset"
@@ -619,8 +589,6 @@ export default function DataInv() {
         currentFilters={filters}
         currentSortField={sortField}
         currentSortDirection={sortDirection}
-        searchDebounceMs={900}
-        minSearchLength={2}
       />
 
       {/* Modal Delete Single */}
@@ -681,7 +649,9 @@ export default function DataInv() {
         data={data}
         columns={columns}
         filename="data-inventaris"
-        title="Export Data Invantaris Aset"
+        title="Export Data Inventaris Aset"
+        enableIsoInventaris={true}
+        fetchAllData={fetchAllInventarisForExport}
       />
 
       {/* Modal Stiker */}

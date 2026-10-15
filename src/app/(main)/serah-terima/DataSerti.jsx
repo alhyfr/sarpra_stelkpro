@@ -12,12 +12,14 @@ import TambahSerti from "./TambahSerti";
 import dayjs from "dayjs";
 import { useData } from "@/app/context/DataContext";
 import { useRouter } from "next/navigation";
+import useServerListFetch from '@/hooks/useServerListFetch'
 const Vbukti = dynamic(() => import("../inventaris/master/Vbukti"), {
   ssr: false,
   loading: () => <div className="w-10 h-10 rounded-full bg-gray-200"></div>,
 });
 
 export default function DataSerti() {
+  const { fetchList, clearListCache } = useServerListFetch()
   const { getOpsi, gedung } = useData();
   const [data, setData] = useState([]); // Data yang ditampilkan di table
   const [total, setTotal] = useState(0); // Total data dari server (untuk pagination)
@@ -133,49 +135,27 @@ export default function DataSerti() {
     },
   ]
   const getSerti = async (params = {}, showLoading = true) => {
-    try {
-      if (showLoading) {
-        setLoading(true);
-      }
-      const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 800));
-      const queryParams = new URLSearchParams({
-        page: params.page || currentPage,
-        per_page: params.per_page || itemsPerPage,
-      });
-      const searchValue =
-        params.search !== undefined ? params.search : searchTerm;
-      if (searchValue && searchValue.trim() !== "") {
-        queryParams.append("search", searchValue);
-      }
-      if (params.filters) {
-        Object.entries(params.filters).forEach(([key, value]) => {
-          if (value) {
-            queryParams.append(key, value);
-          }
-        });
-      }
-
-      const [response] = await Promise.all([
-        api.get(`/sp/serti?${queryParams}`),
-        minLoadingTime,
-      ]);
-
-      if (response.data.status === "success") {
-        setData(response.data.data);
-        setTotal(response.data.total);
-        setCurrentPage(response.data.page);
-        setItemsPerPage(response.data.per_page);
-      }
-    } catch (error) {
-      console.error("Error fetching serah-terima:", error);
-      setData([]);
-      setTotal(0);
-    } finally {
-      if (showLoading) {
-        setLoading(false);
-      }
-    }
-  };
+    await fetchList({
+      endpoint: "/sp/serti",
+      page: params.page || currentPage,
+      per_page: params.per_page || itemsPerPage,
+      search: params.search !== undefined ? params.search : searchTerm,
+      filters: params.filters || filters,
+      showLoading,
+      setLoading,
+      onSuccess: (payload) => {
+        setData(payload.data)
+        setTotal(payload.total)
+        setCurrentPage(payload.page)
+        setItemsPerPage(payload.per_page)
+      },
+      onError: (error) => {
+        console.error("Error fetching list:", error)
+        setData([])
+        setTotal(0)
+      },
+    })
+  }
   const postSerti = async (form) => {
     try {
       let response;

@@ -10,6 +10,7 @@ import { useData } from "@/app/context/DataContext";
 import Vgambar from "../master/Vgambar";
 import Vbukti from "../master/Vbukti";
 import UbahStatus from "./UbahStatus";
+import useServerListFetch from "@/hooks/useServerListFetch";
 
 const rupiah = (value) => {
   return new Intl.NumberFormat("id-ID", {
@@ -19,6 +20,7 @@ const rupiah = (value) => {
 };
 
 export default function DataPending() {
+  const { fetchList, clearListCache } = useServerListFetch();
   const [data, setData] = useState([]); // Data yang ditampilkan di table
   const [total, setTotal] = useState(0); // Total data dari server (untuk pagination)
   const [loading, setLoading] = useState(false); // Loading state saat fetch data
@@ -246,49 +248,26 @@ export default function DataPending() {
     },
   ];
   const getInv = async (params = {}, showLoading = true) => {
-    try {
-      if (showLoading) {
-        setLoading(true);
-      }
-      const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 800));
-      const queryParams = new URLSearchParams({
-        page: params.page || currentPage,
-        per_page: params.per_page || itemsPerPage,
-      });
-      const searchValue =
-        params.search !== undefined ? params.search : searchTerm;
-      if (searchValue && searchValue.trim() !== "") {
-        queryParams.append("search", searchValue);
-      }
-      if (params.filters) {
-        Object.entries(params.filters).forEach(([key, value]) => {
-          if (value) {
-            queryParams.append(key, value);
-          }
-        });
-      }
-
-      const [response] = await Promise.all([
-        api.get(`/sp/aset-off?${queryParams}`),
-        minLoadingTime,
-      ]);
-
-      if (response.data.status === "success") {
-        setData(response.data.data);
-        setTotal(response.data.total);
-        setCurrentPage(response.data.page);
-        setItemsPerPage(response.data.per_page);
-        // console.log(response.data.data)
-      }
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      setData([]);
-      setTotal(0);
-    } finally {
-      if (showLoading) {
-        setLoading(false);
-      }
-    }
+    await fetchList({
+      endpoint: "/sp/aset-off",
+      page: params.page || currentPage,
+      per_page: params.per_page || itemsPerPage,
+      search: params.search !== undefined ? params.search : searchTerm,
+      filters: params.filters || filters,
+      showLoading,
+      setLoading,
+      onSuccess: (payload) => {
+        setData(payload.data);
+        setTotal(payload.total);
+        setCurrentPage(payload.page);
+        setItemsPerPage(payload.per_page);
+      },
+      onError: (error) => {
+        console.error("Error fetching inventaris pending:", error);
+        setData([]);
+        setTotal(0);
+      },
+    });
   };
   const handleStatus = (item) => {
     setSelectedItem(item);
