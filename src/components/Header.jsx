@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import "dayjs/locale/id";
+import { getStorageUrl } from '@/helper/storageUrl';
 
 dayjs.extend(relativeTime);
 dayjs.locale('id');
@@ -76,6 +77,8 @@ export default function Header({ onMenuClick }) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() || '')
     .join('') || 'U';
+
+  const avatarUrl = user?.foto ? getStorageUrl(user.foto) : null;
 
   return (
     <header className="h-14 sm:h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30">
@@ -169,8 +172,17 @@ export default function Header({ onMenuClick }) {
               }}
               className="flex items-center gap-2 p-1.5 sm:pr-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0">
-                {userInitials}
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden">
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={avatarUrl}
+                    alt={user?.name || 'Profil'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  userInitials
+                )}
               </div>
               <div className="hidden md:block text-left max-w-[9rem] lg:max-w-[12rem]">
                 <div className="text-sm font-medium truncate">{user?.name || 'User'}</div>
