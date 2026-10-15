@@ -73,6 +73,11 @@ export default function DataInv() {
   // Guard request agar search/update cepat tidak race / stacking loading
   const fetchIdRef = useRef(0);
   const abortControllerRef = useRef(null);
+  const lastQueryKeyRef = useRef("");
+  // Cache hasil search singkat agar pencarian berulang langsung tampil
+  const searchCacheRef = useRef(new Map());
+  const SEARCH_CACHE_TTL_MS = 60_000;
+  const SEARCH_CACHE_MAX = 30;
 
   const columns = [
     {
@@ -296,48 +301,82 @@ export default function DataInv() {
     },
   ];
   const getInv = async (params = {}, showLoading = true) => {
-    // Batalkan request sebelumnya agar search beruntun tidak menumpuk
+    const page = params.page || currentPage;
+    const perPage = params.per_page || itemsPerPage;
+    const searchValue =
+      params.search !== undefined ? params.search : searchTerm;
+    const activeFilters = params.filters || filters;
+
+    const queryParams = new URLSearchParams({
+      page: String(page),
+      per_page: String(perPage),
+    });
+    if (searchValue && searchValue.trim() !== "") {
+      queryParams.append("search", searchValue.trim());
+    }
+    if (activeFilters) {
+      Object.entries(activeFilters).forEach(([key, value]) => {
+        if (value) queryParams.append(key, value);
+      });
+    }
+
+    const queryKey = queryParams.toString();
+
+    // Skip request identik yang masih jalan / baru saja sama
+    if (queryKey === lastQueryKeyRef.current && showLoading) {
+      return;
+    }
+
+    // Cache hit → tampilkan langsung tanpa loading lama
+    const cached = searchCacheRef.current.get(queryKey);
+    if (cached && Date.now() - cached.ts < SEARCH_CACHE_TTL_MS) {
+      lastQueryKeyRef.current = queryKey;
+      setData(cached.data);
+      setTotal(cached.total);
+      setCurrentPage(cached.page);
+      setItemsPerPage(cached.per_page);
+      setLoading(false);
+      return;
+    }
+
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
     const controller = new AbortController();
     abortControllerRef.current = controller;
     const fetchId = ++fetchIdRef.current;
+    lastQueryKeyRef.current = queryKey;
 
     try {
       if (showLoading) {
         setLoading(true);
       }
 
-      const queryParams = new URLSearchParams({
-        page: params.page || currentPage,
-        per_page: params.per_page || itemsPerPage,
-      });
-      const searchValue =
-        params.search !== undefined ? params.search : searchTerm;
-      if (searchValue && searchValue.trim() !== "") {
-        queryParams.append("search", searchValue);
-      }
-      if (params.filters) {
-        Object.entries(params.filters).forEach(([key, value]) => {
-          if (value) {
-            queryParams.append(key, value);
-          }
-        });
-      }
-
-      const response = await api.get(`/sp/aset?${queryParams}`, {
+      const response = await api.get(`/sp/aset?${queryKey}`, {
         signal: controller.signal,
       });
 
-      // Abaikan respons usang jika sudah ada request lebih baru
       if (fetchId !== fetchIdRef.current) return;
 
       if (response.data.status === "success") {
-        setData(response.data.data);
-        setTotal(response.data.total);
-        setCurrentPage(response.data.page);
-        setItemsPerPage(response.data.per_page);
+        const payload = {
+          data: response.data.data,
+          total: response.data.total,
+          page: response.data.page,
+          per_page: response.data.per_page,
+          ts: Date.now(),
+        };
+        setData(payload.data);
+        setTotal(payload.total);
+        setCurrentPage(payload.page);
+        setItemsPerPage(payload.per_page);
+
+        // Simpan cache (batas entri agar tidak membengkak)
+        searchCacheRef.current.set(queryKey, payload);
+        if (searchCacheRef.current.size > SEARCH_CACHE_MAX) {
+          const oldestKey = searchCacheRef.current.keys().next().value;
+          searchCacheRef.current.delete(oldestKey);
+        }
       }
     } catch (error) {
       if (error?.name === "CanceledError" || error?.code === "ERR_CANCELED") {
@@ -347,6 +386,7 @@ export default function DataInv() {
       if (fetchId === fetchIdRef.current) {
         setData([]);
         setTotal(0);
+        lastQueryKeyRef.current = "";
       }
     } finally {
       if (showLoading && fetchId === fetchIdRef.current) {
@@ -422,8 +462,9 @@ export default function DataInv() {
     setDeleteLoading(true);
     try {
       await api.delete(`/sp/aset/${deletingInv.id}`); // Fix: gunakan id dari object
-      // Refresh data after delete
-      getInv(); // Fix: nama function yang benar
+      searchCacheRef.current.clear();
+      lastQueryKeyRef.current = "";
+      getInv();
       setShowDeleteModal(false);
       setDeletingInv(null); // Fix: nama variable yang benar
     } catch (error) {
@@ -451,6 +492,8 @@ export default function DataInv() {
         api.delete(`/sp/aset/${id}`)
       ); // 🔧 GANTI: endpoint delete
       await Promise.all(deletePromises);
+      searchCacheRef.current.clear();
+      lastQueryKeyRef.current = "";
       getInv();
       setShowBulkDeleteModal(false);
       setBulkDeleteIds([]);
@@ -485,6 +528,9 @@ export default function DataInv() {
     setIsCopyMode(false);
   };
   const handleAddSuccess = (newTeam) => {
+    // Data berubah → kosongkan cache search agar list tidak stale
+    searchCacheRef.current.clear();
+    lastQueryKeyRef.current = "";
     getInv();
     setShowAddModal(false);
     setEditingInv(null);
@@ -573,7 +619,7 @@ export default function DataInv() {
         currentFilters={filters}
         currentSortField={sortField}
         currentSortDirection={sortDirection}
-        searchDebounceMs={700}
+        searchDebounceMs={900}
         minSearchLength={2}
       />
 
