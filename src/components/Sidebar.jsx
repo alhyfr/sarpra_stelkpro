@@ -19,6 +19,7 @@ import {
   X,
   Handshake,
   LockKeyhole,
+  MonitorSmartphone,
   BrickWall
 } from 'lucide-react';
 
@@ -126,12 +127,18 @@ const menuItems = [
     href: '/audit/keamanan'
   },
   {
+    title: 'Perawatan Perangkat IT',
+    icon: MonitorSmartphone,
+    href: '/audit/perawatan-it'
+  },
+  {
     title: 'Settings',
     icon: Settings,
     submenu: [
       { title: 'satuan', href: '/settings/satuan' },
       { title: 'Sumber Dana', href: '/settings/sumber' },
       { title: 'Kategori Aset', href: '/settings/kategori' },
+      { title: 'Kategori IT', href: '/settings/kategori-it' },
     ]
   },
 ];

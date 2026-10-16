@@ -1,13 +1,28 @@
 "use client";
 import { useState, useEffect } from "react";
 import AInput from "@/components/AInput";
-import ARadio from "@/components/ARadio";
 import ASelect from "@/components/ASelect";
 import ADatePicker from "@/components/ADatePicker";
 import Button from "@/components/Button";
 import { validateTahunanForm } from "@/app/utils/validator";
-import { Package, NotebookText, Calendar, MapPin, Check, Users } from "lucide-react";
+import {
+  NotebookText,
+  Calendar,
+  MapPin,
+  Check,
+  Users,
+  FileText,
+  StickyNote,
+  Building2,
+} from "lucide-react";
 import { useData } from "@/app/context/DataContext";
+
+const unitOptions = [
+  { value: "it", label: "IT" },
+  { value: "lab", label: "Lab" },
+  { value: "sarpra", label: "Sarpra" },
+];
+
 export default function TambahTahunan({
   onClose,
   onSuccess,
@@ -19,6 +34,7 @@ export default function TambahTahunan({
   useEffect(() => {
     getWaka();
   }, [getWaka]);
+
   const [form, setForm] = useState({
     kegiatan: "",
     tgl: "",
@@ -26,10 +42,15 @@ export default function TambahTahunan({
     lokasi: "",
     status: "incoming",
     team_id: "",
+    unit: "it",
+    auto_status: true,
+    catatan: "",
+    keterangan: "",
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState(false);
+
   useEffect(() => {
     if (isEditMode && editingTahunan) {
       setForm({
@@ -37,16 +58,27 @@ export default function TambahTahunan({
         tgl: editingTahunan.tgl || "",
         end: editingTahunan.end || "",
         lokasi: editingTahunan.lokasi || "",
-        status: editingTahunan.status || "",
-        team_id: editingTahunan.team_id || "",
+        status: editingTahunan.status || "incoming",
+        team_id: editingTahunan.team_id
+          ? String(editingTahunan.team_id)
+          : "",
+        unit: editingTahunan.unit || "it",
+        auto_status:
+          editingTahunan.auto_status === 0 ||
+          editingTahunan.auto_status === false
+            ? false
+            : true,
+        catatan: editingTahunan.catatan || "",
+        keterangan: editingTahunan.keterangan || "",
       });
     }
   }, [isEditMode, editingTahunan]);
+
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
     if (showErrors && errors[name]) {
       setErrors((prev) => ({
@@ -55,14 +87,15 @@ export default function TambahTahunan({
       }));
     }
   };
+
   const validateForm = () => {
     const newErrors = validateTahunanForm(form);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Set showErrors ke true untuk menampilkan error
     setShowErrors(true);
 
     if (!validateForm()) {
@@ -71,26 +104,26 @@ export default function TambahTahunan({
 
     setLoading(true);
     setErrors({});
-    setShowErrors(false); // Reset setelah validasi sukses
+    setShowErrors(false);
 
     try {
-      // Jika ada foto (File object), gunakan FormData untuk multipart upload
-      let submitData;
-      submitData = {
+      const submitData = {
         kegiatan: form.kegiatan,
         tgl: form.tgl,
         end: form.end,
         lokasi: form.lokasi,
         status: form.status,
         team_id: form.team_id,
+        unit: form.unit,
+        auto_status: form.auto_status,
+        catatan: form.catatan || null,
+        keterangan: form.status === "cancel" ? form.keterangan : form.keterangan || null,
       };
-      // Fix: gunakan postSatuan bukan postGedung
       if (postTahunan) {
         await postTahunan(submitData);
       } else {
         throw new Error("postTahunan function not provided");
       }
-      // Reset form
       setForm({
         kegiatan: "",
         tgl: "",
@@ -98,9 +131,11 @@ export default function TambahTahunan({
         lokasi: "",
         status: "incoming",
         team_id: "",
+        unit: "it",
+        auto_status: true,
+        catatan: "",
+        keterangan: "",
       });
-
-      // Reset error state
       setShowErrors(false);
       setErrors({});
 
@@ -108,7 +143,6 @@ export default function TambahTahunan({
       if (onClose) onClose();
     } catch (error) {
       console.error("Error saving tahunan:", error);
-      // Show error via alert instead of form error
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
@@ -118,106 +152,162 @@ export default function TambahTahunan({
       setLoading(false);
     }
   };
+
   const statusOptions = [
     { value: "incoming", label: "Incoming" },
+    { value: "ongoing", label: "Ongoing" },
     { value: "selesai", label: "Selesai" },
-    { value: "cancel", label: "Cancel" },
+    { value: "cancel", label: "Cancel / Tidak Terlaksana" },
   ];
 
   return (
     <div>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Grid Layout untuk form fields */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {/* Kegiatan - Full Width */}
           <div className="md:col-span-2">
-        <AInput
-          id="kegiatan"
-          icon={NotebookText}
-          name="kegiatan"
-          label="Kegiatan"
-          placeholder="Masukkan Kegiatan"
-          value={form.kegiatan}
-          onChange={handleInputChange}
-          error={showErrors ? errors.kegiatan : ""}
+            <AInput
+              id="kegiatan"
+              icon={NotebookText}
+              name="kegiatan"
+              label="Kegiatan"
+              placeholder="Masukkan Kegiatan"
+              value={form.kegiatan}
+              onChange={handleInputChange}
+              error={showErrors ? errors.kegiatan : ""}
               required
-        />
+            />
           </div>
 
-          {/* Tanggal Mulai */}
-        <ADatePicker
-          id="tgl"
-          icon={Calendar}
-          name="tgl"
+          <ADatePicker
+            id="tgl"
+            icon={Calendar}
+            name="tgl"
             label="Tanggal Mulai"
             placeholder="Pilih Tanggal Mulai"
-          value={form.tgl}
-          onChange={handleInputChange}
-          error={showErrors ? errors.tgl : ""}
+            value={form.tgl}
+            onChange={handleInputChange}
+            error={showErrors ? errors.tgl : ""}
             required
-        />
+          />
 
-          {/* Tanggal Selesai */}
-        <ADatePicker
-          id="end"
-          icon={Calendar}
-          name="end"
-          label="Tanggal Selesai"
-          placeholder="Pilih Tanggal Selesai"
-          value={form.end}
-          onChange={handleInputChange}
-          error={showErrors ? errors.end : ""}
+          <ADatePicker
+            id="end"
+            icon={Calendar}
+            name="end"
+            label="Tanggal Selesai"
+            placeholder="Pilih Tanggal Selesai"
+            value={form.end}
+            onChange={handleInputChange}
+            error={showErrors ? errors.end : ""}
             required
-        />
+          />
 
-          {/* Lokasi */}
-        <AInput
-          id="lokasi"
-          icon={MapPin}
-          name="lokasi"
-          label="Lokasi"
-          placeholder="Masukkan Lokasi"
-          value={form.lokasi}
-          onChange={handleInputChange}
-          error={showErrors ? errors.lokasi : ""}
+          <AInput
+            id="lokasi"
+            icon={MapPin}
+            name="lokasi"
+            label="Lokasi"
+            placeholder="Masukkan Lokasi"
+            value={form.lokasi}
+            onChange={handleInputChange}
+            error={showErrors ? errors.lokasi : ""}
             required
-        />
+          />
 
-          {/* Status */}
-        <ASelect
-          id="status"
-          icon={Check}
-          name="status"
-          label="Status"
-          placeholder="Pilih Status"
-          value={form.status}
-          onChange={handleInputChange}
-          error={showErrors ? errors.status : ""}
+          <ASelect
+            id="status"
+            icon={Check}
+            name="status"
+            label="Status"
+            placeholder="Pilih Status"
+            value={form.status}
+            onChange={handleInputChange}
+            error={showErrors ? errors.status : ""}
             options={statusOptions}
             required
-        />
+          />
 
-          {/* Team - Full Width */}
+          <ASelect
+            id="unit"
+            icon={Building2}
+            name="unit"
+            label="Unit"
+            placeholder="Pilih Unit"
+            value={form.unit}
+            onChange={handleInputChange}
+            error={showErrors ? errors.unit : ""}
+            options={unitOptions}
+            required
+          />
+
           <div className="md:col-span-2">
-        <ASelect
-          id="team_id"
-          icon={Users}
-          name="team_id"
-          label="Team"
-          placeholder="Pilih Team"
-          value={form.team_id}
-          onChange={handleInputChange}
-          error={showErrors ? errors.team_id : ""}
+            <ASelect
+              id="team_id"
+              icon={Users}
+              name="team_id"
+              label="Team"
+              placeholder="Pilih Team"
+              value={form.team_id}
+              onChange={handleInputChange}
+              error={showErrors ? errors.team_id : ""}
               options={teams.map((item) => ({
                 value: String(item.id),
-                label: item.nama || item.nama_team || item.jabatan || `Team ${item.id}`,
+                label:
+                  item.nama ||
+                  item.nama_team ||
+                  item.jabatan ||
+                  `Team ${item.id}`,
               }))}
               required
             />
           </div>
+
+          <div className="md:col-span-2">
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                name="auto_status"
+                checked={!!form.auto_status}
+                onChange={handleInputChange}
+                className="rounded border-gray-300"
+              />
+              Update status otomatis berdasarkan tanggal
+            </label>
+          </div>
+
+          <div className="md:col-span-2">
+            <AInput
+              id="catatan"
+              icon={StickyNote}
+              name="catatan"
+              label="Catatan Pelaksanaan"
+              placeholder="Catatan umum pelaksanaan (opsional)"
+              value={form.catatan}
+              onChange={handleInputChange}
+              multiline
+              rows={2}
+            />
+          </div>
+
+          {form.status === "cancel" && (
+            <div className="md:col-span-2">
+              <AInput
+                id="keterangan"
+                icon={FileText}
+                name="keterangan"
+                label="Keterangan Tidak Terlaksana"
+                placeholder="Alasan kegiatan tidak terlaksana"
+                value={form.keterangan}
+                onChange={handleInputChange}
+                error={showErrors ? errors.keterangan : ""}
+                multiline
+                rows={3}
+                required
+              />
+            </div>
+          )}
         </div>
 
-        {/* Button Actions */}
         <div className="flex justify-end gap-3 pt-2">
           <Button
             type="button"
@@ -227,9 +317,9 @@ export default function TambahTahunan({
           >
             Batal
           </Button>
-        <Button type="submit" disabled={loading}>
-          {loading ? "Menyimpan..." : isEditMode ? "Update" : "Simpan"}
-        </Button>
+          <Button type="submit" disabled={loading}>
+            {loading ? "Menyimpan..." : isEditMode ? "Update" : "Simpan"}
+          </Button>
         </div>
       </form>
     </div>

@@ -129,25 +129,44 @@ export default function Header({ onMenuClick }) {
                 </div>
                 <div className="max-h-96 overflow-y-auto">
                   {Array.isArray(notifikasi) && notifikasi.length > 0 ? (
-                    notifikasi.map((notif, index) => (
+                    notifikasi.map((notif, index) => {
+                      const isCoe = notif.source === 'coe' || notif.username === 'COE';
+                      return (
                       <div
-                        key={index}
+                        key={notif.id || index}
                         className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0"
+                        onClick={() => {
+                          if (isCoe) {
+                            toNotifikasi.push('/coe/tahunan');
+                            setShowNotifications(false);
+                          }
+                        }}
                       >
                         <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                            {notif.username ? notif.username.substring(0, 2).toUpperCase() : '??'}
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold ${
+                            isCoe
+                              ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                              : 'bg-gradient-to-br from-green-500 to-teal-600'
+                          }`}>
+                            {isCoe ? 'CE' : (notif.username ? notif.username.substring(0, 2).toUpperCase() : '??')}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-sm">{notif.username}</h4>
+                            <h4 className="font-medium text-sm">
+                              {isCoe ? 'Calendar of Events' : notif.username}
+                            </h4>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
                               {notif.aktifitas}
                             </p>
-                            <span className="text-xs text-gray-500 mt-1">{dayjs(notif.created_at).locale("id").fromNow()}</span>
+                            <span className="text-xs text-gray-500 mt-1">
+                              {isCoe && notif.created_at
+                                ? dayjs(notif.created_at).format('DD MMM YYYY')
+                                : dayjs(notif.created_at).locale("id").fromNow()}
+                            </span>
                           </div>
                         </div>
                       </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
                       Tidak ada notifikasi

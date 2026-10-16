@@ -485,44 +485,57 @@ export const validateJadwalLabForm = createValidator({
     }
   }
 });
-export const validateTahunanForm = createValidator({
-  kegiatan: {
-    presence: {
-      allowEmpty: false,
-      message: "^Kegiatan wajib diisi"
+export const validateTahunanForm = (form) => {
+  const base = createValidator({
+    kegiatan: {
+      presence: {
+        allowEmpty: false,
+        message: "^Kegiatan wajib diisi"
+      }
+    },
+    tgl: {
+      presence: {
+        allowEmpty: false,
+        message: "^Tanggal wajib diisi"
+      }
+    },
+    end: {
+      presence: {
+        allowEmpty: false,
+        message: "^Tanggal selesai wajib diisi"
+      }
+    },
+    lokasi: {
+      presence: {
+        allowEmpty: false,
+        message: "^Lokasi wajib diisi"
+      }
+    },
+    status: {
+      presence: {
+        allowEmpty: false,
+        message: "^Status wajib diisi"
+      }
+    },
+    team_id: {
+      presence: {
+        allowEmpty: false,
+        message: "^Team wajib dipilih"
+      }
+    },
+    unit: {
+      presence: {
+        allowEmpty: false,
+        message: "^Unit wajib dipilih"
+      }
     }
-  },
-  tgl: {
-    presence: {
-      allowEmpty: false,
-      message: "^Tanggal wajib diisi"
-    }
-  },
-  end: {
-    presence: {
-      allowEmpty: false,
-      message: "^Tanggal selesai wajib diisi"
-    }
-  },
-  lokasi: {
-    presence: {
-      allowEmpty: false,
-      message: "^Lokasi wajib diisi"
-    }
-  },
-  status: {
-    presence: {
-      allowEmpty: false,
-      message: "^Status wajib diisi"
-    }
-  },
-  team_id: {
-    presence: {
-      allowEmpty: false,
-      message: "^Team wajib dipilih"
-    }
+  });
+  const errors = base(form) || {};
+  if (form.status === "cancel" && !String(form.keterangan || "").trim()) {
+    errors.keterangan = "Keterangan wajib diisi jika kegiatan tidak terlaksana";
   }
-});
+  return errors;
+};
 export const validateEventForm = createValidator({
   kegiatan: {
     presence: {
