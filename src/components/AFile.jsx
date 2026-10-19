@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Upload, X, FileIcon, ImageIcon, AlertCircle, FileText, Loader2 } from 'lucide-react'
-import Image from 'next/image'
 import { compressImage, formatFileSize } from '@/app/utils/compressImage'
 import { getStorageUrl } from '@/helper/storageUrl'
 
@@ -313,14 +312,16 @@ export default function AFile({
             {/* File Preview */}
             <div className="relative w-full h-48 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
               {fileType?.isImage ? (
-                <Image
+                // img biasa: jangan lewat /_next/image.
+                // Di production optimizer Next mengunduh ulang file storage,
+                // lalu 500/499 menumpuk dan mengunci koneksi browser yang sama
+                // dengan request simpan data.
+                <img
                   src={currentPreview}
                   alt="Preview"
-                  fill
-                  className="object-contain"
+                  className="absolute inset-0 h-full w-full object-contain"
                   onError={(e) => {
-                    console.warn('Error loading image preview')
-                    e.target.style.display = 'none'
+                    e.currentTarget.style.display = 'none'
                   }}
                 />
               ) : fileType?.isPdf ? (
