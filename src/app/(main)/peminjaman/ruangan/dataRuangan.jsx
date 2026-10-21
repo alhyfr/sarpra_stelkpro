@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import DeleteModal from "@/components/Delete";
@@ -155,7 +155,7 @@ export default function DataRuangan() {
       ],
     }
   ];
-  const getPinru = async (params = {}, showLoading = true) => {
+  const getPinru = async (params = {}, showLoading = true, force = false) => {
     await fetchList({
       endpoint: "/sp/pinruangan",
       page: params.page || currentPage,
@@ -163,6 +163,7 @@ export default function DataRuangan() {
       search: params.search !== undefined ? params.search : searchTerm,
       filters: params.filters || filters,
       showLoading,
+      force,
       setLoading,
       onSuccess: (payload) => {
         setData(payload.data)
@@ -332,13 +333,15 @@ export default function DataRuangan() {
     getPinru()
   }, [])
 
-  useEffect(() => {
-    const unsubscribe = subscribeWebSocket('pinruanganUpdated', () => {
-      getPinru(); // Trigger refresh when pinruangan is updated
-    });
+  const getPinruRef = useRef(getPinru)
+  getPinruRef.current = getPinru
 
-    return unsubscribe; // Cleanup on unmount
-  }, [subscribeWebSocket]);
+  useEffect(() => {
+    return subscribeWebSocket('pinruanganUpdated', () => {
+      clearListCache()
+      getPinruRef.current({}, false, true)
+    })
+  }, [subscribeWebSocket, clearListCache])
   return (
     <div>
       <DataTable

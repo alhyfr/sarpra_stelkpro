@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import DeleteModal from "@/components/Delete";
@@ -36,7 +36,7 @@ export default function DataAtkKeluar() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showStrukModal, setShowStrukModal] = useState(false);
   const [selectedAtkOut, setSelectedAtkOut] = useState(null);
-  // const { subscribeWebSocket } = useData();
+  const { subscribeWebSocket } = useData();
 
   const columns = [
     {
@@ -160,7 +160,7 @@ export default function DataAtkKeluar() {
       ],
     },
   ];
-  const getAtkOut = async (params = {}, showLoading = true) => {
+  const getAtkOut = async (params = {}, showLoading = true, force = false) => {
     await fetchList({
       endpoint: "/sp/atk-out",
       page: params.page || currentPage,
@@ -168,6 +168,7 @@ export default function DataAtkKeluar() {
       search: params.search !== undefined ? params.search : searchTerm,
       filters: params.filters || filters,
       showLoading,
+      force,
       setLoading,
       onSuccess: (payload) => {
         setData(payload.data)
@@ -350,13 +351,16 @@ export default function DataAtkKeluar() {
   useEffect(() => {
     getAtkOut();
   }, []);
-  // useEffect(() => {
-  //   const unsubscribe = subscribeWebSocket('atkPinjamUpdated', () => {
-  //     getAtkOut(); // Trigger refresh when pinbar is updated
-  //   });
 
-  //   return unsubscribe; // Cleanup on unmount
-  // }, [subscribeWebSocket, getAtkOut]);
+  const getAtkOutRef = useRef(getAtkOut);
+  getAtkOutRef.current = getAtkOut;
+
+  useEffect(() => {
+    return subscribeWebSocket("atkPinjamUpdated", () => {
+      clearListCache();
+      getAtkOutRef.current({}, false, true);
+    });
+  }, [subscribeWebSocket, clearListCache]);
   return (
     <div>
       <DataTable

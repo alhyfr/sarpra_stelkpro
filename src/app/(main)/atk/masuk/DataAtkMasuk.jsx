@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import DeleteModal from "@/components/Delete";
@@ -38,7 +38,7 @@ export default function DataAtkMasuk() {
   const [showImageView, setShowImageView] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  const { dana, getOpsi } = useData();
+  const { dana, getOpsi, subscribeWebSocket } = useData();
 
   useEffect(() => {
     getOpsi();
@@ -186,7 +186,7 @@ export default function DataAtkMasuk() {
     },
   ];
 
-  const getAtkMasuk = async (params = {}, showLoading = true) => {
+  const getAtkMasuk = async (params = {}, showLoading = true, force = false) => {
     await fetchList({
       endpoint: "/sp/atk-in",
       page: params.page || currentPage,
@@ -194,6 +194,7 @@ export default function DataAtkMasuk() {
       search: params.search !== undefined ? params.search : searchTerm,
       filters: params.filters || filters,
       showLoading,
+      force,
       setLoading,
       onSuccess: (payload) => {
         setData(payload.data)
@@ -351,6 +352,16 @@ export default function DataAtkMasuk() {
   useEffect(() => {
     getAtkMasuk();
   }, []);
+
+  const getAtkMasukRef = useRef(getAtkMasuk);
+  getAtkMasukRef.current = getAtkMasuk;
+
+  useEffect(() => {
+    return subscribeWebSocket("atkPinjamUpdated", () => {
+      clearListCache();
+      getAtkMasukRef.current({}, false, true);
+    });
+  }, [subscribeWebSocket, clearListCache]);
 
   return (
     <div>

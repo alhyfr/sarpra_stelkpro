@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import DeleteModal from "@/components/Delete";
@@ -209,7 +209,7 @@ export default function DataBarang() {
       ],
     }
   ]
-  const getPinbar = async (params = {}, showLoading = true) => {
+  const getPinbar = async (params = {}, showLoading = true, force = false) => {
     await fetchList({
       endpoint: "/sp/pinbar",
       page: params.page || currentPage,
@@ -217,6 +217,7 @@ export default function DataBarang() {
       search: params.search !== undefined ? params.search : searchTerm,
       filters: params.filters || filters,
       showLoading,
+      force,
       setLoading,
       onSuccess: (payload) => {
         setData(payload.data)
@@ -377,14 +378,16 @@ export default function DataBarang() {
   useEffect(() => {
     getPinbar()
   }, [])
-  // Subscribe to WebSocket updates
-  useEffect(() => {
-    const unsubscribe = subscribeWebSocket('pinbarUpdated', () => {
-      getPinbar(); // Trigger refresh when pinbar is updated
-    });
 
-    return unsubscribe; // Cleanup on unmount
-  }, [subscribeWebSocket, getPinbar]);
+  const getPinbarRef = useRef(getPinbar)
+  getPinbarRef.current = getPinbar
+
+  useEffect(() => {
+    return subscribeWebSocket('pinbarUpdated', () => {
+      clearListCache()
+      getPinbarRef.current({}, false, true)
+    })
+  }, [subscribeWebSocket, clearListCache]);
   return (
     <div>
        <DataTable
