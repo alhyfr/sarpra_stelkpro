@@ -21,10 +21,17 @@ const unitMeta = {
 };
 
 const statusMeta = {
-  incoming: "bg-slate-100 text-slate-700",
-  ongoing: "bg-blue-100 text-blue-700",
-  selesai: "bg-emerald-100 text-emerald-700",
-  cancel: "bg-rose-100 text-rose-700",
+  planning: "bg-blue-100 text-blue-700",
+  terlaksana: "bg-emerald-100 text-emerald-700",
+  tertunda: "bg-amber-100 text-amber-800",
+  batal: "bg-rose-100 text-rose-700",
+};
+
+const statusLabel = {
+  planning: "Planning",
+  terlaksana: "Terlaksana",
+  tertunda: "Tertunda",
+  batal: "Batal",
 };
 
 export default function CoeDashboard() {
@@ -57,9 +64,9 @@ export default function CoeDashboard() {
 
   const cards = [
     {
-      key: "ongoing",
-      label: "Ongoing",
-      value: summary.ongoing || 0,
+      key: "planning",
+      label: "Planning",
+      value: summary.planning || 0,
       icon: CircleDot,
       color: "text-blue-600 bg-blue-50",
     },
@@ -71,16 +78,16 @@ export default function CoeDashboard() {
       color: "text-amber-600 bg-amber-50",
     },
     {
-      key: "incoming",
-      label: "Incoming",
-      value: summary.incoming || 0,
+      key: "tertunda",
+      label: "Tertunda",
+      value: summary.tertunda || 0,
       icon: CalendarDays,
-      color: "text-slate-600 bg-slate-50",
+      color: "text-amber-700 bg-amber-50",
     },
     {
-      key: "selesai",
-      label: "Selesai",
-      value: summary.selesai || 0,
+      key: "terlaksana",
+      label: "Terlaksana",
+      value: summary.terlaksana || 0,
       icon: CheckCircle2,
       color: "text-emerald-600 bg-emerald-50",
     },
@@ -142,10 +149,10 @@ export default function CoeDashboard() {
               const Icon = meta.icon;
               const stats = byUnit[unit] || {};
               const total =
-                (stats.incoming || 0) +
-                (stats.ongoing || 0) +
-                (stats.selesai || 0) +
-                (stats.cancel || 0);
+                (stats.planning || 0) +
+                (stats.terlaksana || 0) +
+                (stats.tertunda || 0) +
+                (stats.batal || 0);
               return (
                 <div
                   key={unit}
@@ -161,12 +168,12 @@ export default function CoeDashboard() {
                     <span className="text-xs text-gray-500">{total} kegiatan</span>
                   </div>
                   <div className="flex flex-wrap gap-2 text-[11px]">
-                    <span className="text-blue-600">Ongoing {stats.ongoing || 0}</span>
-                    <span className="text-slate-600">Incoming {stats.incoming || 0}</span>
-                    <span className="text-emerald-600">Selesai {stats.selesai || 0}</span>
-                    {(stats.cancel || 0) > 0 && (
+                    <span className="text-blue-600">Planning {stats.planning || 0}</span>
+                    <span className="text-emerald-600">Terlaksana {stats.terlaksana || 0}</span>
+                    <span className="text-amber-700">Tertunda {stats.tertunda || 0}</span>
+                    {(stats.batal || 0) > 0 && (
                       <span className="text-rose-600 inline-flex items-center gap-0.5">
-                        <XCircle className="w-3 h-3" /> {stats.cancel}
+                        <XCircle className="w-3 h-3" /> Batal {stats.batal}
                       </span>
                     )}
                   </div>
@@ -208,7 +215,7 @@ export default function CoeDashboard() {
                           <span
                             className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusMeta[item.status] || ""}`}
                           >
-                            {item.status}
+                            {statusLabel[item.status] || item.status}
                           </span>
                           <span className="text-[10px] text-gray-500">
                             Progress {item.progress || 0}%

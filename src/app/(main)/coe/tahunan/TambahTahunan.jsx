@@ -40,7 +40,7 @@ export default function TambahTahunan({
     tgl: "",
     end: "",
     lokasi: "",
-    status: "incoming",
+    status: "planning",
     team_id: "",
     unit: "it",
     auto_status: true,
@@ -58,7 +58,7 @@ export default function TambahTahunan({
         tgl: editingTahunan.tgl || "",
         end: editingTahunan.end || "",
         lokasi: editingTahunan.lokasi || "",
-        status: editingTahunan.status || "incoming",
+        status: editingTahunan.status || "planning",
         team_id: editingTahunan.team_id
           ? String(editingTahunan.team_id)
           : "",
@@ -117,7 +117,7 @@ export default function TambahTahunan({
         unit: form.unit,
         auto_status: form.auto_status,
         catatan: form.catatan || null,
-        keterangan: form.status === "cancel" ? form.keterangan : form.keterangan || null,
+        keterangan: form.status === "batal" ? form.keterangan : form.keterangan || null,
       };
       if (postTahunan) {
         await postTahunan(submitData);
@@ -129,7 +129,7 @@ export default function TambahTahunan({
         tgl: "",
         end: "",
         lokasi: "",
-        status: "incoming",
+        status: "planning",
         team_id: "",
         unit: "it",
         auto_status: true,
@@ -154,10 +154,10 @@ export default function TambahTahunan({
   };
 
   const statusOptions = [
-    { value: "incoming", label: "Incoming" },
-    { value: "ongoing", label: "Ongoing" },
-    { value: "selesai", label: "Selesai" },
-    { value: "cancel", label: "Cancel / Tidak Terlaksana" },
+    { value: "planning", label: "Planning" },
+    { value: "terlaksana", label: "Terlaksana" },
+    { value: "tertunda", label: "Tertunda" },
+    { value: "batal", label: "Batal" },
   ];
 
   return (
@@ -289,7 +289,7 @@ export default function TambahTahunan({
             />
           </div>
 
-          {form.status === "cancel" && (
+          {form.status === "batal" && (
             <div className="md:col-span-2">
               <AInput
                 id="keterangan"

@@ -531,8 +531,8 @@ export const validateTahunanForm = (form) => {
     }
   });
   const errors = base(form) || {};
-  if (form.status === "cancel" && !String(form.keterangan || "").trim()) {
-    errors.keterangan = "Keterangan wajib diisi jika kegiatan tidak terlaksana";
+  if (form.status === "batal" && !String(form.keterangan || "").trim()) {
+    errors.keterangan = "Keterangan wajib diisi jika status batal";
   }
   return errors;
 };

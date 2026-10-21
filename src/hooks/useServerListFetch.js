@@ -3,26 +3,23 @@
 import { useCallback, useRef } from 'react'
 import api from '@/app/utils/Api'
 
-const DEFAULT_TTL_MS = 60_000
-const DEFAULT_CACHE_MAX = 30
+const DEDUPE_MS = 400
 
 /**
- * Fetch list server-side dengan abort, skip request identik, dan cache singkat.
- * Dipakai semua DataTable serverSide agar search berulang tidak lambat.
+ * Fetch list server-side dengan abort dan cegah request dobel yang hampir bersamaan.
+ * Hasil tidak di-cache lama: setelah create/update/delete, refetch query yang sama
+ * harus mengambil data baru, bukan daftar sebelum perubahan.
  */
-export default function useServerListFetch({
-  ttlMs = DEFAULT_TTL_MS,
-  cacheMax = DEFAULT_CACHE_MAX,
-} = {}) {
+export default function useServerListFetch() {
   const fetchIdRef = useRef(0)
   const abortControllerRef = useRef(null)
   const lastQueryKeyRef = useRef('')
+  const lastQueryAtRef = useRef(0)
   const inFlightKeyRef = useRef(null)
-  const cacheRef = useRef(new Map())
 
   const clearListCache = useCallback(() => {
-    cacheRef.current.clear()
     lastQueryKeyRef.current = ''
+    lastQueryAtRef.current = 0
   }, [])
 
   const fetchList = useCallback(
@@ -70,19 +67,15 @@ export default function useServerListFetch({
         return null
       }
 
-      // Skip request identik yang baru saja selesai (anti double-fire DataTable)
-      // Pastikan loading dimatikan agar tidak nyangkut
-      if (!force && queryKey === lastQueryKeyRef.current && showLoading) {
+      // Hanya cegah double-fire DataTable dalam jendela singkat.
+      // Jangan menahan refetch setelah CRUD pada query yang sama.
+      if (
+        !force &&
+        queryKey === lastQueryKeyRef.current &&
+        Date.now() - lastQueryAtRef.current < DEDUPE_MS
+      ) {
         if (setLoading) setLoading(false)
         return null
-      }
-
-      const cached = cacheRef.current.get(queryKey)
-      if (!force && cached && Date.now() - cached.ts < ttlMs) {
-        lastQueryKeyRef.current = queryKey
-        onSuccess?.(cached)
-        if (setLoading) setLoading(false)
-        return cached
       }
 
       if (abortControllerRef.current) {
@@ -120,12 +113,8 @@ export default function useServerListFetch({
             ts: Date.now(),
           }
 
-          cacheRef.current.set(queryKey, payload)
-          if (cacheRef.current.size > cacheMax) {
-            const oldestKey = cacheRef.current.keys().next().value
-            cacheRef.current.delete(oldestKey)
-          }
-
+          lastQueryKeyRef.current = queryKey
+          lastQueryAtRef.current = Date.now()
           onSuccess?.(payload)
           return payload
         }
@@ -149,7 +138,7 @@ export default function useServerListFetch({
         }
       }
     },
-    [ttlMs, cacheMax]
+    []
   )
 
   return { fetchList, clearListCache }

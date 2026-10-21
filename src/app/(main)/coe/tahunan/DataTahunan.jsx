@@ -14,10 +14,10 @@ import Button from "@/components/Button";
 import useServerListFetch from "@/hooks/useServerListFetch";
 
 const statusBadge = {
-  incoming: "bg-slate-100 text-slate-700",
-  ongoing: "bg-blue-100 text-blue-700",
-  selesai: "bg-emerald-100 text-emerald-700",
-  cancel: "bg-rose-100 text-rose-700",
+  planning: "bg-blue-100 text-blue-700",
+  terlaksana: "bg-emerald-100 text-emerald-700",
+  tertunda: "bg-amber-100 text-amber-800",
+  batal: "bg-rose-100 text-rose-700",
 };
 
 const unitBadge = {
@@ -197,10 +197,10 @@ export default function DataTahunan() {
       filterable: true,
       sortable: true,
       filterOptions: [
-        { value: "incoming", label: "Incoming" },
-        { value: "ongoing", label: "Ongoing" },
-        { value: "selesai", label: "Selesai" },
-        { value: "cancel", label: "Cancel" },
+        { value: "planning", label: "Planning" },
+        { value: "terlaksana", label: "Terlaksana" },
+        { value: "tertunda", label: "Tertunda" },
+        { value: "batal", label: "Batal" },
       ],
       render: (value, item) => (
         <div className="space-y-1">
@@ -209,12 +209,12 @@ export default function DataTahunan() {
             value={value}
             onChange={(e) => handleStatusSelect(item, e.target.value)}
           >
-            <option value="incoming">Incoming</option>
-            <option value="ongoing">Ongoing</option>
-            <option value="selesai">Selesai</option>
-            <option value="cancel">Cancel</option>
+            <option value="planning">Planning</option>
+            <option value="terlaksana">Terlaksana</option>
+            <option value="tertunda">Tertunda</option>
+            <option value="batal">Batal</option>
           </select>
-          {value === "cancel" && item.keterangan && (
+          {value === "batal" && item.keterangan && (
             <div
               className="max-w-[160px] truncate text-[11px] text-rose-600"
               title={item.keterangan}
@@ -318,7 +318,7 @@ export default function DataTahunan() {
   };
 
   const handleStatusSelect = async (item, newStatus) => {
-    if (newStatus === "cancel") {
+    if (newStatus === "batal") {
       setCancelItem(item);
       setCancelReason(item.keterangan || "");
       setShowCancelModal(true);
@@ -344,7 +344,7 @@ export default function DataTahunan() {
     setCancelLoading(true);
     try {
       await api.put(`/sp/coe/tahunan-status/${cancelItem.id}`, {
-        status: "cancel",
+        status: "batal",
         keterangan: cancelReason.trim(),
       });
       setShowCancelModal(false);
@@ -596,7 +596,7 @@ export default function DataTahunan() {
                 onClick={handleConfirmCancel}
                 disabled={cancelLoading}
               >
-                {cancelLoading ? "Menyimpan..." : "Simpan Cancel"}
+                {cancelLoading ? "Menyimpan..." : "Simpan Batal"}
               </Button>
             </div>
           </div>
