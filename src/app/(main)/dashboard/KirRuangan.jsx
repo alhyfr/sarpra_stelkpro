@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { DoorOpen, FileDown, Loader2 } from 'lucide-react'
+import { DoorOpen, FileDown, Loader2, QrCode } from 'lucide-react'
 import api from '@/app/utils/Api'
 import Modal from '@/components/Modal'
 import { downloadKirPdf } from './pdf/kir'
+import { downloadKirQrPdf } from './pdf/kirQr'
 
 const EMPTY_SIGNERS = {
   kepalaNama: '',
@@ -66,6 +67,7 @@ export default function KirRuangan() {
   const [loading, setLoading] = useState(true)
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [printing, setPrinting] = useState(false)
+  const [printingQr, setPrintingQr] = useState(false)
   const [signOpen, setSignOpen] = useState(false)
   const [signers, setSigners] = useState(EMPTY_SIGNERS)
   const [history, setHistory] = useState(EMPTY_HISTORY)
@@ -144,6 +146,18 @@ export default function KirRuangan() {
     }
   }
 
+  const handlePrintQr = async () => {
+    if (!detail?.ruangan?.ruangan) return
+    setPrintingQr(true)
+    try {
+      await downloadKirQrPdf({ ruangan: detail.ruangan })
+    } catch (error) {
+      console.error('Error creating KIR qr:', error)
+    } finally {
+      setPrintingQr(false)
+    }
+  }
+
   const items = detail?.items || []
   const preview = items.slice(0, 5)
 
@@ -214,19 +228,34 @@ export default function KirRuangan() {
                   +{items.length - preview.length} barang lainnya ada di PDF
                 </p>
               )}
-              <button
-                type="button"
-                onClick={() => setSignOpen(true)}
-                disabled={printing || items.length === 0}
-                className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B] disabled:opacity-60"
-              >
-                {printing ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <FileDown className="w-4 h-4" />
-                )}
-                Cetak PDF
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSignOpen(true)}
+                  disabled={printing || printingQr || items.length === 0}
+                  className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B] disabled:opacity-60"
+                >
+                  {printing ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <FileDown className="w-4 h-4" />
+                  )}
+                  Cetak PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePrintQr}
+                  disabled={printing || printingQr || !detail?.ruangan?.ruangan}
+                  className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg border border-[#B91C1C] text-[#B91C1C] hover:bg-red-50 disabled:opacity-60"
+                >
+                  {printingQr ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <QrCode className="w-4 h-4" />
+                  )}
+                  Cetak QR
+                </button>
+              </div>
             </>
           )}
         </>
