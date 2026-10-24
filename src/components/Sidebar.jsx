@@ -115,6 +115,7 @@ const menuItems = [
     submenu: [
       { title: 'material masuk', href: '/material/masuk' },
       { title: 'material keluar', href: '/material/keluar' },
+      { title: 'stok gudang', href: '/material/stok' },
     ]
 
   },
