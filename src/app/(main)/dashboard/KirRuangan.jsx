@@ -3,7 +3,17 @@
 import { useEffect, useState } from 'react'
 import { DoorOpen, FileDown, Loader2 } from 'lucide-react'
 import api from '@/app/utils/Api'
+import Modal from '@/components/Modal'
 import { downloadKirPdf } from './pdf/kir'
+
+const EMPTY_SIGNERS = {
+  kepalaNama: '',
+  kepalaNip: '',
+  pjNama: '',
+  pjNip: '',
+  wakasekNama: '',
+  wakasekNip: '',
+}
 
 export default function KirRuangan() {
   const [rooms, setRooms] = useState([])
@@ -12,6 +22,8 @@ export default function KirRuangan() {
   const [loading, setLoading] = useState(true)
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [printing, setPrinting] = useState(false)
+  const [signOpen, setSignOpen] = useState(false)
+  const [signers, setSigners] = useState(EMPTY_SIGNERS)
 
   useEffect(() => {
     const load = async () => {
@@ -56,11 +68,23 @@ export default function KirRuangan() {
     }
   }, [roomId])
 
+  const setSigner = (key) => (event) => {
+    setSigners((current) => ({ ...current, [key]: event.target.value }))
+  }
+
   const handlePrint = async () => {
     if (!detail?.ruangan) return
     setPrinting(true)
     try {
-      await downloadKirPdf(detail)
+      await downloadKirPdf({
+        ...detail,
+        signers: {
+          kepala: { nama: signers.kepalaNama, nip: signers.kepalaNip },
+          pj: { nama: signers.pjNama, nip: signers.pjNip },
+          wakasek: { nama: signers.wakasekNama, nip: signers.wakasekNip },
+        },
+      })
+      setSignOpen(false)
     } catch (error) {
       console.error('Error creating KIR pdf:', error)
     } finally {
@@ -140,7 +164,7 @@ export default function KirRuangan() {
               )}
               <button
                 type="button"
-                onClick={handlePrint}
+                onClick={() => setSignOpen(true)}
                 disabled={printing || items.length === 0}
                 className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B] disabled:opacity-60"
               >
@@ -155,6 +179,66 @@ export default function KirRuangan() {
           )}
         </>
       )}
+
+      <Modal
+        isOpen={signOpen}
+        onClose={() => { if (!printing) setSignOpen(false) }}
+        title="Data penanda tangan"
+        size="lg"
+        closeOnOverlayClick={!printing}
+      >
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Isi nama dan NIP bila ingin dicetak. Kolom yang dikosongkan tidak ikut tercetak, dan PDF tetap dibuat.
+        </p>
+        <div className="space-y-4">
+          {[
+            ['Kepala Sekolah', 'kepalaNama', 'kepalaNip'],
+            ['Penanggung Jawab Ruangan', 'pjNama', 'pjNip'],
+            ['Wakasek IT, LAB dan Sarpra', 'wakasekNama', 'wakasekNip'],
+          ].map(([label, namaKey, nipKey]) => (
+            <div key={label}>
+              <div className="text-sm font-medium text-gray-800 dark:text-gray-100 mb-2">{label}</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className="block text-xs text-gray-600 dark:text-gray-300">
+                  Nama
+                  <input
+                    value={signers[namaKey]}
+                    onChange={setSigner(namaKey)}
+                    className="mt-1 w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg"
+                  />
+                </label>
+                <label className="block text-xs text-gray-600 dark:text-gray-300">
+                  NIP
+                  <input
+                    value={signers[nipKey]}
+                    onChange={setSigner(nipKey)}
+                    className="mt-1 w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg"
+                  />
+                </label>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setSignOpen(false)}
+            disabled={printing}
+            className="px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 disabled:opacity-60"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            onClick={handlePrint}
+            disabled={printing}
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-[#B91C1C] text-white hover:bg-[#991B1B] disabled:opacity-60"
+          >
+            {printing ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+            Cetak PDF
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }
