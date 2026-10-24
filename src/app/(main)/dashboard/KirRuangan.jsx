@@ -15,6 +15,50 @@ const EMPTY_SIGNERS = {
   wakasekNip: '',
 }
 
+const SIGNER_FIELDS = [
+  { label: 'Kepala Sekolah', role: 'kepala', namaKey: 'kepalaNama', nipKey: 'kepalaNip' },
+  { label: 'Penanggung Jawab Ruangan', role: 'pj', namaKey: 'pjNama', nipKey: 'pjNip' },
+  { label: 'Wakasek IT, LAB dan Sarpra', role: 'wakasek', namaKey: 'wakasekNama', nipKey: 'wakasekNip' },
+]
+
+const SIGNER_CACHE_KEY = 'kir-signer-cache'
+const EMPTY_HISTORY = { kepala: [], pj: [], wakasek: [] }
+
+function readSignerCache() {
+  try {
+    const data = JSON.parse(localStorage.getItem(SIGNER_CACHE_KEY) || '{}')
+    return {
+      last: { ...EMPTY_SIGNERS, ...(data.last || {}) },
+      history: {
+        kepala: Array.isArray(data.kepala) ? data.kepala : [],
+        pj: Array.isArray(data.pj) ? data.pj : [],
+        wakasek: Array.isArray(data.wakasek) ? data.wakasek : [],
+      },
+    }
+  } catch {
+    return { last: EMPTY_SIGNERS, history: EMPTY_HISTORY }
+  }
+}
+
+function rememberSigner(list, person) {
+  const nama = String(person.nama || '').trim()
+  const nip = String(person.nip || '').trim()
+  if (!nama && !nip) return list
+  const next = [{ nama, nip }, ...list.filter((item) => item.nama !== nama || item.nip !== nip)]
+  return next.slice(0, 8)
+}
+
+function saveSignerCache(signers) {
+  const current = readSignerCache()
+  const history = {
+    kepala: rememberSigner(current.history.kepala, { nama: signers.kepalaNama, nip: signers.kepalaNip }),
+    pj: rememberSigner(current.history.pj, { nama: signers.pjNama, nip: signers.pjNip }),
+    wakasek: rememberSigner(current.history.wakasek, { nama: signers.wakasekNama, nip: signers.wakasekNip }),
+  }
+  localStorage.setItem(SIGNER_CACHE_KEY, JSON.stringify({ last: signers, ...history }))
+  return history
+}
+
 export default function KirRuangan() {
   const [rooms, setRooms] = useState([])
   const [roomId, setRoomId] = useState('')
@@ -24,6 +68,13 @@ export default function KirRuangan() {
   const [printing, setPrinting] = useState(false)
   const [signOpen, setSignOpen] = useState(false)
   const [signers, setSigners] = useState(EMPTY_SIGNERS)
+  const [history, setHistory] = useState(EMPTY_HISTORY)
+
+  useEffect(() => {
+    const cache = readSignerCache()
+    setSigners(cache.last)
+    setHistory(cache.history)
+  }, [])
 
   useEffect(() => {
     const load = async () => {
@@ -76,6 +127,7 @@ export default function KirRuangan() {
     if (!detail?.ruangan) return
     setPrinting(true)
     try {
+      setHistory(saveSignerCache(signers))
       await downloadKirPdf({
         ...detail,
         signers: {
@@ -188,16 +240,35 @@ export default function KirRuangan() {
         closeOnOverlayClick={!printing}
       >
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          Isi nama dan NIP bila ingin dicetak. Kolom yang dikosongkan tidak ikut tercetak, dan PDF tetap dibuat.
+          Isi nama dan NIP bila ingin dicetak. Data yang pernah dipakai tersimpan di browser ini dan bisa dipilih lagi. Kolom yang dikosongkan tidak ikut tercetak.
         </p>
         <div className="space-y-4">
-          {[
-            ['Kepala Sekolah', 'kepalaNama', 'kepalaNip'],
-            ['Penanggung Jawab Ruangan', 'pjNama', 'pjNip'],
-            ['Wakasek IT, LAB dan Sarpra', 'wakasekNama', 'wakasekNip'],
-          ].map(([label, namaKey, nipKey]) => (
-            <div key={label}>
+          {SIGNER_FIELDS.map(({ label, role, namaKey, nipKey }) => (
+            <div key={role}>
               <div className="text-sm font-medium text-gray-800 dark:text-gray-100 mb-2">{label}</div>
+              {history[role].length > 0 && (
+                <select
+                  defaultValue=""
+                  onChange={(event) => {
+                    const picked = history[role][Number(event.target.value)]
+                    event.target.value = ''
+                    if (!picked) return
+                    setSigners((current) => ({
+                      ...current,
+                      [namaKey]: picked.nama,
+                      [nipKey]: picked.nip,
+                    }))
+                  }}
+                  className="mb-2 w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg"
+                >
+                  <option value="">Pilih dari riwayat</option>
+                  {history[role].map((item, index) => (
+                    <option key={`${item.nama}-${item.nip}-${index}`} value={index}>
+                      {[item.nama, item.nip].filter(Boolean).join(' — ')}
+                    </option>
+                  ))}
+                </select>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label className="block text-xs text-gray-600 dark:text-gray-300">
                   Nama
