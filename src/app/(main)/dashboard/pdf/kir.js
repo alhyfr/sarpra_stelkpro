@@ -13,13 +13,12 @@ const PAGE_WIDTH = 734
 
 const COLS = [
   { key: 'no', title: 'No', width: 28, align: 'center' },
-  { key: 'nama', title: 'Nama/Jenis Barang', width: 108, align: 'left' },
+  { key: 'nama', title: 'Nama/Jenis Barang', width: 126, align: 'left' },
   { key: 'merk', title: 'Merk/Model', width: 70, align: 'left' },
   { key: 'seri', title: 'No. Seri Pabrik', width: 68, align: 'left' },
-  { key: 'spec', title: 'Spesifikasi', width: 86, align: 'left' },
+  { key: 'spec', title: 'Spesifikasi', width: 104, align: 'left' },
   { key: 'tahun', title: 'Tahun Perolehan', width: 50, align: 'center' },
   { key: 'kode', title: 'Kode Barang', width: 76, align: 'left' },
-  { key: 'jml', title: 'Jumlah', width: 36, align: 'center' },
   { key: 'satuan', title: 'Satuan', width: 40, align: 'center' },
   { key: 'kondisi', title: 'Kondisi Barang', width: 70, align: 'center' },
   { key: 'asal', title: 'Asal-Usul', width: 52, align: 'left' },
@@ -76,7 +75,6 @@ function rowValues(item, index) {
     spec: item.spec || '-',
     tahun: tahunPerolehan(item.tgl),
     kode: item.kode_ypt ? `${item.kode || '-'}\nYPT: ${item.kode_ypt}` : (item.kode || '-'),
-    jml: item.jml ?? '-',
     satuan: item.satuan || '-',
     kondisi: kondisiLabel(item.kondisi),
     asal: item.sumber || '-',
@@ -92,7 +90,7 @@ function headerHtml() {
 
 function bodyRowsHtml(items) {
   if (!items.length) {
-    return `<tr data-kir-row="1"><td colspan="12" style="${cellStyle(PAGE_WIDTH, 'center', 'background:#FFFFFF;font-size:9px;')}">Tidak ada barang pada ruangan ini</td></tr>`
+    return `<tr data-kir-row="1"><td colspan="11" style="${cellStyle(PAGE_WIDTH, 'center', 'background:#FFFFFF;font-size:9px;')}">Tidak ada barang pada ruangan ini</td></tr>`
   }
   return items.map((item, index) => {
     const values = rowValues(item, index)
