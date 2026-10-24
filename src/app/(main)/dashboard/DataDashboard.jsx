@@ -26,6 +26,7 @@ import InfoAtk from './infoAtk'
 import InfoPerawatan from './InfoPerawatan'
 import StokMaterial from './StokMaterial'
 import CoeDashboard from './CoeDashboard'
+import KirRuangan from './KirRuangan'
 
 // Dynamically import Chart to avoid SSR issues
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
@@ -36,8 +37,12 @@ export default function DataDashboard() {
             {/* Stats Grid */}
             <StatGrid />
 
-            {/* COE overview */}
-            <CoeDashboard />
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
+                <div className="xl:col-span-2">
+                    <CoeDashboard />
+                </div>
+                <KirRuangan />
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* Main Chart Area */}
