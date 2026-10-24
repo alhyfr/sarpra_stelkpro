@@ -96,6 +96,8 @@ const menuItems = [
       { title: 'perawatan bangunan', href: '/sarpra/perawatan/bangunan' },
       { title: 'gedung', href: '/sarpra/gedung' },
       { title: 'ruangan', href: '/sarpra/ruangan' },
+      { title: 'persediaan barang', href: '/sarpra/persediaan' },
+      { title: 'kartu persediaan', href: '/sarpra/kartu-persediaan' },
       { title: 'perawatan AC', href: '/sarpra/ac' },
     ]
   },
