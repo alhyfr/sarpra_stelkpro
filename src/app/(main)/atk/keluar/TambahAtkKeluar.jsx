@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import AInput from "@/components/AInput";
+import ASelect from "@/components/ASelect";
 import { useData } from "@/app/context/DataContext";
 import { useAuth } from "@/app/context/AuthContext";
 import ASearchableSelect from "@/components/ASearchableSelect";
@@ -20,6 +21,10 @@ export default function TambahAtkKeluar({
     pengambil: "",
     kategori: "",
     unit: "",
+    ruangan_id: "",
+    jenis: "pakai",
+    ket: "",
+    peruntukan: "",
     status: "proses",
     pic: user?.name || "",
   });
@@ -36,12 +41,16 @@ export default function TambahAtkKeluar({
     getMemberFilter,
     memberFilter,
     MemberFilter,
+    getRuanganFilter,
+    ruanganFilter,
+    RuanganFilter,
   } = useData();
 
   useEffect(() => {
     getOpsi();
     getAtkFilter();
     getMemberFilter();
+    getRuanganFilter();
   }, []);
 
   // Debug: Log memberFilter data structure
@@ -55,6 +64,10 @@ export default function TambahAtkKeluar({
         pengambil: String(editingAtkOut.pengambil || ""),
         kategori: String(editingAtkOut.kategori || ""),
         unit: String(editingAtkOut.unit || ""),
+        ruangan_id: String(editingAtkOut.ruangan_id || ""),
+        jenis: String(editingAtkOut.jenis || "pakai"),
+        ket: String(editingAtkOut.ket || ""),
+        peruntukan: String(editingAtkOut.peruntukan || ""),
         status: String(editingAtkOut.status || "proses"),
         pic: String(editingAtkOut.pic || ""),
 
@@ -195,10 +208,10 @@ export default function TambahAtkKeluar({
     if (!formData.atk_id) {
       newErrors.atk_id = "Nama barang wajib dipilih";
     }
-    if (!formData.vol) {
+    if (!formData.vol && formData.vol !== 0) {
       newErrors.vol = "Volume wajib diisi";
-    } else if (parseInt(formData.vol) <= 0) {
-      newErrors.vol = "Volume harus lebih dari 0";
+    } else if (formData.jenis === "opname" ? parseInt(formData.vol) < 0 : parseInt(formData.vol) <= 0) {
+      newErrors.vol = formData.jenis === "opname" ? "Stok fisik tidak boleh minus" : "Volume harus lebih dari 0";
     }
     if (!formData.tgl) {
       newErrors.tgl = "Tanggal wajib diisi";
@@ -233,7 +246,11 @@ export default function TambahAtkKeluar({
         pengambil: ensureString(formData.pengambil),
         kategori: ensureString(formData.kategori),
         unit: ensureString(formData.unit),
-        status: ensureString(formData.status),
+        ruangan_id: ensureString(formData.ruangan_id),
+        jenis: ensureString(formData.jenis || "pakai"),
+        ket: ensureString(formData.ket),
+        peruntukan: ensureString(formData.peruntukan),
+        status: formData.jenis === "pakai" ? ensureString(formData.status || "proses") : "selesai",
         pic: ensureString(formData.pic),
       };
 
@@ -313,7 +330,7 @@ export default function TambahAtkKeluar({
           <AInput
             id="vol"
             name="vol"
-            label="VOLUME"
+            label={formData.jenis === "opname" ? "STOK FISIK" : "VOLUME"}
             placeholder="Masukkan volume"
             type="number"
             min="1"
@@ -322,6 +339,63 @@ export default function TambahAtkKeluar({
             error={showErrors ? errors.vol : ""}
             required
           />
+          <ASelect
+            id="jenis"
+            name="jenis"
+            label="JENIS"
+            value={formData.jenis || "pakai"}
+            onChange={(e) => {
+              const jenis = e.target.value;
+              setFormData((prev) => ({
+                ...prev,
+                jenis,
+                status: jenis === "pakai" ? prev.status : "selesai",
+              }));
+            }}
+            options={[
+              { value: "pakai", label: "Pakai" },
+              { value: "rusak", label: "Rusak" },
+              { value: "opname", label: "Opname (stok fisik)" },
+            ]}
+          />
+          <AInput
+            id="peruntukan"
+            name="peruntukan"
+            label="PERUNTUKAN"
+            placeholder="Untuk kegiatan atau kebutuhan apa"
+            value={formData.peruntukan}
+            onChange={handleInputChange}
+          />
+          <AInput
+            id="ket"
+            name="ket"
+            label="KETERANGAN"
+            placeholder="Catatan tambahan"
+            value={formData.ket}
+            onChange={handleInputChange}
+          />
+          <ASearchableSelect
+            id="ruangan_id"
+            name="ruangan_id"
+            label="RUANGAN"
+            placeholder="Cari ruangan (opsional)"
+            value={formData.ruangan_id}
+            onChange={handleInputChange}
+            onSelect={(item) => setFormData((prev) => ({ ...prev, ruangan_id: item.id }))}
+            options={ruanganFilter || []}
+            searchFunction={RuanganFilter}
+            displayKey="ruangan"
+            valueKey="id"
+            searchKey="ruangan"
+            minSearchLength={1}
+            noResultsText="Ruangan tidak ditemukan"
+          />
+          {selectedAtk?.stok_sekarang != null && (
+            <p className="text-sm text-gray-500 lg:col-span-2">
+              Stok tersedia: {selectedAtk.stok_sekarang}
+              {formData.jenis === "opname" ? ". Volume opname menjadi stok fisik." : ". Status proses belum mengurangi stok."}
+            </p>
+          )}
 
           {/* Tanggal */}
           <AInput

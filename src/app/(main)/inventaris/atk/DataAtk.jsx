@@ -136,10 +136,14 @@ export default function DataAtk() {
       searchable: true,
       filterable: true,
       render: (value, item) => {
-        // Hitung dari data item yang sudah memiliki total_masuk dan total_keluar
-        const totalMasuk = parseFloat(item.total_masuk) || 0
-        const totalKeluar = parseFloat(item.total_keluar) || 0
-        return totalMasuk - totalKeluar
+        const stok = Number(item.stok_tersedia ?? value ?? 0)
+        const minimal = Number(item.stok_minimal || 0)
+        const kurang = stok <= minimal
+        return (
+          <span className={kurang ? "font-semibold text-rose-600" : ""}>
+            {stok}
+          </span>
+        )
       },
     },
     {

@@ -28,6 +28,8 @@ export default function TambahAtk({
     spec: "",
     satuan: "",
     stok_awal: "",
+    stok_minimal: "0",
+    aktif: true,
     pic: user?.name || "",
     foto: "",
     kategori_atk: "",
@@ -62,17 +64,27 @@ export default function TambahAtk({
         spec: toString(editingAtk.spec),
         satuan: editingAtk.satuan?.satuan || toString(editingAtk.satuan),
         stok_awal: toString(editingAtk.stok_awal),
+        stok_minimal: toString(editingAtk.stok_minimal ?? 0),
+        satuan_id: toString(editingAtk.satuan_id || ""),
+        aktif: editingAtk.aktif === 0 || editingAtk.aktif === false ? false : true,
         pic: toString(editingAtk.pic),
         kategori_atk: toString(editingAtk.kategori_atk),
         foto: toString(editingAtk.foto),
       });
     }
   }, [isEditMode, editingAtk]);
+  useEffect(() => {
+    if (formData.satuan_id || !formData.satuan || !satuan?.length) return;
+    const match = satuan.find((item) => String(item.satuan).toLowerCase() === String(formData.satuan).toLowerCase());
+    if (match) {
+      setFormData((prev) => ({ ...prev, satuan_id: String(match.id) }));
+    }
+  }, [satuan, formData.satuan, formData.satuan_id]);
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
 
     // Clear error when user starts typing (jika showErrors aktif)
@@ -133,7 +145,10 @@ export default function TambahAtk({
         submitData.append("nabar", ensureString(formData.nabar));
         submitData.append("spec", ensureString(formData.spec));
         submitData.append("satuan", ensureString(formData.satuan));
+        submitData.append("satuan_id", ensureString(formData.satuan_id));
         submitData.append("stok_awal", ensureString(formData.stok_awal));
+        submitData.append("stok_minimal", ensureString(formData.stok_minimal || 0));
+        submitData.append("aktif", formData.aktif ? "1" : "0");
         submitData.append("pic", ensureString(formData.pic));
         submitData.append("kategori_atk", ensureString(formData.kategori_atk));
         submitData.append("foto", formData.foto);
@@ -143,7 +158,10 @@ export default function TambahAtk({
           nabar: ensureString(formData.nabar),
           spec: ensureString(formData.spec),
           satuan: ensureString(formData.satuan),
+          satuan_id: ensureString(formData.satuan_id),
           stok_awal: ensureString(formData.stok_awal),
+          stok_minimal: ensureString(formData.stok_minimal || 0),
+          aktif: formData.aktif,
           kategori_atk: ensureString(formData.kategori_atk),
           pic: ensureString(formData.pic),
           foto: formData.foto || null,
@@ -255,12 +273,19 @@ export default function TambahAtk({
               name="satuan"
               label="SATUAN"
               placeholder="Pilih satuan"
-              value={formData.satuan}
-              onChange={handleInputChange}
+              value={formData.satuan_id || ""}
+              onChange={(e) => {
+                const selected = satuan.find((item) => String(item.id) === String(e.target.value));
+                setFormData((prev) => ({
+                  ...prev,
+                  satuan_id: e.target.value,
+                  satuan: selected?.satuan || "",
+                }));
+              }}
               error={showErrors ? errors.satuan : ''}
               required
               options={satuan.map(item => ({
-                value: item.satuan,
+                value: String(item.id),
                 label: item.satuan,
               }))}
             />
@@ -277,8 +302,26 @@ export default function TambahAtk({
           value={formData.stok_awal}
           onChange={handleInputChange}
           error={showErrors ? errors.stok_awal : ''}
-          required
         />
+        <AInput
+          id="stok_minimal"
+          name="stok_minimal"
+          label="STOK MINIMAL"
+          placeholder="Batas peringatan stok"
+          type="number"
+          min="0"
+          value={formData.stok_minimal}
+          onChange={handleInputChange}
+        />
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            name="aktif"
+            checked={!!formData.aktif}
+            onChange={handleInputChange}
+          />
+          Barang aktif
+        </label>
 
             {/* PIC */}
             <AInput

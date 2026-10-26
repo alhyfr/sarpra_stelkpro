@@ -110,6 +110,21 @@ export default function DataAtkKeluar() {
       ],
     },
     {
+      key: "jenis",
+      title: "JENIS",
+      searchable: true,
+      filterable: true,
+      filterOptions: [
+        { value: "pakai", label: "PAKAI" },
+        { value: "rusak", label: "RUSAK" },
+        { value: "opname", label: "OPNAME" },
+      ],
+      render: (value) => {
+        const label = { pakai: "Pakai", rusak: "Rusak", opname: "Opname" };
+        return label[value] || value || "Pakai";
+      },
+    },
+    {
       key: "status",
       title: "STATUS",
       searchable: true,
