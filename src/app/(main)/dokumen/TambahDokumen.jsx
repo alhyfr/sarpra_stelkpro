@@ -207,10 +207,10 @@ export default function TambahDokumen({
             onChange={(file) => setForm((prev) => ({ ...prev, file }))}
             onRemove={() => setForm((prev) => ({ ...prev, file: null }))}
             accept=".pdf,application/pdf"
-            maxSize={9}
+            maxSize={20}
             required={!isEditMode}
             error={errors.file}
-            helperText={isEditMode ? "Kosongkan jika tidak mengganti file. Hanya PDF." : "Hanya file PDF, maks 9MB"}
+            helperText={isEditMode ? "Kosongkan jika tidak mengganti file. Hanya PDF, maks 20MB." : "Hanya file PDF, maks 20MB"}
             compress={false}
           />
         </div>
