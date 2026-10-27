@@ -20,7 +20,8 @@ import {
   Handshake,
   LockKeyhole,
   MonitorSmartphone,
-  BrickWall
+  BrickWall,
+  FileText,
 } from 'lucide-react';
 
 const menuItems = [
@@ -118,6 +119,11 @@ const menuItems = [
       { title: 'stok gudang', href: '/material/stok' },
     ]
 
+  },
+  {
+    title: 'Dokumen',
+    icon: FileText,
+    href: '/dokumen'
   },
   {
     title: 'Serah Terima',

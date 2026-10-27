@@ -33,6 +33,10 @@ Api.interceptors.request.use(
     // Upload inventaris: pastikan timeout panjang per-request juga
     if (config.data instanceof FormData) {
       config.timeout = Math.max(config.timeout || 0, API_TIMEOUT)
+      if (config.headers) {
+        delete config.headers['Content-Type']
+        delete config.headers['content-type']
+      }
     }
     return config;
   },
