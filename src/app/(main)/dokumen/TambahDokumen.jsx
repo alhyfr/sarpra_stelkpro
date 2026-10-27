@@ -74,7 +74,12 @@ export default function TambahDokumen({
     const nextErrors = {};
     if (!form.judul.trim()) nextErrors.judul = "Judul wajib diisi";
     if (!form.kategori_id) nextErrors.kategori_id = "Kategori wajib dipilih";
-    if (!isEditMode && !(form.file instanceof File)) nextErrors.file = "File wajib diunggah";
+    if (!isEditMode && !(form.file instanceof File)) nextErrors.file = "File PDF wajib diunggah";
+    if (form.file instanceof File) {
+      const isPdf =
+        form.file.type === "application/pdf" || /\.pdf$/i.test(form.file.name || "");
+      if (!isPdf) nextErrors.file = "Hanya file PDF yang diizinkan";
+    }
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
 
@@ -201,11 +206,12 @@ export default function TambahDokumen({
             value={existingFileLabel}
             onChange={(file) => setForm((prev) => ({ ...prev, file }))}
             onRemove={() => setForm((prev) => ({ ...prev, file: null }))}
-            accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
+            accept=".pdf,application/pdf"
             maxSize={9}
             required={!isEditMode}
             error={errors.file}
-            helperText={isEditMode ? "Kosongkan jika tidak mengganti file" : "PDF / gambar / Excel, maks 9MB"}
+            helperText={isEditMode ? "Kosongkan jika tidak mengganti file. Hanya PDF." : "Hanya file PDF, maks 9MB"}
+            compress={false}
           />
         </div>
         <label className="flex items-center gap-2 text-sm text-gray-700 md:col-span-2">

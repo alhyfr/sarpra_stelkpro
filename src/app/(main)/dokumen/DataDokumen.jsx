@@ -27,6 +27,7 @@ export default function DataDokumen() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingItem, setDeletingItem] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [previewItem, setPreviewItem] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -41,13 +42,31 @@ export default function DataDokumen() {
     load();
   }, []);
 
-  const openFile = (item) => {
-    const url = getStorageUrl(item.file_path) || item.file_url;
+  const getFileUrl = (item) => getStorageUrl(item?.file_path) || item?.file_url || null;
+
+  const openPreview = (item) => {
+    const url = getFileUrl(item);
     if (!url) {
       alert("File tidak tersedia");
       return;
     }
-    window.open(url, "_blank", "noopener,noreferrer");
+    setPreviewItem(item);
+  };
+
+  const downloadFile = (item) => {
+    const url = getFileUrl(item);
+    if (!url) {
+      alert("File tidak tersedia");
+      return;
+    }
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = item.file_name || item.judul || "dokumen.pdf";
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const columns = [
@@ -92,8 +111,8 @@ export default function DataDokumen() {
       type: "actions",
       sortable: false,
       actions: [
-        { icon: Eye, title: "Buka", onClick: (item) => openFile(item) },
-        { icon: Download, title: "Unduh", onClick: (item) => openFile(item) },
+        { icon: Eye, title: "Lihat", onClick: (item) => openPreview(item) },
+        { icon: Download, title: "Unduh", onClick: (item) => downloadFile(item) },
         {
           icon: Edit,
           title: "Edit",
@@ -241,6 +260,39 @@ export default function DataDokumen() {
             editingItem={editingItem}
             isEditMode={isEditMode}
           />
+        </Modal>
+      )}
+      {previewItem && (
+        <Modal
+          show={!!previewItem}
+          onClose={() => setPreviewItem(null)}
+          title={previewItem.judul || "Pratinjau PDF"}
+          width="92vw"
+          maxWidth="1100px"
+          height="88vh"
+          closeOnOverlayClick
+        >
+          <div className="flex h-full min-h-[70vh] flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+              <div>
+                <span className="font-medium text-gray-800">{previewItem.kode}</span>
+                {previewItem.kategori_nama ? ` · ${previewItem.kategori_nama}` : ""}
+                {previewItem.nomor_dokumen ? ` · ${previewItem.nomor_dokumen}` : ""}
+              </div>
+              <button
+                type="button"
+                onClick={() => downloadFile(previewItem)}
+                className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-200"
+              >
+                Unduh PDF
+              </button>
+            </div>
+            <iframe
+              title={previewItem.judul || "PDF"}
+              src={`${getFileUrl(previewItem)}#toolbar=1&navpanes=0`}
+              className="h-full min-h-[65vh] w-full flex-1 rounded-lg border border-gray-200 bg-white"
+            />
+          </div>
         </Modal>
       )}
     </div>
