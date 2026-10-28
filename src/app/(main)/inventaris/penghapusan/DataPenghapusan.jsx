@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import DataTable from "@/components/DataTable";
-import DeleteModal from "@/components/Delete";
+import dynamic from "next/dynamic";
 import { Undo2, Trash2 } from "lucide-react";
 import api from "@/app/utils/Api";
 import dayjs from "dayjs";
@@ -9,7 +9,10 @@ import { useData } from "@/app/context/DataContext";
 import Vgambar from "../master/Vgambar";
 import Vbukti from "../master/Vbukti";
 import KembalikanModal from "./KembalikanModal";
+import ArsipkanModal from "./ArsipkanModal";
 import useServerListFetch from "@/hooks/useServerListFetch";
+
+const ExportModal = dynamic(() => import("@/components/ExportModal"), { ssr: false });
 
 const rupiah = (value) => {
   return new Intl.NumberFormat("id-ID", {
@@ -41,6 +44,7 @@ export default function DataPenghapusan() {
   const [showKembalikanModal, setShowKembalikanModal] = useState(false);
   const [kembalikanItem, setKembalikanItem] = useState(null);
   const [kembalikanLoading, setKembalikanLoading] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   const { getOpsi, dana, gedung, kategoriAset } = useData();
 
@@ -253,7 +257,7 @@ export default function DataPenghapusan() {
   ];
 
   // ─── Fetch data lelang ────────────────────────────────────────────────────
-  const getInv = async (params = {}, showLoading = true) => {
+  const getInv = async (params = {}, showLoading = true, force = false) => {
     await fetchList({
       endpoint: "/sp/aset-lelang",
       page: params.page || currentPage,
@@ -261,6 +265,7 @@ export default function DataPenghapusan() {
       search: params.search !== undefined ? params.search : searchTerm,
       filters: params.filters || filters,
       showLoading,
+      force,
       setLoading,
       onSuccess: (payload) => {
         setData(payload.data);
@@ -305,55 +310,89 @@ export default function DataPenghapusan() {
     }
   };
 
-  // ─── Delete single ────────────────────────────────────────────────────────
+  // ─── Arsipkan single / bulk ───────────────────────────────────────────────
   const handleDelete = (item) => {
+    setBulkDeleteIds([]);
     setDeletingInv(item);
     setShowDeleteModal(true);
   };
 
-  const handleConfirmDelete = async () => {
-    if (!deletingInv) return;
-    setDeleteLoading(true);
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setShowBulkDeleteModal(false);
+    setDeletingInv(null);
+    setBulkDeleteIds([]);
+    setDeleteLoading(false);
+    setBulkDeleteLoading(false);
+  };
+
+  const handleConfirmArsip = async (meta) => {
+    const ids = bulkDeleteIds.length > 0
+      ? bulkDeleteIds
+      : deletingInv?.id
+        ? [deletingInv.id]
+        : [];
+    if (!ids.length) return;
+
+    const isBulk = bulkDeleteIds.length > 0;
+    if (isBulk) setBulkDeleteLoading(true);
+    else setDeleteLoading(true);
+
     try {
-      await api.delete(`/sp/aset/${deletingInv.id}`);
-      getInv();
-      setShowDeleteModal(false);
-      setDeletingInv(null);
+      await Promise.all(
+        ids.map((id) => api.delete(`/sp/aset/${id}`, { data: meta }))
+      );
+      clearListCache();
+      await getInv({}, false, true);
+      handleCloseDeleteModal();
     } catch (error) {
-      console.error("Error deleting aset:", error);
+      console.error("Error mengarsipkan aset:", error);
     } finally {
       setDeleteLoading(false);
+      setBulkDeleteLoading(false);
     }
   };
 
-  const handleCloseDeleteModal = () => {
-    setShowDeleteModal(false);
-    setDeletingInv(null);
-    setDeleteLoading(false);
-  };
-
-  // ─── Bulk delete ──────────────────────────────────────────────────────────
   const handleBulkDelete = (selectedIds) => {
+    setDeletingInv(null);
     setBulkDeleteIds(selectedIds);
     setShowBulkDeleteModal(true);
   };
 
-  const handleConfirmBulkDelete = async () => {
-    if (bulkDeleteIds.length === 0) return;
-    setBulkDeleteLoading(true);
-    try {
-      const deletePromises = bulkDeleteIds.map((id) =>
-        api.delete(`/sp/aset/${id}`)
-      );
-      await Promise.all(deletePromises);
-      getInv();
-      setShowBulkDeleteModal(false);
-      setBulkDeleteIds([]);
-    } catch (error) {
-      console.error("Error bulk deleting aset:", error);
-    } finally {
-      setBulkDeleteLoading(false);
-    }
+  const handleExport = () => {
+    setShowExportModal(true);
+  };
+
+  const fetchAllPenghapusanForExport = async () => {
+    const all = [];
+    let page = 1;
+    const perPage = 500;
+    let totalPages = 1;
+
+    do {
+      const queryParams = new URLSearchParams({
+        page: String(page),
+        per_page: String(perPage),
+      });
+      if (searchTerm?.trim()) queryParams.append("search", searchTerm.trim());
+      Object.entries(filters || {}).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "" && value !== "custom") {
+          queryParams.append(key, value);
+        }
+      });
+
+      const response = await api.get(`/sp/aset-lelang?${queryParams}`);
+      if (response.data?.status !== "success") {
+        throw new Error(response.data?.message || "Gagal mengambil data export");
+      }
+      const chunk = response.data.data || [];
+      all.push(...chunk);
+      totalPages = Number(response.data.total_pages) || 1;
+      if (chunk.length < perPage) break;
+      page += 1;
+    } while (page <= totalPages && page <= 100);
+
+    return all;
   };
 
   // ─── DataTable change handler ─────────────────────────────────────────────
@@ -383,6 +422,7 @@ export default function DataPenghapusan() {
         filterable={true}
         sortable={true}
         selectable={true}
+        onExport={handleExport}
         onBulkDelete={handleBulkDelete}
         pagination={true}
         itemsPerPageOptions={[5, 10, 25, 50]}
@@ -408,29 +448,23 @@ export default function DataPenghapusan() {
         loading={kembalikanLoading}
       />
 
-      {/* Modal Delete Single */}
-      <DeleteModal
-        show={showDeleteModal}
+      <ArsipkanModal
+        show={showDeleteModal || showBulkDeleteModal}
         onClose={handleCloseDeleteModal}
-        onConfirm={handleConfirmDelete}
-        title="Hapus Aset"
-        message={`Apakah Anda yakin ingin menghapus Aset "${deletingInv?.desc || deletingInv?.kode}"?`}
-        loading={deleteLoading}
-        size="sm"
+        onConfirm={handleConfirmArsip}
+        item={deletingInv}
+        count={bulkDeleteIds.length > 0 ? bulkDeleteIds.length : 1}
+        loading={deleteLoading || bulkDeleteLoading}
       />
 
-      {/* Modal Delete Multiple */}
-      <DeleteModal
-        show={showBulkDeleteModal}
-        onClose={() => {
-          setShowBulkDeleteModal(false);
-          setBulkDeleteIds([]);
-        }}
-        onConfirm={handleConfirmBulkDelete}
-        title="Hapus Multiple Aset"
-        message={`Apakah Anda yakin ingin menghapus ${bulkDeleteIds.length} aset?`}
-        loading={bulkDeleteLoading}
-        size="sm"
+      <ExportModal
+        show={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        data={data}
+        columns={columns}
+        filename="daftar-penghapusan-aset"
+        title="Export Daftar Penghapusan Aset"
+        fetchAllData={fetchAllPenghapusanForExport}
       />
     </>
   );

@@ -75,27 +75,24 @@ export default function ExportModal({
     try {
       const timestamp = new Date().toISOString().split('T')[0]
 
+      let rows = data
+      if (typeof fetchAllData === 'function') {
+        rows = await fetchAllData()
+      }
+      if (!rows || rows.length === 0) {
+        alert('Tidak ada data untuk di-export')
+        return
+      }
+
       if (isIso) {
-        let rows = data
-        if (typeof fetchAllData === 'function') {
-          rows = await fetchAllData()
-        }
-        if (!rows || rows.length === 0) {
-          alert('Tidak ada data untuk di-export')
-          return
-        }
         await exportInventarisIso(rows, {
           tahun: isoTahun,
           filename: `formulir_inventaris_iso_${isoTahun}_${timestamp}`,
           logoUrl: '/ts.png',
         })
       } else {
-        if (!data || data.length === 0) {
-          alert('Tidak ada data untuk di-export')
-          return
-        }
         await exportData(
-          data,
+          rows,
           columns,
           selectedColumns,
           exportFormat,

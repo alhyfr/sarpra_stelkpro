@@ -22,6 +22,7 @@ import {
   MonitorSmartphone,
   BrickWall,
   FileText,
+  FileArchive
 } from 'lucide-react';
 
 const menuItems = [
@@ -38,8 +39,14 @@ const menuItems = [
       { title: 'ATK', href: '/inventaris/atk' },
       { title: 'Barang Non ATK', href: '/inventaris/habis-pakai' },
       { title: 'Aset Pending', href: '/inventaris/pending' },
+    ]
+  },
+  {
+    title: 'Penghapusan Aset',
+    icon: FileArchive,
+    submenu: [
       { title: 'Daftar Penghapusan', href: '/inventaris/penghapusan' },
-
+      { title: 'Arsip Penghapusan', href: '/inventaris/arsip' },
     ]
   },
   {
@@ -156,24 +163,42 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
   const pathname = usePathname();
   const [openMenus, setOpenMenus] = useState({});
 
-  // Auto-open menu if current path matches a submenu item
+  // Check if current path matches
+  const isActiveLink = (href) => {
+    if (!href) return false;
+    return pathname === href || pathname.startsWith(href + '/');
+  };
+
+  // Check if any submenu item (termasuk nested) is active
+  const hasActiveSubmenu = (submenu) => {
+    return submenu?.some((subItem) =>
+      subItem.submenu ? hasActiveSubmenu(subItem.submenu) : isActiveLink(subItem.href)
+    );
+  };
+
+  // Auto-open menu if current path matches a submenu item (termasuk nested)
   useEffect(() => {
+    const next = {};
     menuItems.forEach((item, index) => {
-      if (item.submenu) {
-        const hasActiveSubmenu = item.submenu.some(subItem =>
-          pathname === subItem.href || pathname.startsWith(subItem.href + '/')
-        );
-        if (hasActiveSubmenu) {
-          setOpenMenus(prev => ({ ...prev, [index]: true }));
-        }
+      if (!item.submenu) return;
+      if (hasActiveSubmenu(item.submenu)) {
+        next[index] = true;
       }
+      item.submenu.forEach((subItem, subIndex) => {
+        if (subItem.submenu && hasActiveSubmenu(subItem.submenu)) {
+          next[`${index}-${subIndex}`] = true;
+        }
+      });
     });
+    if (Object.keys(next).length) {
+      setOpenMenus((prev) => ({ ...prev, ...next }));
+    }
   }, [pathname]);
 
-  const toggleSubmenu = (index) => {
-    setOpenMenus(prev => ({
+  const toggleSubmenu = (key) => {
+    setOpenMenus((prev) => ({
       ...prev,
-      [index]: !prev[index]
+      [key]: !prev[key],
     }));
   };
 
@@ -182,16 +207,6 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       onClose?.();
     }
-  };
-
-  // Check if current path matches
-  const isActiveLink = (href) => {
-    return pathname === href || pathname.startsWith(href + '/');
-  };
-
-  // Check if any submenu item is active
-  const hasActiveSubmenu = (submenu) => {
-    return submenu?.some(subItem => isActiveLink(subItem.href));
   };
 
   const sidebarContent = (
@@ -241,12 +256,65 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
                 </button>
                 <div
                   className={`ml-4 overflow-hidden transition-all duration-300 ease-in-out ${openMenus[index]
-                    ? 'max-h-96 opacity-100 mt-1'
+                    ? 'max-h-[40rem] opacity-100 mt-1'
                     : 'max-h-0 opacity-0'
                     }`}
                 >
                   <div className="space-y-1">
                     {item.submenu.map((subItem, subIndex) => {
+                      if (subItem.submenu) {
+                        const nestedKey = `${index}-${subIndex}`;
+                        const nestedOpen = !!openMenus[nestedKey];
+                        const nestedActive = hasActiveSubmenu(subItem.submenu);
+                        return (
+                          <div key={subIndex}>
+                            <button
+                              type="button"
+                              onClick={() => toggleSubmenu(nestedKey)}
+                              className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                                nestedActive
+                                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
+                                  : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                              }`}
+                            >
+                              <span>{subItem.title}</span>
+                              <ChevronDown
+                                className={`w-3.5 h-3.5 transition-transform duration-300 ${
+                                  nestedOpen ? 'rotate-180' : 'rotate-0'
+                                }`}
+                              />
+                            </button>
+                            <div
+                              className={`ml-3 overflow-hidden transition-all duration-300 ease-in-out ${
+                                nestedOpen
+                                  ? 'max-h-40 opacity-100 mt-1'
+                                  : 'max-h-0 opacity-0'
+                              }`}
+                            >
+                              <div className="space-y-1">
+                                {subItem.submenu.map((nestedItem, nestedIndex) => {
+                                  const isActive = isActiveLink(nestedItem.href);
+                                  return (
+                                    <Link
+                                      key={nestedIndex}
+                                      href={nestedItem.href}
+                                      onClick={handleNavClick}
+                                      className={`block px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                                        isActive
+                                          ? 'bg-red-800 text-white font-medium shadow-sm'
+                                          : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 transform hover:translate-x-1'
+                                      }`}
+                                    >
+                                      {nestedItem.title}
+                                    </Link>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+
                       const isActive = isActiveLink(subItem.href);
                       return (
                         <Link
