@@ -13,6 +13,8 @@ export function kirDigitalUrl(namaRuangan) {
 function QrSheet({ ruangan, url }) {
   return (
     <div style={{ width: '420px', margin: '0 auto', padding: '28px 24px 32px', background: '#ffffff', color: '#000000', fontFamily: 'Calibri, Arial, sans-serif', textAlign: 'center' }}>
+      {/* html2pdf butuh <img> native; next/image tidak ikut ke capture PDF */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={logoSrc} alt="SMK Telkom Makassar" width="78" style={{ width: '78px', height: 'auto', display: 'block', margin: '0 auto 12px' }} />
       <div style={{ fontWeight: 700, fontSize: '16px' }}>KARTU INVENTARIS RUANGAN</div>
       <div style={{ fontSize: '12px', marginTop: '2px' }}>SMK TELKOM MAKASSAR</div>
