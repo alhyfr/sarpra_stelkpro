@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from '@/assets/logo_ori.png';
@@ -24,6 +24,8 @@ import {
   FileText,
   FileArchive
 } from 'lucide-react';
+import { useAuth } from '@/app/context/AuthContext';
+import { LEVEL } from '@/constants/rbac';
 
 const menuItems = [
   {
@@ -66,11 +68,11 @@ const menuItems = [
     title: 'Users',
     icon: Users,
     submenu: [
-      { title: 'User Account', href: '/users/acount' },
+      { title: 'User Account', href: '/users/acount', minLevel: LEVEL.SUPER_ADMIN },
       { title: 'Team', href: '/users/teams' },
       { title: 'Support', href: '/users/support' },
       { title: 'Member', href: '/users/member' },
-      { title: 'Token', href: '/users/token' },
+      { title: 'Token', href: '/users/token', minLevel: LEVEL.SUPER_ADMIN },
     ]
   },
   {
@@ -100,12 +102,12 @@ const menuItems = [
     title: 'Sarpra',
     icon: Hammer,
     submenu: [
-      { title: 'perawatan aset', href: '/sarpra/perawatan/aset' },
-      { title: 'perawatan bangunan', href: '/sarpra/perawatan/bangunan' },
+      { title: 'laporan perawatan aset', href: '/sarpra/perawatan/aset' },
+      { title: 'laporan perawatan bangunan', href: '/sarpra/perawatan/bangunan' },
       { title: 'gedung', href: '/sarpra/gedung' },
       { title: 'ruangan', href: '/sarpra/ruangan' },
       { title: 'persediaan barang', href: '/sarpra/persediaan' },
-      { title: 'kartu persediaan', href: '/sarpra/kartu-persediaan' },
+      { title: 'laporan kartu persediaan', href: '/sarpra/kartu-persediaan' },
       { title: 'perawatan AC', href: '/sarpra/ac' },
     ]
   },
@@ -122,7 +124,7 @@ const menuItems = [
     icon: BrickWall,
     submenu: [
       { title: 'material masuk', href: '/material/masuk' },
-      { title: 'material keluar', href: '/material/keluar' },
+      { title: 'laporan material keluar', href: '/material/keluar' },
       { title: 'stok gudang', href: '/material/stok' },
     ]
 
@@ -150,18 +152,42 @@ const menuItems = [
   {
     title: 'Settings',
     icon: Settings,
+    minLevel: LEVEL.SUPER_ADMIN,
     submenu: [
-      { title: 'satuan', href: '/settings/satuan' },
-      { title: 'Sumber Dana', href: '/settings/sumber' },
-      { title: 'Kategori Aset', href: '/settings/kategori' },
-      { title: 'Kategori IT', href: '/settings/kategori-it' },
+      { title: 'satuan', href: '/settings/satuan', minLevel: LEVEL.SUPER_ADMIN },
+      { title: 'Sumber Dana', href: '/settings/sumber', minLevel: LEVEL.SUPER_ADMIN },
+      { title: 'Kategori Aset', href: '/settings/kategori', minLevel: LEVEL.SUPER_ADMIN },
+      { title: 'Kategori IT', href: '/settings/kategori-it', minLevel: LEVEL.SUPER_ADMIN },
     ]
   },
 ];
 
+/** minLevel: LEVEL.SUPER_ADMIN → hanya super admin yang melihat item. */
+function filterMenuByLevel(items, userLevel) {
+  const level = Number(userLevel);
+  return items
+    .map((item) => {
+      if (item.minLevel != null && level !== Number(item.minLevel)) {
+        return null;
+      }
+      if (item.submenu) {
+        const submenu = filterMenuByLevel(item.submenu, userLevel);
+        if (submenu.length === 0 && !item.href) return null;
+        return { ...item, submenu };
+      }
+      return item;
+    })
+    .filter(Boolean);
+}
+
 export default function Sidebar({ isOpen, onClose, onToggle }) {
   const pathname = usePathname();
+  const { user } = useAuth();
   const [openMenus, setOpenMenus] = useState({});
+  const visibleMenu = useMemo(
+    () => filterMenuByLevel(menuItems, user?.level ?? LEVEL.USER),
+    [user?.level]
+  );
 
   // Check if current path matches
   const isActiveLink = (href) => {
@@ -234,7 +260,7 @@ export default function Sidebar({ isOpen, onClose, onToggle }) {
 
       {/* Menu Items */}
       <nav className="flex-1 overflow-y-auto py-4 px-3">
-        {menuItems.map((item, index) => (
+        {visibleMenu.map((item, index) => (
           <div key={index} className="mb-1">
             {item.submenu ? (
               <div>

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import Loading from "@/components/Loading";
+import ApiForbiddenListener from "@/components/ApiForbiddenListener";
 import { DataProvider } from "@/app/context/DataContext";
 
 export default function MainLayout({ children }) {
@@ -55,6 +56,7 @@ export default function MainLayout({ children }) {
           </div>
         </main>
       </div>
+      <ApiForbiddenListener />
     </div>
   );
 }

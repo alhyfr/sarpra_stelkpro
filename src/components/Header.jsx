@@ -205,7 +205,9 @@ export default function Header({ onMenuClick }) {
               </div>
               <div className="hidden md:block text-left max-w-[9rem] lg:max-w-[12rem]">
                 <div className="text-sm font-medium truncate">{user?.name || 'User'}</div>
-                <div className="text-xs text-gray-500 truncate">{user?.level === 1 ? 'Admin' : 'User'}</div>
+                <div className="text-xs text-gray-500 truncate">
+                  {Number(user?.level) === 1 ? "Super Admin" : Number(user?.level) === 2 ? "Operator" : "User"}
+                </div>
               </div>
               <ChevronDown className="w-4 h-4 hidden md:block shrink-0" />
             </button>

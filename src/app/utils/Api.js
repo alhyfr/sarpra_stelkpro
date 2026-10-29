@@ -83,9 +83,24 @@ Api.interceptors.response.use(
       console.error('Response Error:', status, error.message);
     }
 
-    // Jika 403 (Forbidden)
-    if (status === 403) {
-      console.error('Access Denied');
+    // 403 = hak akses tidak cukup (RBAC) — tampilkan dialog global
+    if (status === 403 && typeof window !== 'undefined') {
+      const body = error.response?.data || {};
+      const message =
+        body.message ||
+        'Anda tidak memiliki hak untuk melakukan tindakan ini.';
+      window.dispatchEvent(
+        new CustomEvent('sip:forbidden', {
+          detail: {
+            title:
+              body.code === 'FORBIDDEN_LEVEL'
+                ? 'Hak Akses Tidak Cukup'
+                : 'Akses Ditolak',
+            message,
+            code: body.code,
+          },
+        })
+      );
     }
 
     // Jika 500 (Server Error)
