@@ -1,16 +1,23 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import AInput from "@/components/AInput";
 import ARadio from "@/components/ARadio";
 import ASelect from "@/components/ASelect";
 import Button from "@/components/Button";
 import { validateAkunForm } from "./validatorAkun";
 import { User } from "lucide-react";
+import {
+  LEVEL_OPTIONS,
+  STATUS_OPTIONS,
+  roleSelectOptions,
+  positionSelectOptions,
+} from "@/constants/rbac";
+
 export default function TambahAkun({
   onClose = null,
   onSuccess = null,
-  postUser = null, // Fix: nama yang benar
-  editingAkun = null, // Fix: nama yang benar
+  postUser = null,
+  editingAkun = null,
   isEditMode = false,
   roles = [],
   positions = [],
@@ -22,25 +29,52 @@ export default function TambahAkun({
     position: "",
     email: "",
     password: "",
-    status: "",
+    status: "on",
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [showErrors, setShowErrors] = useState(false); // Kontrol kapan error ditampilkan
-  // Load data saat edit mode
+  const [showErrors, setShowErrors] = useState(false);
+
+  const levelOptions = useMemo(() => {
+    const fromApi = roleSelectOptions(roles);
+    return fromApi.length ? fromApi : LEVEL_OPTIONS;
+  }, [roles]);
+
+  const positionOptions = useMemo(
+    () => positionSelectOptions(positions),
+    [positions]
+  );
+
   useEffect(() => {
     if (isEditMode && editingAkun) {
       setFormData({
         uid: editingAkun.uid || "",
         name: editingAkun.name || "",
-        level: editingAkun.level || "",
-        position: editingAkun.position || "",
+        level:
+          editingAkun.level !== undefined && editingAkun.level !== null
+            ? String(editingAkun.level)
+            : "",
+        position:
+          editingAkun.position !== undefined && editingAkun.position !== null
+            ? String(editingAkun.position)
+            : "",
         email: editingAkun.email || "",
-        password: "sarpra2025" || "",
-        status: editingAkun.status || "", // URL foto dari server
+        password: "",
+        status: editingAkun.status || "on",
+      });
+    } else if (!isEditMode) {
+      setFormData({
+        uid: "",
+        name: "",
+        level: "",
+        position: "",
+        email: "",
+        password: "",
+        status: "on",
       });
     }
   }, [isEditMode, editingAkun]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -48,7 +82,6 @@ export default function TambahAkun({
       [name]: value,
     }));
 
-    // Clear error when user starts typing (jika showErrors aktif)
     if (showErrors && errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -56,81 +89,73 @@ export default function TambahAkun({
       }));
     }
   };
-  const validateForm = () => {
-    // Gunakan validator dari file terpisah
-    const newErrors = validateAkunForm(formData)
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-  const handleSubmit = async (e) => {
-    e.preventDefault()
 
-    // Set showErrors ke true untuk menampilkan error
-    setShowErrors(true)
+  const validateForm = () => {
+    const newErrors = validateAkunForm(formData, { isEditMode });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setShowErrors(true);
 
     if (!validateForm()) {
-      return
+      return;
     }
 
-    setLoading(true)
-    setErrors({})
-    setShowErrors(false) // Reset setelah validasi sukses
+    setLoading(true);
+    setErrors({});
+    setShowErrors(false);
 
     try {
-      // Jika ada foto (File object), gunakan FormData untuk multipart upload
-      let submitData
-
-
-      // Regular JSON data (no file atau foto sudah URL)
-      submitData = {
+      const submitData = {
         uid: formData.uid,
         name: formData.name,
-        level: formData.level,
-        position: formData.position,
+        level: Number(formData.level),
+        position: Number(formData.position),
         email: formData.email,
-        password: formData.password,
         status: formData.status,
+      };
+      if (formData.password?.trim()) {
+        submitData.password = formData.password;
       }
 
-
-      // Fix: gunakan postTeam bukan postUser
       if (postUser) {
-        await postUser(submitData)
+        await postUser(submitData);
       } else {
-        throw new Error('postTeam function not provided')
+        throw new Error("postUser function not provided");
       }
-      // Reset form
+
       setFormData({
-        uid: '',
-        name: '',
-        level: '',
-        position: '',
-        email: '',
-        password: '',
-        status: '',
-      })
+        uid: "",
+        name: "",
+        level: "",
+        position: "",
+        email: "",
+        password: "",
+        status: "on",
+      });
+      setShowErrors(false);
+      setErrors({});
 
-      // Reset error state
-      setShowErrors(false)
-      setErrors({})
-
-      if (onSuccess) onSuccess(submitData)
-      if (onClose) onClose()
-
+      if (onSuccess) onSuccess(submitData);
+      if (onClose) onClose();
     } catch (error) {
-      console.error('Error saving team:', error)
-      // Show error via alert instead of form error
-      const errorMessage = error.response?.data?.message || error.message || 'Terjadi kesalahan saat menyimpan data'
-      alert(errorMessage)
+      console.error("Error saving user:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Terjadi kesalahan saat menyimpan data";
+      alert(errorMessage);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-  return <>
+  };
+
+  return (
     <form onSubmit={handleSubmit} noValidate>
-      {/* Grid Container - 2 columns on medium screens and up */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Row 1: UID & Name */}
         <AInput
           id="uid"
           icon={User}
@@ -139,7 +164,7 @@ export default function TambahAkun({
           placeholder="Masukkan UID"
           value={formData.uid}
           onChange={handleInputChange}
-          error={showErrors ? errors.uid : ''}
+          error={showErrors ? errors.uid : ""}
           required
         />
         <AInput
@@ -147,83 +172,82 @@ export default function TambahAkun({
           icon={User}
           name="name"
           label="Nama"
-          placeholder="Masukkan Nama"
+          placeholder="Masukkan nama lengkap"
           value={formData.name}
           onChange={handleInputChange}
-          error={showErrors ? errors.name : ''}
+          error={showErrors ? errors.name : ""}
           required
         />
 
-        {/* Row 2: Level & Position */}
         <ASelect
           id="level"
           name="level"
-          label="Level"
-          options={roles.map(role => ({ value: role.role_id, label: role.codename }))}
+          label="Level hak akses"
+          placeholder="Pilih level"
+          options={levelOptions}
           value={formData.level}
           onChange={handleInputChange}
-          error={showErrors ? errors.level : ''}
+          error={showErrors ? errors.level : ""}
+          helperText="Super Admin: semua akses. Operator: operasional. User: terbatas."
           required
         />
         <ASelect
           id="position"
           name="position"
-          label="Position"
-          options={positions.map(position => ({ value: position.pos_id, label: position.codename }))}
+          label="Jabatan"
+          placeholder="Pilih jabatan"
+          options={positionOptions}
           value={formData.position}
           onChange={handleInputChange}
-          error={showErrors ? errors.position : ''}
+          error={showErrors ? errors.position : ""}
           required
         />
 
-        {/* Row 3: Email & Password */}
         <AInput
           id="email"
           icon={User}
           name="email"
-          label="Email"
-          placeholder="Masukkan Email"
+          label="Email / username"
+          placeholder="Masukkan email"
           value={formData.email}
           onChange={handleInputChange}
-          error={showErrors ? errors.email : ''}
+          error={showErrors ? errors.email : ""}
           required
         />
         <AInput
           id="password"
           icon={User}
           name="password"
-          label="Password"
-          placeholder="Masukkan Password"
+          label={isEditMode ? "Password baru" : "Password"}
+          placeholder={
+            isEditMode ? "Kosongkan jika tidak diubah" : "Masukkan password"
+          }
+          type="password"
           value={formData.password}
           onChange={handleInputChange}
-          error={showErrors ? errors.password : ''}
-          required
+          error={showErrors ? errors.password : ""}
+          required={!isEditMode}
         />
 
-        {/* Row 4: Status - Full width */}
         <div className="md:col-span-2">
           <ARadio
             id="status"
             name="status"
-            label="Status"
+            label="Status akun"
             value={formData.status}
             onChange={handleInputChange}
-            error={showErrors ? errors.status : ''}
+            error={showErrors ? errors.status : ""}
             required
-            options={[
-              { value: 'on', label: 'on' },
-              { value: 'off', label: 'off' },
-            ]}
+            options={STATUS_OPTIONS}
           />
         </div>
       </div>
 
-      {/* Submit Button - Full width, with top margin */}
       <div className="mt-6">
         <Button type="submit" loading={loading} className="w-full">
-          Simpan
+          {isEditMode ? "Update User" : "Simpan User"}
         </Button>
       </div>
     </form>
-  </>;
+  );
 }

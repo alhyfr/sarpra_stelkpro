@@ -1,74 +1,67 @@
 /**
  * Validate akun form data
- * @param {Object} formData - Data form yang akan divalidasi
- * @returns {Object} - Object berisi errors (kosong jika valid)
+ * @param {Object} formData
+ * @param {{ isEditMode?: boolean }} options
  */
-const validateAkunForm = (formData) => {
-  const errors = {}
-  
-  // ============================================
-  // 1. VALIDASI UID (Required, Min 5 char, numeric)
-  // ============================================
-  if (!formData.uid || !formData.uid.trim()) {
-    errors.uid = 'uid wajib diisi'
-  } else if (formData.uid.trim().length < 5) {
-    errors.uid = 'uid minimal 5 karakter'
-  } else if (!/^[0-9]+$/.test(formData.uid.trim())) {
-    errors.uid = 'uid hanya boleh berisi angka'
-  }
-  
-  // ============================================
-  // 2. VALIDASI NAME (Required, Min 3 char)
-  // ============================================
-  if (!formData.name || !formData.name.trim()) {
-    errors.name = 'Nama lengkap wajib diisi'
-  } else if (formData.name.trim().length < 3) {
-    errors.name = 'Nama minimal 3 karakter'
-  }
-  
-  // ============================================
-  // 3. VALIDASI EMAIL (Required, Valid format)
-  // ============================================
-  if (!formData.email || !formData.email.trim()) {
-    errors.email = 'Email wajib diisi'
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-    errors.email = 'Email tidak valid'
-  }
-  
-  // ============================================
-  // 4. VALIDASI PASSWORD (Required, Min 8 char)
-  // ============================================
-  if (!formData.password || !formData.password.trim()) {
-    errors.password = 'Password wajib diisi'
-  } else if (formData.password.trim().length < 8) {
-    errors.password = 'Password minimal 8 karakter'
-  }
-  
-  // ============================================
-  // 5. VALIDASI LEVEL (Required)
-  // ============================================
-  if (!formData.level || formData.level === '' || 
-      (typeof formData.level === 'string' && formData.level.trim() === '')) {
-    errors.level = 'Level wajib diisi'
-  }
-  
-  // ============================================
-  // 6. VALIDASI POSITION (Required)
-  // ============================================
-  if (!formData.position || formData.position === '' || 
-      (typeof formData.position === 'string' && formData.position.trim() === '')) {
-    errors.position = 'Position wajib diisi'
-  }
-  
-  // ============================================
-  // 7. VALIDASI STATUS (Required)
-  // ============================================
-  if (!formData.status || formData.status === '' || 
-      (typeof formData.status === 'string' && formData.status.trim() === '')) {
-    errors.status = 'Status wajib diisi'
-  }
-  
-  return errors
-}
+const validateAkunForm = (formData, options = {}) => {
+  const { isEditMode = false } = options;
+  const errors = {};
 
-export { validateAkunForm }
+  if (!formData.uid || !String(formData.uid).trim()) {
+    errors.uid = "UID wajib diisi";
+  } else if (String(formData.uid).trim().length < 5) {
+    errors.uid = "UID minimal 5 karakter";
+  } else if (!/^[0-9]+$/.test(String(formData.uid).trim())) {
+    errors.uid = "UID hanya boleh berisi angka";
+  }
+
+  if (!formData.name || !String(formData.name).trim()) {
+    errors.name = "Nama lengkap wajib diisi";
+  } else if (String(formData.name).trim().length < 3) {
+    errors.name = "Nama minimal 3 karakter";
+  }
+
+  if (!formData.email || !String(formData.email).trim()) {
+    errors.email = "Email wajib diisi";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(formData.email).trim())) {
+    errors.email = "Email tidak valid";
+  }
+
+  const password = formData.password ? String(formData.password).trim() : "";
+  if (!isEditMode) {
+    if (!password) {
+      errors.password = "Password wajib diisi";
+    } else if (password.length < 8) {
+      errors.password = "Password minimal 8 karakter";
+    }
+  } else if (password && password.length < 8) {
+    errors.password = "Password minimal 8 karakter";
+  }
+
+  if (
+    formData.level === undefined ||
+    formData.level === null ||
+    String(formData.level).trim() === ""
+  ) {
+    errors.level = "Level hak akses wajib dipilih";
+  }
+
+  if (
+    formData.position === undefined ||
+    formData.position === null ||
+    String(formData.position).trim() === ""
+  ) {
+    errors.position = "Jabatan wajib dipilih";
+  }
+
+  if (
+    !formData.status ||
+    (typeof formData.status === "string" && formData.status.trim() === "")
+  ) {
+    errors.status = "Status akun wajib dipilih";
+  }
+
+  return errors;
+};
+
+export { validateAkunForm };

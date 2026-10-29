@@ -9,30 +9,38 @@ import api from '@/app/utils/Api'
 import TambahAkun from './TambahAkun'
 import { useData } from '@/app/context/DataContext'
 import useServerListFetch from '@/hooks/useServerListFetch'
+import {
+  STATUS_OPTIONS,
+  roleSelectOptions,
+  levelLabel,
+} from '@/constants/rbac'
 
 export default function DataAkun() {
   const { fetchList, clearListCache } = useServerListFetch()
-const [data, setData] = useState([])           // Data yang ditampilkan di table
-  const [total, setTotal] = useState(0)         // Total data dari server (untuk pagination)
-  const [loading, setLoading] = useState(false) // Loading state saat fetch data
-  const [currentPage, setCurrentPage] = useState(1)     // Halaman aktif
-  const [itemsPerPage, setItemsPerPage] = useState(10) // Jumlah item per halaman
-  const [searchTerm, setSearchTerm] = useState('')      // Kata kunci pencarian
-  const [sortField, setSortField] = useState('')       // Field yang di-sort
-  const [sortDirection, setSortDirection] = useState('asc') // Arah sorting (asc/desc)
-  const [filters, setFilters] = useState({}) 
-  
-  const [showAddModal, setShowAddModal] = useState(false)     // Modal tambah/edit data
-  const [editingAkun, setEditingAkun] = useState(null)        // Data yang sedang diedit
-  const [isEditMode, setIsEditMode] = useState(false) 
-  const [showDeleteModal, setShowDeleteModal] = useState(false)     // Modal konfirmasi hapus
-  const [deletingAkun, setDeletingAkun] = useState(null)           // Data yang akan dihapus
-  const [deleteLoading, setDeleteLoading] = useState(false)        
-  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false) // Modal konfirmasi hapus multiple
-  const [bulkDeleteIds, setBulkDeleteIds] = useState([])               // Array ID yang akan dihapus
-  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false) 
+  const [data, setData] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [sortField, setSortField] = useState('')
+  const [sortDirection, setSortDirection] = useState('asc')
+  const [filters, setFilters] = useState({})
+
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [editingAkun, setEditingAkun] = useState(null)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deletingAkun, setDeletingAkun] = useState(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false)
+  const [bulkDeleteIds, setBulkDeleteIds] = useState([])
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false)
   const [showExportModal, setShowExportModal] = useState(false)
   const { roles, getOpsi, positions } = useData()
+
+  const levelFilterOptions = roleSelectOptions(roles)
+
   const columns = [
     {
       key: 'uid',
@@ -53,7 +61,9 @@ const [data, setData] = useState([])           // Data yang ditampilkan di table
       key: 'role',
       title: 'LEVEL',
       searchable: true,
-      filterOptions: roles.map(role => ({ value: role.role_id, label: role.codename })),
+      filterOptions: levelFilterOptions,
+      render: (value, item) =>
+        levelLabel(item?.level ?? item?.role_id) || value || '-',
     },
     {
       key: 'posisi',
@@ -64,10 +74,9 @@ const [data, setData] = useState([])           // Data yang ditampilkan di table
       key: 'status',
       title: 'STATUS',
       searchable: true,
-      filterOptions: [
-        { value: 'on', label: 'on' },
-        { value: 'off', label: 'off' },
-      ],
+      filterOptions: STATUS_OPTIONS,
+      render: (value) =>
+        value === 'on' ? 'Aktif' : value === 'off' ? 'Nonaktif' : value || '-',
     },
     {
       key: 'actions',
@@ -78,15 +87,15 @@ const [data, setData] = useState([])           // Data yang ditampilkan di table
         {
           icon: Edit,
           title: 'Edit',
-          onClick: (item) => handleEdit(item)
+          onClick: (item) => handleEdit(item),
         },
         {
           icon: Trash2,
           title: 'Delete',
-          onClick: (item) => handleDelete(item)
-        }
-      ]
-    }
+          onClick: (item) => handleDelete(item),
+        },
+      ],
+    },
   ]
   const getUsers = async (params = {}, showLoading = true) => {
     await fetchList({
@@ -182,7 +191,7 @@ const [data, setData] = useState([])           // Data yang ditampilkan di table
   }
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false)
-    setDeletingTeam(null)  
+    setDeletingAkun(null)
     setDeleteLoading(false)
   }
   const handleBulkDelete = (selectedIds) => {
@@ -195,9 +204,9 @@ const [data, setData] = useState([])           // Data yang ditampilkan di table
     setBulkDeleteLoading(true)
     try {
       // Delete multiple users
-      const deletePromises = bulkDeleteIds.map(id => api.delete(`/sp/users/${id}`))  // 🔧 GANTI: endpoint delete
+      const deletePromises = bulkDeleteIds.map(id => api.delete(`/sp/users/${id}`))
       await Promise.all(deletePromises)
-      getTeams()  
+      getUsers()
       setShowBulkDeleteModal(false)
       setBulkDeleteIds([])
     } catch (error) {
