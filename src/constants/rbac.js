@@ -37,20 +37,29 @@ export function levelLabel(level) {
   return LEVEL_LABEL[n] || `Level ${level ?? "-"}`;
 }
 
-/** Map roles dari API ke opsi select dengan label RBAC yang rapi */
+/**
+ * Opsi select level: selalu tampilkan 1–3 dari RBAC.
+ * Baris ekstra di tabel roles (role_id > 3) ikut ditampilkan jika ada.
+ */
 export function roleSelectOptions(roles = []) {
-  if (!Array.isArray(roles) || roles.length === 0) {
-    return LEVEL_OPTIONS;
-  }
-  return roles
-    .map((role) => {
+  const byId = new Map(
+    LEVEL_OPTIONS.map((opt) => [Number(opt.value), { ...opt }])
+  );
+
+  if (Array.isArray(roles)) {
+    for (const role of roles) {
       const id = Number(role.role_id ?? role.id);
-      return {
+      if (!Number.isFinite(id)) continue;
+      byId.set(id, {
         value: String(id),
         label: LEVEL_LABEL[id] || role.codename || `Level ${id}`,
-      };
-    })
-    .sort((a, b) => Number(a.value) - Number(b.value));
+      });
+    }
+  }
+
+  return Array.from(byId.values()).sort(
+    (a, b) => Number(a.value) - Number(b.value)
+  );
 }
 
 export function positionSelectOptions(positions = []) {
