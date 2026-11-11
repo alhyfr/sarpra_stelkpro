@@ -79,25 +79,39 @@ export default function DataBahan() {
             searchable: true,
         },
         {
+            key: 'stok_sekarang',
+            title: 'Stok Sekarang',
+            sortable: true,
+            searchable: true,
+            render: (value, item) => {
+                const stok = Number(item.stok_tersedia ?? value ?? item.stok_awal ?? 0)
+                const min = Number(item.stok_minimum || 0)
+                return (
+                    <span className={stok <= min ? 'font-semibold text-rose-600' : 'text-gray-800'}>
+                        {stok}
+                    </span>
+                )
+            },
+        },
+        {
             key: 'stok_minimum',
             title: 'Stok Minimum',
             sortable: true,
             searchable: true,
         },
         {
-            key: 'masuk',
+            key: 'total_masuk',
             title: 'Masuk',
-            sortable: true,
-            searchable: true,
-            render: (value, item) => (
-                <div className="flex items-center gap-2">
-                    <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full`}
-                    >
-                        0
-                    </span>
-                </div>
-            ),
+            sortable: false,
+            searchable: false,
+            render: (value) => Number(value || 0),
+        },
+        {
+            key: 'total_keluar',
+            title: 'Keluar',
+            sortable: false,
+            searchable: false,
+            render: (value) => Number(value || 0),
         },
         {
             key: 'nama_lab',
@@ -106,34 +120,16 @@ export default function DataBahan() {
             searchable: true,
         },
         {
-            key: 'Baik',
-            title: 'Baik',
+            key: 'kondisi',
+            title: 'Kondisi',
             sortable: true,
             searchable: true,
-            render: (value, item) => (
-                <div className="flex items-center gap-2">
-                    <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full`}
-                    >
-                        0
-                    </span>
-                </div>
-            ),
-        },
-        {
-            key: 'Rusak',
-            title: 'Rusak',
-            sortable: true,
-            searchable: true,
-            render: (value, item) => (
-                <div className="flex items-center gap-2">
-                    <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full`}
-                    >
-                        0
-                    </span>
-                </div>
-            ),
+            filterable: true,
+            filterOptions: [
+                { value: 'baik', label: 'Baik' },
+                { value: 'rusak', label: 'Rusak' },
+                { value: 'kadaluarsa', label: 'Kadaluarsa' },
+            ],
         },
         {
             key: 'ket',

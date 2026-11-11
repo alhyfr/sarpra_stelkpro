@@ -671,10 +671,8 @@ export const validateTokenForm = createValidator({
     }
   },
   permissions: {
-    presence: {
-      allowEmpty: false,
-      message: "^Permissions wajib diisi"
-    }
+    // boleh kosong = akses penuh (kompatibel eksternal lama)
+    presence: false,
   },
   is_active: {
     presence: {

@@ -121,17 +121,18 @@ export default function TambahToken({
                     required
                 />
 
-                {/* PERMISSIONS - REQUIRED */}
+                {/* PERMISSIONS — kosong / read / write = semua endpoint;
+                    scope path: inventori,kir,perawatan,perbaikan,perawatan-ac */}
                 <AInput
                     id="permissions"
                     icon={Shield}
                     name="permissions"
                     label="PERMISSIONS"
-                    placeholder="Masukkan permissions"
+                    placeholder="Kosongkan = semua, atau inventori,kir,perawatan,…"
                     value={formData.permissions}
                     onChange={handleInputChange}
                     error={showErrors ? errors.permissions : ''}
-                    required
+                    helperText="Kosong / read / write = akses penuh (aman untuk app eksternal lama). Scope sempit contoh invenatori: inventori,kir,perawatan,perbaikan,perawatan-ac"
                 />
 
                 {/* IS ACTIVE - REQUIRED (RADIO BUTTON) */}
